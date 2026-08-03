@@ -11,13 +11,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         ref={ref}
         type={type}
-        aria-invalid={invalid || undefined}
+        aria-invalid={invalid ? true : props["aria-invalid"]}
         className={cn(
-          "block min-h-11 w-full border border-input bg-surface px-3 py-2 text-base text-foreground",
-          "placeholder:text-caption",
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-          "disabled:border-border disabled:bg-disabled-surface disabled:text-disabled-foreground",
-          "aria-invalid:border-destructive aria-invalid:text-foreground",
+          "block min-h-11 w-full border border-border-control bg-surface px-3 py-2 text-base text-text-primary",
+          "placeholder:text-text-caption",
+          "transition-colors duration-[180ms] motion-reduce:transition-none",
+          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
+          "disabled:cursor-not-allowed disabled:opacity-45",
+          "aria-invalid:border-status-error aria-invalid:text-text-primary",
           className,
         )}
         {...props}

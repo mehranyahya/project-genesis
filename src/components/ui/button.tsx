@@ -3,25 +3,54 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
+/**
+ * Quiet Monumental Luxury button.
+ * Primary CTA = Serpentine (action-primary). Bronze is decorative only and is
+ * never used as an interactive background. No scale, no shadow, no spinner.
+ */
 const buttonVariants = cva(
-  "inline-flex min-h-11 items-center justify-center gap-2 border px-5 py-2 text-sm font-bold leading-normal transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:border-border disabled:bg-disabled-surface disabled:text-disabled-foreground [&_svg]:size-4 [&_svg]:shrink-0",
+  [
+    "inline-flex min-h-11 min-w-11 items-center justify-center gap-2 border px-5 py-2",
+    "text-sm font-bold leading-normal",
+    "transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)]",
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
+    "disabled:cursor-not-allowed disabled:opacity-45",
+    "motion-reduce:transition-none",
+    "[&_svg]:size-4 [&_svg]:shrink-0",
+  ].join(" "),
   {
     variants: {
       variant: {
-        primary:
-          "border-primary bg-primary text-primary-foreground hover:bg-secondary hover:border-secondary",
-        secondary: "border-border-strong bg-surface text-foreground hover:bg-surface-media",
-        accent:
-          "border-accent bg-accent text-accent-foreground hover:bg-primary hover:border-primary",
-        quiet: "border-transparent bg-surface text-foreground hover:border-border-strong",
-        destructive:
-          "border-destructive bg-destructive text-destructive-foreground hover:bg-primary hover:border-primary",
+        primary: [
+          "border-action-primary bg-action-primary text-text-inverse",
+          "hover:not-disabled:border-surface-inverse hover:not-disabled:bg-surface-inverse",
+        ].join(" "),
+        secondary: [
+          "border-border-control bg-surface text-text-primary",
+          "hover:not-disabled:bg-surface-media",
+        ].join(" "),
+        quiet: [
+          "border-transparent bg-surface text-text-primary",
+          "hover:not-disabled:border-border-control",
+        ].join(" "),
+        destructive: [
+          "border-status-error bg-status-error text-text-inverse",
+          "hover:not-disabled:border-surface-inverse hover:not-disabled:bg-surface-inverse",
+        ].join(" "),
         // Compatibility aliases for untouched shadcn primitives.
-        default:
-          "border-primary bg-primary text-primary-foreground hover:bg-secondary hover:border-secondary",
-        outline: "border-border-strong bg-surface text-foreground hover:bg-surface-media",
-        ghost: "border-transparent bg-surface text-foreground hover:border-border-strong",
-        link: "border-transparent bg-surface text-foreground underline underline-offset-4",
+        default: [
+          "border-action-primary bg-action-primary text-text-inverse",
+          "hover:not-disabled:border-surface-inverse hover:not-disabled:bg-surface-inverse",
+        ].join(" "),
+        outline: [
+          "border-border-control bg-surface text-text-primary",
+          "hover:not-disabled:bg-surface-media",
+        ].join(" "),
+        ghost: [
+          "border-transparent bg-surface text-text-primary",
+          "hover:not-disabled:border-border-control",
+        ].join(" "),
+        link: "border-transparent bg-surface text-text-primary underline underline-offset-4",
       },
       size: {
         default: "min-h-11 px-5",
@@ -36,25 +65,15 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
-  loadingLabel?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    {
-      className,
-      variant,
-      size,
-      asChild = false,
-      loading = false,
-      loadingLabel = "در حال ارسال…",
-      disabled,
-      children,
-      ...props
-    },
+    { className, variant, size, asChild = false, loading = false, disabled, children, ...props },
     ref,
   ) => {
     const Comp = asChild ? Slot : "button";
@@ -62,12 +81,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         ref={ref}
         data-loading={loading ? "true" : undefined}
-        aria-busy={loading || undefined}
+        aria-busy={loading ? true : undefined}
+        aria-disabled={disabled || loading ? true : undefined}
         disabled={disabled || loading}
         className={cn(buttonVariants({ variant, size }), className)}
         {...props}
       >
-        {loading && !asChild ? loadingLabel : children}
+        {children}
       </Comp>
     );
   },
