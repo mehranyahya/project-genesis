@@ -23,32 +23,32 @@ const buttonVariants = cva(
       variant: {
         primary: [
           "border-action-primary bg-action-primary text-text-inverse",
-          "hover:not-disabled:border-surface-inverse hover:not-disabled:bg-surface-inverse",
+          "enabled:hover:border-surface-inverse enabled:hover:bg-surface-inverse",
         ].join(" "),
         secondary: [
           "border-border-control bg-surface text-text-primary",
-          "hover:not-disabled:bg-surface-media",
+          "enabled:hover:bg-surface-media",
         ].join(" "),
         quiet: [
           "border-transparent bg-surface text-text-primary",
-          "hover:not-disabled:border-border-control",
+          "enabled:hover:border-border-control",
         ].join(" "),
         destructive: [
           "border-status-error bg-status-error text-text-inverse",
-          "hover:not-disabled:border-surface-inverse hover:not-disabled:bg-surface-inverse",
+          "enabled:hover:border-surface-inverse enabled:hover:bg-surface-inverse",
         ].join(" "),
         // Compatibility aliases for untouched shadcn primitives.
         default: [
           "border-action-primary bg-action-primary text-text-inverse",
-          "hover:not-disabled:border-surface-inverse hover:not-disabled:bg-surface-inverse",
+          "enabled:hover:border-surface-inverse enabled:hover:bg-surface-inverse",
         ].join(" "),
         outline: [
           "border-border-control bg-surface text-text-primary",
-          "hover:not-disabled:bg-surface-media",
+          "enabled:hover:bg-surface-media",
         ].join(" "),
         ghost: [
           "border-transparent bg-surface text-text-primary",
-          "hover:not-disabled:border-border-control",
+          "enabled:hover:border-border-control",
         ].join(" "),
         link: "border-transparent bg-surface text-text-primary underline underline-offset-4",
       },
