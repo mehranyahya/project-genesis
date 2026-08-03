@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -40,11 +41,7 @@ const MASTER_TOKENS: Record<string, string> = {
 test("every master token is declared with the exact master value", () => {
   const tokens = read(TOKENS).toLowerCase();
   for (const [name, value] of Object.entries(MASTER_TOKENS)) {
-    assert.match(
-      tokens,
-      new RegExp(`${name}:\\s*${value};`),
-      `token ${name} must equal ${value}`,
-    );
+    assert.match(tokens, new RegExp(`${name}:\\s*${value};`), `token ${name} must equal ${value}`);
   }
 });
 
@@ -58,14 +55,18 @@ test("raw colors live only in the token file", () => {
 
 test("token file declares no raw color beyond the master palette", () => {
   const allowed = new Set(Object.values(MASTER_TOKENS));
-  const found = read(TOKENS).toLowerCase().match(/#[0-9a-f]{3,8}\b/g) ?? [];
+  const found =
+    read(TOKENS)
+      .toLowerCase()
+      .match(/#[0-9a-f]{3,8}\b/g) ?? [];
   for (const hex of found) {
     assert.ok(allowed.has(hex), `unexpected raw color ${hex} in tokens`);
   }
 });
 
 test("no gradients, blur, glass or animation libraries in owned files", () => {
-  const banned = /gradient|backdrop-filter|backdrop-blur|blur\(|tw-animate|animate-pulse|shimmer|spinner/i;
+  const banned =
+    /gradient|backdrop-filter|backdrop-blur|blur\(|tw-animate|animate-pulse|shimmer|spinner/i;
   for (const file of [TOKENS, STYLE_ENTRY, ...COMPONENTS]) {
     assert.equal(banned.test(read(file)), false, `banned effect in ${file}`);
   }
@@ -135,7 +136,6 @@ test("no theme toggle, data-theme or runtime dark mode", () => {
 });
 
 test("bootstrap font assets are unchanged", () => {
-  const { createHash } = require("node:crypto") as typeof import("node:crypto");
   const expected: Record<string, string> = {
     "vazirmatn-400.woff2": "f1a8a3fb82ff53a798e5ced93c0925b8805c62c471d11e80706b39f50da55fb0",
     "vazirmatn-700.woff2": "adf931716e9c1b8ff82c74ddf5826dc158a932e0e43b0d8b30db085078693c47",

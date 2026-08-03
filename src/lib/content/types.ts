@@ -14,12 +14,7 @@ export type GraveStoneSizeCode = "120x60" | "160x60" | "180x60" | "custom";
 export type BuildingStoneType = "marble" | "granite" | "travertine" | "crystal";
 
 export type BuildingStoneApplication =
-  | "facade"
-  | "flooring"
-  | "stairs"
-  | "interior_wall"
-  | "countertop"
-  | "other";
+  "facade" | "flooring" | "stairs" | "interior_wall" | "countertop" | "other";
 
 export const PAGE_SLUGS = [
   "home",

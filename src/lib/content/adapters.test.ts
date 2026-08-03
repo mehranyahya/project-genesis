@@ -22,7 +22,9 @@ const hasField = (block: string, field: string) =>
   new RegExp(`^\\s+${field}\\??:`, "m").test(block);
 
 const interfaceBlock = (name: string): string => {
-  const match = typesSource.match(new RegExp(`export interface ${name}[^{]*\\{([\\s\\S]*?)\\n\\}`));
+  const match = typesSource.match(
+    new RegExp(`export interface ${name}(?: extends [A-Za-z]+)? \\{([\\s\\S]*?)\\n\\}`),
+  );
   const body = match?.[1];
   assert.ok(body, `interface ${name} not found`);
   return body;
