@@ -1,7 +1,7 @@
 /*
  * Mehrara design tokens — Quiet Monumental Luxury.
- * Raw color values exist ONLY in this file. Components consume semantic tokens.
- * Solid surfaces only; no themes, no runtime theme switching.
+ * Raw color values exist ONLY in this file. Components consume semantic roles.
+ * Solid surfaces only; no themes and no runtime theme switching.
  */
 
 @font-face {
@@ -20,54 +20,63 @@
   font-display: swap;
 }
 
+/* Master semantic roles. These names are the contract. */
+@theme {
+  --color-canvas: #f4efe6;
+  --color-surface: #f4efe6;
+  --color-surface-media: #e7e1d7;
+  --color-text-primary: #121212;
+  --color-text-secondary: #5c5850;
+  --color-text-caption: #6b665e;
+  --color-border-subtle: #b9aa92;
+  --color-border-control: #5c5850;
+  --color-action-primary: #203b34;
+  --color-accent: #9c6b32;
+  --color-surface-inverse: #121212;
+  --color-text-inverse: #f4efe6;
+  --color-focus: #203b34;
+  --color-focus-inverse: #f4efe6;
+  --color-status-success: #203b34;
+  --color-status-error: #8b2f2f;
+}
+
 :root {
-  /* Palette (raw values are confined to this file) */
-  --mehrara-obsidian: #121212;
-  --mehrara-limestone: #f4efe6;
-  --mehrara-travertine: #b9aa92;
-  --mehrara-serpentine: #203b34;
-  --mehrara-aged-bronze: #9c6b32;
-  --mehrara-basalt-gray: #5c5850;
-  --mehrara-caption-gray: #6b665e;
-  --mehrara-media-neutral: #e7e1d7;
-  --mehrara-error: #8b2f2f;
-
-  /* Semantic surface and text */
-  --background: var(--mehrara-limestone);
-  --foreground: var(--mehrara-obsidian);
-  --surface: var(--mehrara-limestone);
-  --surface-foreground: var(--mehrara-obsidian);
-  --surface-inverse: var(--mehrara-obsidian);
-  --surface-inverse-foreground: var(--mehrara-limestone);
-  --surface-media: var(--mehrara-media-neutral);
-
-  /* Semantic roles */
-  --primary: var(--mehrara-obsidian);
-  --primary-foreground: var(--mehrara-limestone);
-  --secondary: var(--mehrara-serpentine);
-  --secondary-foreground: var(--mehrara-limestone);
-  --accent: var(--mehrara-aged-bronze);
-  --accent-foreground: var(--mehrara-limestone);
-  --decorative-stone: var(--mehrara-travertine);
-  --muted: var(--mehrara-media-neutral);
-  --muted-foreground: var(--mehrara-basalt-gray);
-  --caption: var(--mehrara-caption-gray);
-  --border: var(--mehrara-travertine);
-  --border-strong: var(--mehrara-basalt-gray);
-  --input: var(--mehrara-basalt-gray);
-  --ring: var(--mehrara-obsidian);
-  --destructive: var(--mehrara-error);
-  --destructive-foreground: var(--mehrara-limestone);
-  --success: var(--mehrara-serpentine);
-  --success-foreground: var(--mehrara-limestone);
-  --disabled-surface: var(--mehrara-media-neutral);
-  --disabled-foreground: var(--mehrara-caption-gray);
-  --skeleton: var(--mehrara-media-neutral);
+  /* Compatibility aliases for untouched scaffold primitives.
+     They resolve to the master roles above; no new raw values. */
+  --background: var(--color-canvas);
+  --foreground: var(--color-text-primary);
+  --surface: var(--color-surface);
+  --surface-foreground: var(--color-text-primary);
+  --surface-inverse: var(--color-surface-inverse);
+  --surface-inverse-foreground: var(--color-text-inverse);
+  --surface-media: var(--color-surface-media);
+  --primary: var(--color-action-primary);
+  --primary-foreground: var(--color-text-inverse);
+  --secondary: var(--color-surface-inverse);
+  --secondary-foreground: var(--color-text-inverse);
+  --accent: var(--color-accent);
+  --accent-foreground: var(--color-text-inverse);
+  --decorative-stone: var(--color-border-subtle);
+  --muted: var(--color-surface-media);
+  --muted-foreground: var(--color-text-secondary);
+  --caption: var(--color-text-caption);
+  --border: var(--color-border-subtle);
+  --border-strong: var(--color-border-control);
+  --input: var(--color-border-control);
+  --ring: var(--color-focus);
+  --destructive: var(--color-status-error);
+  --destructive-foreground: var(--color-text-inverse);
+  --success: var(--color-status-success);
+  --success-foreground: var(--color-text-inverse);
+  --disabled-surface: var(--color-surface-media);
+  --disabled-foreground: var(--color-text-caption);
+  --skeleton: var(--color-surface-media);
 
   /* Geometry: sharp, no global radius */
   --radius: 0px;
   --edge-width: 1px;
   --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
   --touch-target-min: 44px;
 
   /* Typography */
