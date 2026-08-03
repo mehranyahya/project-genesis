@@ -20,12 +20,7 @@ export interface StatusMessageProps extends React.HTMLAttributes<HTMLDivElement>
   tone?: StatusTone;
 }
 
-function StatusMessage({
-  className,
-  tone = "info",
-  children,
-  ...props
-}: StatusMessageProps) {
+function StatusMessage({ className, tone = "info", children, ...props }: StatusMessageProps) {
   return (
     <div
       role={tone === "error" ? "alert" : "status"}

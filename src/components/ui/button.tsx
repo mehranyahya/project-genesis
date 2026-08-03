@@ -10,21 +10,17 @@ const buttonVariants = cva(
       variant: {
         primary:
           "border-primary bg-primary text-primary-foreground hover:bg-secondary hover:border-secondary",
-        secondary:
-          "border-border-strong bg-surface text-foreground hover:bg-surface-media",
+        secondary: "border-border-strong bg-surface text-foreground hover:bg-surface-media",
         accent:
           "border-accent bg-accent text-accent-foreground hover:bg-primary hover:border-primary",
-        quiet:
-          "border-transparent bg-surface text-foreground hover:border-border-strong",
+        quiet: "border-transparent bg-surface text-foreground hover:border-border-strong",
         destructive:
           "border-destructive bg-destructive text-destructive-foreground hover:bg-primary hover:border-primary",
         // Compatibility aliases for untouched shadcn primitives.
         default:
           "border-primary bg-primary text-primary-foreground hover:bg-secondary hover:border-secondary",
-        outline:
-          "border-border-strong bg-surface text-foreground hover:bg-surface-media",
-        ghost:
-          "border-transparent bg-surface text-foreground hover:border-border-strong",
+        outline: "border-border-strong bg-surface text-foreground hover:bg-surface-media",
+        ghost: "border-transparent bg-surface text-foreground hover:border-border-strong",
         link: "border-transparent bg-surface text-foreground underline underline-offset-4",
       },
       size: {
@@ -34,16 +30,13 @@ const buttonVariants = cva(
         large: "min-h-12 px-6 text-base",
         icon: "min-h-11 w-11 px-0",
       },
-
-
     },
     defaultVariants: { variant: "primary", size: "default" },
   },
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   loading?: boolean;
   loadingLabel?: string;

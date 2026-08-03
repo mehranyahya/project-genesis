@@ -1,7 +1,7 @@
 /*
  * Mehrara design tokens — Quiet Monumental Luxury.
  * Raw color values exist ONLY in this file. Components consume semantic tokens.
- * No gradients, no transparency-based surfaces, no themes, no runtime dark mode.
+ * Solid surfaces only; no themes, no runtime theme switching.
  */
 
 @font-face {

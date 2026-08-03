@@ -1,6 +1,6 @@
 /**
  * The only content surface routes may consume.
- * Default implementations are intentionally empty: no fixtures, no fabricated
+ * Default implementations are intentionally empty: no sample data, no fabricated
  * prices, contacts, media or copy ever enter runtime. Absent data is modelled
  * as [] / null so sections can be omitted entirely.
  */

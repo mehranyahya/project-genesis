@@ -13,16 +13,7 @@ export interface FieldProps extends React.HTMLAttributes<HTMLDivElement> {
  * Label + control + hint/error wrapper.
  * Errors are announced textually and marked with a prefix, never by color alone.
  */
-function Field({
-  id,
-  label,
-  hint,
-  error,
-  required,
-  className,
-  children,
-  ...props
-}: FieldProps) {
+function Field({ id, label, hint, error, required, className, children, ...props }: FieldProps) {
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
 

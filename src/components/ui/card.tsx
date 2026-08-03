@@ -18,10 +18,7 @@ function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElem
   return <h3 className={cn("text-base font-bold text-foreground", className)} {...props} />;
 }
 
-function CardDescription({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLParagraphElement>) {
+function CardDescription({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
   return <p className={cn("text-sm leading-relaxed text-caption", className)} {...props} />;
 }
 
@@ -30,9 +27,7 @@ function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
 }
 
 function CardFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn("flex items-center gap-3 p-5 pt-0", className)} {...props} />
-  );
+  return <div className={cn("flex items-center gap-3 p-5 pt-0", className)} {...props} />;
 }
 
 /** Neutral, unfiltered media stage. 4:5 by contract. */
@@ -45,12 +40,4 @@ function CardMedia({ className, ...props }: React.HTMLAttributes<HTMLDivElement>
   );
 }
 
-export {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-  CardMedia,
-};
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, CardMedia };
