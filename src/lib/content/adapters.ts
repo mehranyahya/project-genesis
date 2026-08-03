@@ -8,15 +8,18 @@
 import type {
   CatalogVersion,
   Guide,
-  GuideSummary,
+  GuideQuery,
   Page,
+  PageSlug,
   PortfolioItem,
+  PortfolioQuery,
   Product,
-  ProductSummary,
+  ProductQuery,
   Site,
 } from "./types";
 
-export async function getProducts(): Promise<ProductSummary[]> {
+export async function getProducts(query?: ProductQuery): Promise<Product[]> {
+  void query;
   return [];
 }
 
@@ -25,11 +28,13 @@ export async function getProduct(slug: string): Promise<Product | null> {
   return null;
 }
 
-export async function getPortfolioItems(): Promise<PortfolioItem[]> {
+export async function getPortfolioItems(query?: PortfolioQuery): Promise<PortfolioItem[]> {
+  void query;
   return [];
 }
 
-export async function getGuides(): Promise<GuideSummary[]> {
+export async function getGuides(query?: GuideQuery): Promise<Guide[]> {
+  void query;
   return [];
 }
 
@@ -42,7 +47,7 @@ export async function getSite(): Promise<Site | null> {
   return null;
 }
 
-export async function getPage(slug: string): Promise<Page | null> {
+export async function getPage(slug: PageSlug): Promise<Page | null> {
   void slug;
   return null;
 }
