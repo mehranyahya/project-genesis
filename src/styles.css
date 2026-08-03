@@ -6,7 +6,7 @@
  * Mehrara — Quiet Monumental Luxury.
  * Color, geometry, typography and motion values live in src/styles/tokens.css.
  * This file only maps them to Tailwind utilities and sets base rules.
- * Solid surfaces only; no gradients, blur, glass or animation libraries.
+ * Solid surfaces only, per the Quiet Monumental Luxury contract.
  */
 
 @theme inline {
