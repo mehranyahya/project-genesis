@@ -18,7 +18,6 @@ const buttonVariants = cva(
           "border-transparent bg-surface text-foreground hover:border-border-strong",
         destructive:
           "border-destructive bg-destructive text-destructive-foreground hover:bg-primary hover:border-primary",
-      },
         // Compatibility aliases for untouched shadcn primitives.
         default:
           "border-primary bg-primary text-primary-foreground hover:bg-secondary hover:border-secondary",
@@ -35,6 +34,7 @@ const buttonVariants = cva(
         large: "min-h-12 px-6 text-base",
         icon: "min-h-11 w-11 px-0",
       },
+
 
     },
     defaultVariants: { variant: "primary", size: "default" },
