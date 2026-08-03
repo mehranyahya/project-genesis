@@ -21,10 +21,11 @@ const typesSource = readFileSync(new URL("./types.ts", import.meta.url), "utf8")
 const hasField = (block: string, field: string) =>
   new RegExp(`^\\s+${field}\\??:`, "m").test(block);
 
-const interfaceBlock = (name: string) => {
+const interfaceBlock = (name: string): string => {
   const match = typesSource.match(new RegExp(`export interface ${name}[^{]*\\{([\\s\\S]*?)\\n\\}`));
-  assert.ok(match, `interface ${name} not found`);
-  return match![1];
+  const body = match?.[1];
+  assert.ok(body, `interface ${name} not found`);
+  return body;
 };
 
 test("all eight content adapters exist", () => {
