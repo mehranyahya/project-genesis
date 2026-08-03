@@ -19,11 +19,23 @@ const buttonVariants = cva(
         destructive:
           "border-destructive bg-destructive text-destructive-foreground hover:bg-primary hover:border-primary",
       },
+        // Compatibility aliases for untouched shadcn primitives.
+        default:
+          "border-primary bg-primary text-primary-foreground hover:bg-secondary hover:border-secondary",
+        outline:
+          "border-border-strong bg-surface text-foreground hover:bg-surface-media",
+        ghost:
+          "border-transparent bg-surface text-foreground hover:border-border-strong",
+        link: "border-transparent bg-surface text-foreground underline underline-offset-4",
+      },
       size: {
         default: "min-h-11 px-5",
+        sm: "min-h-11 px-4",
+        lg: "min-h-12 px-6 text-base",
         large: "min-h-12 px-6 text-base",
         icon: "min-h-11 w-11 px-0",
       },
+
     },
     defaultVariants: { variant: "primary", size: "default" },
   },
