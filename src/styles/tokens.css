@@ -1,0 +1,83 @@
+/*
+ * Mehrara design tokens — Quiet Monumental Luxury.
+ * Raw color values exist ONLY in this file. Components consume semantic tokens.
+ * No gradients, no transparency-based surfaces, no themes, no runtime dark mode.
+ */
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/fonts/vazirmatn-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/fonts/vazirmatn-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Palette (raw values are confined to this file) */
+  --mehrara-obsidian: #121212;
+  --mehrara-limestone: #f4efe6;
+  --mehrara-travertine: #b9aa92;
+  --mehrara-serpentine: #203b34;
+  --mehrara-aged-bronze: #9c6b32;
+  --mehrara-basalt-gray: #5c5850;
+  --mehrara-caption-gray: #6b665e;
+  --mehrara-media-neutral: #e7e1d7;
+  --mehrara-error: #8b2f2f;
+
+  /* Semantic surface and text */
+  --background: var(--mehrara-limestone);
+  --foreground: var(--mehrara-obsidian);
+  --surface: var(--mehrara-limestone);
+  --surface-foreground: var(--mehrara-obsidian);
+  --surface-inverse: var(--mehrara-obsidian);
+  --surface-inverse-foreground: var(--mehrara-limestone);
+  --surface-media: var(--mehrara-media-neutral);
+
+  /* Semantic roles */
+  --primary: var(--mehrara-obsidian);
+  --primary-foreground: var(--mehrara-limestone);
+  --secondary: var(--mehrara-serpentine);
+  --secondary-foreground: var(--mehrara-limestone);
+  --accent: var(--mehrara-aged-bronze);
+  --accent-foreground: var(--mehrara-limestone);
+  --decorative-stone: var(--mehrara-travertine);
+  --muted: var(--mehrara-media-neutral);
+  --muted-foreground: var(--mehrara-basalt-gray);
+  --caption: var(--mehrara-caption-gray);
+  --border: var(--mehrara-travertine);
+  --border-strong: var(--mehrara-basalt-gray);
+  --input: var(--mehrara-basalt-gray);
+  --ring: var(--mehrara-obsidian);
+  --destructive: var(--mehrara-error);
+  --destructive-foreground: var(--mehrara-limestone);
+  --success: var(--mehrara-serpentine);
+  --success-foreground: var(--mehrara-limestone);
+  --disabled-surface: var(--mehrara-media-neutral);
+  --disabled-foreground: var(--mehrara-caption-gray);
+  --skeleton: var(--mehrara-media-neutral);
+
+  /* Geometry: sharp, no global radius */
+  --radius: 0px;
+  --edge-width: 1px;
+  --focus-ring-width: 2px;
+  --touch-target-min: 44px;
+
+  /* Typography */
+  --font-sans: "Vazirmatn", system-ui, sans-serif;
+  --line-height-body: 1.9;
+  --line-height-heading: 1.45;
+
+  /* Motion */
+  --motion-control: 180ms;
+  --motion-panel: 250ms;
+  --motion-media: 360ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+}
