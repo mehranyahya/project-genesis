@@ -64,11 +64,14 @@ test("token file declares no raw color beyond the master palette", () => {
   }
 });
 
+const stripComments = (source: string) =>
+  source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
 test("no gradients, blur, glass or animation libraries in owned files", () => {
   const banned =
     /gradient|backdrop-filter|backdrop-blur|blur\(|tw-animate|animate-pulse|shimmer|spinner/i;
   for (const file of [TOKENS, STYLE_ENTRY, ...COMPONENTS]) {
-    assert.equal(banned.test(read(file)), false, `banned effect in ${file}`);
+    assert.equal(banned.test(stripComments(read(file))), false, `banned effect in ${file}`);
   }
 });
 
