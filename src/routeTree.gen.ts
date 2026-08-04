@@ -10,33 +10,193 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as BuildingStoneRouteImport } from './routes/building-stone'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as QuoteRouteImport } from './routes/quote'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as GraveStonesIndexRouteImport } from './routes/grave-stones/index'
+import { Route as GraveStonesSlugRouteImport } from './routes/grave-stones/$slug'
+import { Route as GraveStonesCustomRouteImport } from './routes/grave-stones/custom'
+import { Route as GuidesIndexRouteImport } from './routes/guides/index'
+import { Route as GuidesSlugRouteImport } from './routes/guides/$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BuildingStoneRoute = BuildingStoneRouteImport.update({
+  id: '/building-stone',
+  path: '/building-stone',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuoteRoute = QuoteRouteImport.update({
+  id: '/quote',
+  path: '/quote',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GraveStonesIndexRoute = GraveStonesIndexRouteImport.update({
+  id: '/grave-stones/',
+  path: '/grave-stones/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GraveStonesSlugRoute = GraveStonesSlugRouteImport.update({
+  id: '/grave-stones/$slug',
+  path: '/grave-stones/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GraveStonesCustomRoute = GraveStonesCustomRouteImport.update({
+  id: '/grave-stones/custom',
+  path: '/grave-stones/custom',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuidesIndexRoute = GuidesIndexRouteImport.update({
+  id: '/guides/',
+  path: '/guides/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuidesSlugRoute = GuidesSlugRouteImport.update({
+  id: '/guides/$slug',
+  path: '/guides/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/building-stone': typeof BuildingStoneRoute
+  '/contact': typeof ContactRoute
+  '/portfolio': typeof PortfolioRoute
+  '/privacy': typeof PrivacyRoute
+  '/quote': typeof QuoteRoute
+  '/terms': typeof TermsRoute
+  '/grave-stones/$slug': typeof GraveStonesSlugRoute
+  '/grave-stones/custom': typeof GraveStonesCustomRoute
+  '/guides/$slug': typeof GuidesSlugRoute
+  '/grave-stones/': typeof GraveStonesIndexRoute
+  '/guides/': typeof GuidesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/building-stone': typeof BuildingStoneRoute
+  '/contact': typeof ContactRoute
+  '/portfolio': typeof PortfolioRoute
+  '/privacy': typeof PrivacyRoute
+  '/quote': typeof QuoteRoute
+  '/terms': typeof TermsRoute
+  '/grave-stones/$slug': typeof GraveStonesSlugRoute
+  '/grave-stones/custom': typeof GraveStonesCustomRoute
+  '/guides/$slug': typeof GuidesSlugRoute
+  '/grave-stones': typeof GraveStonesIndexRoute
+  '/guides': typeof GuidesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/building-stone': typeof BuildingStoneRoute
+  '/contact': typeof ContactRoute
+  '/portfolio': typeof PortfolioRoute
+  '/privacy': typeof PrivacyRoute
+  '/quote': typeof QuoteRoute
+  '/terms': typeof TermsRoute
+  '/grave-stones/$slug': typeof GraveStonesSlugRoute
+  '/grave-stones/custom': typeof GraveStonesCustomRoute
+  '/guides/$slug': typeof GuidesSlugRoute
+  '/grave-stones/': typeof GraveStonesIndexRoute
+  '/guides/': typeof GuidesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/building-stone'
+    | '/contact'
+    | '/portfolio'
+    | '/privacy'
+    | '/quote'
+    | '/terms'
+    | '/grave-stones/$slug'
+    | '/grave-stones/custom'
+    | '/guides/$slug'
+    | '/grave-stones/'
+    | '/guides/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/about'
+    | '/building-stone'
+    | '/contact'
+    | '/portfolio'
+    | '/privacy'
+    | '/quote'
+    | '/terms'
+    | '/grave-stones/$slug'
+    | '/grave-stones/custom'
+    | '/guides/$slug'
+    | '/grave-stones'
+    | '/guides'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/building-stone'
+    | '/contact'
+    | '/portfolio'
+    | '/privacy'
+    | '/quote'
+    | '/terms'
+    | '/grave-stones/$slug'
+    | '/grave-stones/custom'
+    | '/guides/$slug'
+    | '/grave-stones/'
+    | '/guides/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  BuildingStoneRoute: typeof BuildingStoneRoute
+  ContactRoute: typeof ContactRoute
+  PortfolioRoute: typeof PortfolioRoute
+  PrivacyRoute: typeof PrivacyRoute
+  QuoteRoute: typeof QuoteRoute
+  TermsRoute: typeof TermsRoute
+  GraveStonesSlugRoute: typeof GraveStonesSlugRoute
+  GraveStonesCustomRoute: typeof GraveStonesCustomRoute
+  GuidesSlugRoute: typeof GuidesSlugRoute
+  GraveStonesIndexRoute: typeof GraveStonesIndexRoute
+  GuidesIndexRoute: typeof GuidesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +208,107 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/building-stone': {
+      id: '/building-stone'
+      path: '/building-stone'
+      fullPath: '/building-stone'
+      preLoaderRoute: typeof BuildingStoneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quote': {
+      id: '/quote'
+      path: '/quote'
+      fullPath: '/quote'
+      preLoaderRoute: typeof QuoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/grave-stones/': {
+      id: '/grave-stones/'
+      path: '/grave-stones'
+      fullPath: '/grave-stones/'
+      preLoaderRoute: typeof GraveStonesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/grave-stones/$slug': {
+      id: '/grave-stones/$slug'
+      path: '/grave-stones/$slug'
+      fullPath: '/grave-stones/$slug'
+      preLoaderRoute: typeof GraveStonesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/grave-stones/custom': {
+      id: '/grave-stones/custom'
+      path: '/grave-stones/custom'
+      fullPath: '/grave-stones/custom'
+      preLoaderRoute: typeof GraveStonesCustomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/': {
+      id: '/guides/'
+      path: '/guides'
+      fullPath: '/guides/'
+      preLoaderRoute: typeof GuidesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/$slug': {
+      id: '/guides/$slug'
+      path: '/guides/$slug'
+      fullPath: '/guides/$slug'
+      preLoaderRoute: typeof GuidesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  BuildingStoneRoute: BuildingStoneRoute,
+  ContactRoute: ContactRoute,
+  PortfolioRoute: PortfolioRoute,
+  PrivacyRoute: PrivacyRoute,
+  QuoteRoute: QuoteRoute,
+  TermsRoute: TermsRoute,
+  GraveStonesSlugRoute: GraveStonesSlugRoute,
+  GraveStonesCustomRoute: GraveStonesCustomRoute,
+  GuidesSlugRoute: GuidesSlugRoute,
+  GraveStonesIndexRoute: GraveStonesIndexRoute,
+  GuidesIndexRoute: GuidesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
