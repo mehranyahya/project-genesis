@@ -46,6 +46,18 @@ function product(overrides: Partial<Product>): Product {
   };
 }
 
+function item0(model: ReturnType<typeof buildGraveStoneListModel>) {
+  const item = model.items[0];
+  assert.ok(item);
+  return item;
+}
+
+function item1(model: ReturnType<typeof buildGraveStoneListModel>) {
+  const item = model.items[1];
+  assert.ok(item);
+  return item;
+}
+
 test("empty adapter result yields an empty model", () => {
   assert.deepEqual(buildGraveStoneListModel([]), { items: [], stoneCodes: [] });
   assert.deepEqual(buildGraveStoneListModel(undefined).items, []);
@@ -80,8 +92,8 @@ test("unavailable variants do not contribute stone or size options", () => {
       ],
     }),
   ]);
-  assert.deepEqual(model.items[0].stoneCodes, ["A"]);
-  assert.deepEqual(model.items[0].sizeCodes, ["120x60"]);
+  assert.deepEqual(item0(model).stoneCodes, ["A"]);
+  assert.deepEqual(item0(model).sizeCodes, ["120x60"]);
   assert.deepEqual(model.stoneCodes, ["A"]);
 });
 
@@ -102,8 +114,8 @@ test("blank summary becomes null and valid summary is trimmed", () => {
     product({ slug: "a", summary: "   " }),
     product({ slug: "b", summary: "  متن  " }),
   ]);
-  assert.equal(model.items[0].summary, null);
-  assert.equal(model.items[1].summary, "متن");
+  assert.equal(item0(model).summary, null);
+  assert.equal(item1(model).summary, "متن");
 });
 
 test("duplicate stone codes collapse and first-seen order is kept", () => {
@@ -117,7 +129,7 @@ test("duplicate stone codes collapse and first-seen order is kept", () => {
       ],
     }),
   ]);
-  assert.deepEqual(model.items[0].stoneCodes, ["B", "A"]);
+  assert.deepEqual(item0(model).stoneCodes, ["B", "A"]);
 });
 
 test("sizes are emitted in the fixed contract order", () => {
@@ -131,7 +143,7 @@ test("sizes are emitted in the fixed contract order", () => {
       ],
     }),
   ]);
-  assert.deepEqual(model.items[0].sizeCodes, [...GRAVE_STONE_SIZE_ORDER]);
+  assert.deepEqual(item0(model).sizeCodes, [...GRAVE_STONE_SIZE_ORDER]);
 });
 
 const catalog = buildGraveStoneListModel([
