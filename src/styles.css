@@ -32,6 +32,8 @@
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-accent-foreground: var(--accent-foreground);
+  /* Decorative-only bronze: never wired to an interactive state. */
+  --color-decorative-accent: var(--decorative-accent);
   --color-decorative-stone: var(--decorative-stone);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
