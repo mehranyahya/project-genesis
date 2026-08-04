@@ -53,6 +53,7 @@
   --primary: var(--color-action-primary);
   --primary-foreground: var(--color-text-inverse);
   --secondary: var(--color-surface-inverse);
+  --secondary-foreground: var(--color-text-inverse);
   /* Aged Bronze is decorative only; the interactive alias stays Serpentine. */
   --decorative-accent: var(--color-accent);
   --accent: var(--color-action-primary);
