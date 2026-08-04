@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { RouteSkeleton } from "@/components/layout/route-skeleton";
+import { HomePage } from "@/components/home/home-page";
+import { getGuides, getPortfolioItems, getProducts } from "@/lib/content/adapters";
+import { buildHomeViewModel } from "@/lib/home";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -12,9 +14,20 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "/" }],
   }),
+  loader: async () => {
+    const [products, portfolioItems, guides] = await Promise.all([
+      getProducts({ featuredOnly: true, limit: 6 }),
+      getPortfolioItems({ limit: 1 }),
+      getGuides({ limit: 1 }),
+    ]);
+    return buildHomeViewModel({ products, portfolioItems, guides });
+  },
+  errorComponent: ({ error }) => <div role="alert">{error.message}</div>,
+  notFoundComponent: () => <div>یافت نشد.</div>,
   component: HomeRoute,
 });
 
 function HomeRoute() {
-  return <RouteSkeleton title="مهرآرا" />;
+  const model = Route.useLoaderData();
+  return <HomePage model={model} />;
 }
