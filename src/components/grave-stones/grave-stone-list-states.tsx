@@ -42,7 +42,7 @@ export function GraveStoneFilteredEmpty({ onReset }: { onReset: () => void }) {
   );
 }
 
-/** Static structural skeleton. No motion, no shimmer, no sample product data. */
+/** Static structural skeleton. No motion, no sample product data. */
 export function GraveStoneListLoading() {
   return (
     <section className={SECTION} aria-busy="true" aria-label={LOADING_LABEL}>
