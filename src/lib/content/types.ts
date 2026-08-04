@@ -29,7 +29,13 @@ export const PAGE_SLUGS = [
 export type PageSlug = (typeof PAGE_SLUGS)[number];
 
 /** Lowercase 64-character SHA-256 hex digest of the published catalog. */
-export type CatalogVersion = string;
+export type CatalogVersion = string & { readonly __brand: "CatalogVersion" };
+
+export const CATALOG_VERSION_PATTERN = /^[0-9a-f]{64}$/;
+
+export function isCatalogVersion(value: string): value is CatalogVersion {
+  return CATALOG_VERSION_PATTERN.test(value);
+}
 
 export interface SeoMeta {
   title: string;
