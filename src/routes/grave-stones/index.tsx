@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { RouteSkeleton } from "@/components/layout/route-skeleton";
+import { GraveStoneListPage } from "@/components/grave-stones/grave-stone-list-page";
+import {
+  GraveStoneListError,
+  GraveStoneListLoading,
+} from "@/components/grave-stones/grave-stone-list-states";
+import { getProducts } from "@/lib/content/adapters";
+import { buildGraveStoneListModel } from "@/lib/grave-stone-list";
 
 export const Route = createFileRoute("/grave-stones/")({
   head: () => ({
@@ -12,9 +18,13 @@ export const Route = createFileRoute("/grave-stones/")({
     ],
     links: [{ rel: "canonical", href: "/grave-stones" }],
   }),
+  loader: async () => buildGraveStoneListModel(await getProducts()),
+  pendingComponent: GraveStoneListLoading,
+  errorComponent: GraveStoneListError,
   component: GraveStonesRoute,
 });
 
 function GraveStonesRoute() {
-  return <RouteSkeleton title="سنگ مزار" />;
+  const model = Route.useLoaderData();
+  return <GraveStoneListPage model={model} />;
 }
