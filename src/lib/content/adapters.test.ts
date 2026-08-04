@@ -34,9 +34,8 @@ const ADAPTER_NAMES = [
  * not by regex over source text.
  * ------------------------------------------------------------------ */
 
-type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
-  ? true
-  : false;
+type Equals<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
 type Expect<T extends true> = T;
 type RequiredKeys<T> = {
   [K in keyof T]-?: object extends Pick<T, K> ? never : K;
@@ -126,7 +125,9 @@ type _GuideRequired = Expect<
   Equals<RequiredKeys<Guide>, "slug" | "title" | "summary" | "body" | "seo" | "updatedAt">
 >;
 
-type _PortfolioRequired = Expect<Equals<RequiredKeys<PortfolioItem>, "publicReferenceId" | "media">>;
+type _PortfolioRequired = Expect<
+  Equals<RequiredKeys<PortfolioItem>, "publicReferenceId" | "media">
+>;
 
 // Portfolio exposes no customer-identifying surface.
 type _PortfolioNoPii = Expect<
