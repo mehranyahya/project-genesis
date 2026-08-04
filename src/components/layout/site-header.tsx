@@ -25,7 +25,7 @@ export function SiteHeader() {
             <Link
               key={item.to}
               to={item.to}
-              className="inline-flex min-h-11 items-center px-1 text-sm text-text-secondary transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] enabled:hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+              className="inline-flex min-h-11 items-center px-1 text-sm text-text-secondary transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
               activeProps={{
                 className: "font-bold text-action-primary",
                 "aria-current": "page",
