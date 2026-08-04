@@ -22,8 +22,6 @@ export const Route = createFileRoute("/")({
     ]);
     return buildHomeViewModel({ products, portfolioItems, guides });
   },
-  errorComponent: ({ error }) => <div role="alert">{error.message}</div>,
-  notFoundComponent: () => <div>یافت نشد.</div>,
   component: HomeRoute,
 });
 
