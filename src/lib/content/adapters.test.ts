@@ -3,7 +3,20 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 import * as adapters from "./adapters";
-import { PAGE_SLUGS } from "./types";
+import { CATALOG_VERSION_PATTERN, PAGE_SLUGS, isCatalogVersion } from "./types";
+import type {
+  CatalogVersion,
+  Media,
+  PriceType,
+  Product,
+  ProductOption,
+  ProductType,
+  ProductVariant,
+  Guide,
+  PortfolioItem,
+  SeoMeta,
+  Site,
+} from "./types";
 
 const ADAPTER_NAMES = [
   "getProducts",
@@ -16,19 +29,135 @@ const ADAPTER_NAMES = [
   "getCatalogVersion",
 ] as const;
 
-const typesSource = readFileSync(new URL("./types.ts", import.meta.url), "utf8");
+/* ------------------------------------------------------------------ *
+ * Type-level assertions. These are enforced by `tsc --noEmit`,
+ * not by regex over source text.
+ * ------------------------------------------------------------------ */
 
-const hasField = (block: string, field: string) =>
-  new RegExp(`^\\s+${field}\\??:`, "m").test(block);
+type Equals<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+type Expect<T extends true> = T;
+type RequiredKeys<T> = {
+  [K in keyof T]-?: object extends Pick<T, K> ? never : K;
+}[keyof T];
+type OptionalKeys<T> = {
+  [K in keyof T]-?: object extends Pick<T, K> ? K : never;
+}[keyof T];
 
-const interfaceBlock = (name: string): string => {
-  const match = typesSource.match(
-    new RegExp(`export interface ${name}(?: extends [A-Za-z]+)? \\{([\\s\\S]*?)\\n\\}`),
+type _ProductTypeUnion = Expect<Equals<ProductType, "simple" | "cnc_box">>;
+type _PriceTypeUnion = Expect<Equals<PriceType, "fixed" | "estimate" | "review">>;
+
+type _ProductRequired = Expect<
+  Equals<
+    RequiredKeys<Product>,
+    | "id"
+    | "code"
+    | "slug"
+    | "type"
+    | "title"
+    | "summary"
+    | "description"
+    | "isActive"
+    | "isFeatured"
+    | "media"
+    | "variants"
+    | "seo"
+    | "updatedAt"
+  >
+>;
+
+type _VariantRequired = Expect<
+  Equals<
+    RequiredKeys<ProductVariant>,
+    | "id"
+    | "stoneCode"
+    | "sizeCode"
+    | "priceType"
+    | "amountToman"
+    | "priceUpdatedAt"
+    | "includes"
+    | "excludes"
+    | "options"
+    | "isAvailable"
+  >
+>;
+
+type _OptionRequired = Expect<
+  Equals<
+    RequiredKeys<ProductOption>,
+    | "id"
+    | "title"
+    | "priceType"
+    | "amountToman"
+    | "priceUpdatedAt"
+    | "isAvailable"
+    | "compatibleSizeCodes"
+  >
+>;
+
+type _SiteRequired = Expect<
+  Equals<
+    RequiredKeys<Site>,
+    | "displayName"
+    | "latinName"
+    | "phone"
+    | "whatsapp"
+    | "telegram"
+    | "address"
+    | "workingHours"
+    | "links"
+  >
+>;
+
+type _SeoRequired = Expect<
+  Equals<RequiredKeys<SeoMeta>, "title" | "description" | "canonicalPath" | "robots">
+>;
+
+type _MediaRequired = Expect<
+  Equals<
+    RequiredKeys<Media>,
+    "mediaKey" | "alt" | "caption" | "privacyCleared" | "consentReference"
+  >
+>;
+type _MediaOptional = Expect<Equals<OptionalKeys<Media>, "width" | "height">>;
+
+type _GuideRequired = Expect<
+  Equals<RequiredKeys<Guide>, "slug" | "title" | "summary" | "body" | "seo" | "updatedAt">
+>;
+
+type _PortfolioRequired = Expect<
+  Equals<RequiredKeys<PortfolioItem>, "publicReferenceId" | "media">
+>;
+
+// Portfolio exposes no customer-identifying surface.
+type _PortfolioNoPii = Expect<
+  Equals<Extract<keyof PortfolioItem, `${string}customer${string}` | "name" | "phone">, never>
+>;
+
+// CatalogVersion is branded: a plain string is not assignable to it.
+type _BrandedCatalogVersion = Expect<Equals<string extends CatalogVersion ? true : false, false>>;
+
+test("type-level contract assertions compile", () => {
+  const checks: true[] = [
+    true as _ProductTypeUnion,
+    true as _PriceTypeUnion,
+    true as _ProductRequired,
+    true as _VariantRequired,
+    true as _OptionRequired,
+    true as _SiteRequired,
+    true as _SeoRequired,
+    true as _MediaRequired,
+    true as _MediaOptional,
+    true as _GuideRequired,
+    true as _PortfolioRequired,
+    true as _PortfolioNoPii,
+    true as _BrandedCatalogVersion,
+  ];
+  assert.equal(
+    checks.every((value) => value === true),
+    true,
   );
-  const body = match?.[1];
-  assert.ok(body, `interface ${name} not found`);
-  return body;
-};
+});
 
 test("all eight content adapters exist", () => {
   for (const name of ADAPTER_NAMES) {
@@ -77,106 +206,16 @@ test("page slug allowlist is exactly the contract", () => {
   ]);
 });
 
-test("price contract is fixed | estimate | review", () => {
-  assert.match(typesSource, /export type PriceType =\s*"fixed" \| "estimate" \| "review";/);
-});
-
-test("Product carries every required field", () => {
-  const block = interfaceBlock("Product");
-  for (const field of [
-    "id",
-    "code",
-    "slug",
-    "type",
-    "title",
-    "summary",
-    "description",
-    "isActive",
-    "isFeatured",
-    "media",
-    "variants",
-    "seo",
-    "updatedAt",
-  ]) {
-    assert.ok(hasField(block, field), `Product missing ${field}`);
-  }
-});
-
-test("Variant carries every required field", () => {
-  const block = interfaceBlock("ProductVariant");
-  for (const field of [
-    "id",
-    "stoneCode",
-    "sizeCode",
-    "priceType",
-    "amountToman",
-    "priceUpdatedAt",
-    "includes",
-    "excludes",
-    "options",
-    "isAvailable",
-  ]) {
-    assert.ok(hasField(block, field), `ProductVariant missing ${field}`);
-  }
-});
-
-test("Option carries every required field", () => {
-  const block = interfaceBlock("ProductOption");
-  for (const field of [
-    "id",
-    "title",
-    "priceType",
-    "amountToman",
-    "priceUpdatedAt",
-    "isAvailable",
-    "compatibleSizeCodes",
-  ]) {
-    assert.ok(hasField(block, field), `ProductOption missing ${field}`);
-  }
-});
-
-test("Media is privacy-aware", () => {
-  const block = interfaceBlock("Media");
-  for (const field of ["mediaKey", "alt", "caption", "privacyCleared", "consentReference"]) {
-    assert.ok(hasField(block, field), `Media missing ${field}`);
-  }
-});
-
-test("Portfolio exposes only a public reference and safe media", () => {
-  const block = interfaceBlock("PortfolioItem");
-  assert.ok(hasField(block, "publicReferenceId"));
-  assert.ok(hasField(block, "media"));
-  assert.equal(/customer|phone|name/i.test(block), false);
-});
-
-test("Site carries public contact channels", () => {
-  const block = interfaceBlock("Site");
-  for (const field of [
-    "displayName",
-    "latinName",
-    "phone",
-    "whatsapp",
-    "telegram",
-    "address",
-    "workingHours",
-    "links",
-  ]) {
-    assert.ok(hasField(block, field), `Site missing ${field}`);
-  }
-});
-
-test("Guide and SEO meta are typed", () => {
-  const guide = interfaceBlock("Guide");
-  for (const field of ["slug", "title", "summary", "body", "seo", "updatedAt"]) {
-    assert.ok(hasField(guide, field), `Guide missing ${field}`);
-  }
-  const seo = interfaceBlock("SeoMeta");
-  for (const field of ["title", "description", "canonicalPath", "robots"]) {
-    assert.ok(hasField(seo, field), `SeoMeta missing ${field}`);
-  }
-});
-
-test("catalog version is documented as a 64-char lowercase sha-256", () => {
-  assert.match(typesSource, /64-character SHA-256/i);
-  assert.match(typesSource, /export type CatalogVersion = string;/);
+test("catalog version predicate accepts only 64 lowercase hex characters", () => {
+  assert.equal(CATALOG_VERSION_PATTERN.source, "^[0-9a-f]{64}$");
+  const valid = "a".repeat(64);
+  assert.equal(isCatalogVersion(valid), true);
+  assert.equal(isCatalogVersion("0123456789abcdef".repeat(4)), true);
+  assert.equal(isCatalogVersion("a".repeat(63)), false);
+  assert.equal(isCatalogVersion("a".repeat(65)), false);
+  assert.equal(isCatalogVersion("A".repeat(64)), false);
+  assert.equal(isCatalogVersion(`${"a".repeat(63)}g`), false);
+  assert.equal(isCatalogVersion(`sha256:${valid}`), false);
+  assert.equal(isCatalogVersion(""), false);
+  assert.equal(isCatalogVersion(` ${valid} `), false);
 });

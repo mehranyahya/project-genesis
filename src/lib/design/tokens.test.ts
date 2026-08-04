@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -38,6 +38,32 @@ const MASTER_TOKENS: Record<string, string> = {
   "--color-status-error": "#8b2f2f",
 };
 
+const RUNTIME_EXTENSIONS = new Set([".ts", ".tsx", ".css", ".js", ".jsx"]);
+
+/** Every runtime source file under src/, excluding tests and test fixtures. */
+const runtimeFiles = (): string[] => {
+  const out: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir)) {
+      const abs = path.join(dir, entry);
+      if (statSync(abs).isDirectory()) {
+        if (entry === "node_modules" || entry === "__fixtures__" || entry === "fixtures") continue;
+        walk(abs);
+        continue;
+      }
+      if (!RUNTIME_EXTENSIONS.has(path.extname(entry))) continue;
+      if (/\.(test|spec)\./.test(entry) || /\.fixture\./.test(entry)) continue;
+      out.push(path.relative(root, abs));
+    }
+  };
+  walk(root);
+  return out;
+};
+
+/** Strips comments only. Strings and inline styles stay in scope. */
+const stripComments = (source: string) =>
+  source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
 test("every master token is declared with the exact master value", () => {
   const tokens = read(TOKENS).toLowerCase();
   for (const [name, value] of Object.entries(MASTER_TOKENS)) {
@@ -45,11 +71,12 @@ test("every master token is declared with the exact master value", () => {
   }
 });
 
-test("raw colors live only in the token file", () => {
+test("recursive runtime scan finds zero raw colors outside tokens.css", () => {
   const rawColor = /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|oklch\(/;
-  for (const file of [STYLE_ENTRY, ...COMPONENTS]) {
-    assert.equal(rawColor.test(read(file)), false, `raw color found in ${file}`);
-  }
+  const offenders = runtimeFiles()
+    .filter((rel) => rel !== TOKENS)
+    .filter((rel) => rawColor.test(stripComments(read(rel))));
+  assert.deepEqual(offenders, [], `raw color found in: ${offenders.join(", ")}`);
   assert.ok(rawColor.test(read(TOKENS)));
 });
 
@@ -64,15 +91,38 @@ test("token file declares no raw color beyond the master palette", () => {
   }
 });
 
-const stripComments = (source: string) =>
-  source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-
-test("no gradients, blur, glass or animation libraries in owned files", () => {
+test("recursive runtime scan finds no gradient, glass, blur, shimmer or animation lib", () => {
   const banned =
     /gradient|backdrop-filter|backdrop-blur|blur\(|tw-animate|animate-pulse|shimmer|spinner/i;
-  for (const file of [TOKENS, STYLE_ENTRY, ...COMPONENTS]) {
-    assert.equal(banned.test(stripComments(read(file))), false, `banned effect in ${file}`);
-  }
+  const offenders = runtimeFiles().filter((rel) => banned.test(stripComments(read(rel))));
+  assert.deepEqual(offenders, [], `banned effect in: ${offenders.join(", ")}`);
+});
+
+test("accent aliases: interactive resolves to Serpentine, bronze stays decorative", () => {
+  const tokens = stripComments(read(TOKENS));
+  assert.match(tokens, /--accent:\s*var\(--color-action-primary\);/);
+  assert.match(tokens, /--accent-foreground:\s*var\(--color-text-inverse\);/);
+  assert.match(tokens, /--decorative-accent:\s*var\(--color-accent\);/);
+
+  const styles = stripComments(read(STYLE_ENTRY));
+  assert.match(styles, /--color-decorative-accent:\s*var\(--decorative-accent\);/);
+  assert.match(styles, /--color-sidebar-accent:\s*var\(--color-action-primary\);/);
+  assert.match(styles, /--color-sidebar-accent-foreground:\s*var\(--color-text-inverse\);/);
+
+  // No public interactive alias may resolve to Aged Bronze.
+  const resolve = (name: string, seen = new Set<string>()): string => {
+    if (seen.has(name)) return name;
+    seen.add(name);
+    const source = `${tokens}\n${styles}`;
+    const match = source.match(new RegExp(`${name}:\\s*([^;]+);`));
+    const value = match?.[1]?.trim() ?? "";
+    const ref = value.match(/^var\((--[a-z0-9-]+)\)$/);
+    return ref?.[1] ? resolve(ref[1], seen) : value;
+  };
+  assert.equal(resolve("--accent"), MASTER_TOKENS["--color-action-primary"]);
+  assert.equal(resolve("--color-sidebar-accent"), MASTER_TOKENS["--color-action-primary"]);
+  assert.equal(resolve("--color-sidebar-accent-foreground"), MASTER_TOKENS["--color-text-inverse"]);
+  assert.equal(resolve("--decorative-accent"), MASTER_TOKENS["--color-accent"]);
 });
 
 test("CTA, focus, success and selected use Serpentine; bronze stays decorative", () => {
