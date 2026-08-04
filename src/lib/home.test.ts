@@ -58,7 +58,10 @@ test("one or two products keep the product section hidden", () => {
 });
 
 test("three active products reveal the product section", () => {
-  const model = buildHomeViewModel({ ...EMPTY, products: [product("a"), product("b"), product("c")] });
+  const model = buildHomeViewModel({
+    ...EMPTY,
+    products: [product("a"), product("b"), product("c")],
+  });
   assert.equal(model.showProducts, true);
   assert.equal(model.products.length, 3);
 });

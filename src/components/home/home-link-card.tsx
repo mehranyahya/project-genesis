@@ -1,11 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 export type HomeLinkTarget =
-  | "/grave-stones"
-  | "/grave-stones/custom"
-  | "/portfolio"
-  | "/building-stone"
-  | "/guides";
+  "/grave-stones" | "/grave-stones/custom" | "/portfolio" | "/building-stone" | "/guides";
 
 /** Whole-surface link card. One interactive element, no nested links. */
 export function HomeLinkCard({ label, to }: { label: string; to: HomeLinkTarget }) {

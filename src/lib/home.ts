@@ -42,7 +42,11 @@ function cleanText(value: string | null | undefined): string | null {
 }
 
 function isValidProduct(product: Product): boolean {
-  return product.isActive === true && cleanText(product.slug) !== null && cleanText(product.title) !== null;
+  return (
+    product.isActive === true &&
+    cleanText(product.slug) !== null &&
+    cleanText(product.title) !== null
+  );
 }
 
 function isValidPortfolioItem(item: PortfolioItem): boolean {
