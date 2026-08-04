@@ -7,7 +7,7 @@ export type PriceType = "fixed" | "estimate" | "review";
 /** Backwards-compatible alias for the price contract. */
 export type PriceState = PriceType;
 
-export type ProductType = "grave_stone" | "building_stone";
+export type ProductType = "simple" | "cnc_box";
 
 export type GraveStoneSizeCode = "120x60" | "160x60" | "180x60" | "custom";
 
