@@ -42,9 +42,7 @@ test("no direct JSON, markdown, fixture or asset imports exist", () => {
 test("exactly one H1 with the locked heading and the structural intro", () => {
   assert.equal(ALL.split("<h1").length - 1, 1);
   assert.ok(read(PAGE).includes("فروشگاه سنگ مزار"));
-  assert.ok(
-    read(PAGE).includes("محصولات فعال را بر اساس نوع اجرا، کد سنگ و اندازه بررسی کنید."),
-  );
+  assert.ok(read(PAGE).includes("محصولات فعال را بر اساس نوع اجرا، کد سنگ و اندازه بررسی کنید."));
 });
 
 test("three paths carry exact labels, behaviour and destination", () => {
@@ -191,7 +189,13 @@ test("result status uses fa-IR formatting inside a polite live region", () => {
 });
 
 test("filter state never touches URL, storage or cookies", () => {
-  for (const banned of ["localStorage", "sessionStorage", "document.cookie", "useSearch", "navigate("]) {
+  for (const banned of [
+    "localStorage",
+    "sessionStorage",
+    "document.cookie",
+    "useSearch",
+    "navigate(",
+  ]) {
     assert.ok(!ALL_CODE.includes(banned), `banned persistence: ${banned}`);
   }
 });
