@@ -80,7 +80,9 @@ test("layout files carry no raw color and no banned effect", () => {
   const banned =
     /gradient|backdrop-filter|backdrop-blur|blur\(|tw-animate|animate-pulse|shimmer|spinner|data-theme/i;
   for (const file of LAYOUT_FILES) {
-    const source = read(file).replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    const source = read(file)
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
     assert.equal(rawColor.test(source), false, `raw color in ${file}`);
     assert.equal(banned.test(source), false, `banned effect in ${file}`);
   }
