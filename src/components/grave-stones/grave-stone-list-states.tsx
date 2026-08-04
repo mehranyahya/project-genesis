@@ -14,7 +14,9 @@ const ACTION =
 
 export function GraveStoneCatalogEmpty() {
   return (
-    <div className={`${FULL} flex flex-col items-start gap-4 border border-border-subtle bg-surface p-4`}>
+    <div
+      className={`${FULL} flex flex-col items-start gap-4 border border-border-subtle bg-surface p-4`}
+    >
       <p className="text-sm text-text-primary">{CATALOG_EMPTY_TEXT}</p>
       <Link to="/grave-stones/custom" className={ACTION}>
         ثبت سفارش سفارشی
@@ -25,7 +27,9 @@ export function GraveStoneCatalogEmpty() {
 
 export function GraveStoneFilteredEmpty({ onReset }: { onReset: () => void }) {
   return (
-    <div className={`${FULL} flex flex-col items-start gap-4 border border-border-subtle bg-surface p-4`}>
+    <div
+      className={`${FULL} flex flex-col items-start gap-4 border border-border-subtle bg-surface p-4`}
+    >
       <p className="text-sm text-text-primary">{FILTERED_EMPTY_TEXT}</p>
       <button
         type="button"
@@ -42,7 +46,10 @@ export function GraveStoneFilteredEmpty({ onReset }: { onReset: () => void }) {
 export function GraveStoneListLoading() {
   return (
     <section className={SECTION} aria-busy="true" aria-label={LOADING_LABEL}>
-      <div aria-hidden="true" className={`${FULL} h-11 border border-border-subtle bg-surface-media`} />
+      <div
+        aria-hidden="true"
+        className={`${FULL} h-11 border border-border-subtle bg-surface-media`}
+      />
       <div
         aria-hidden="true"
         className="col-span-4 grid grid-cols-4 gap-4 md:col-span-8 md:grid-cols-8 lg:col-span-12 lg:grid-cols-12"

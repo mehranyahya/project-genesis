@@ -36,7 +36,10 @@ export interface GraveStoneListItem {
   readonly stoneCodes: readonly string[];
   readonly sizeCodes: readonly GraveStoneSizeCode[];
   /** Available variant pairs, used for same-variant stone+size matching. */
-  readonly variantPairs: readonly { readonly stoneCode: string; readonly sizeCode: GraveStoneSizeCode }[];
+  readonly variantPairs: readonly {
+    readonly stoneCode: string;
+    readonly sizeCode: GraveStoneSizeCode;
+  }[];
 }
 
 export interface GraveStoneListModel {

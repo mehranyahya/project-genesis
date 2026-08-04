@@ -23,7 +23,10 @@ export function GraveStoneCard({ item }: { item: GraveStoneListItem }) {
             <h4 className="text-sm text-text-caption">اندازه‌ها</h4>
             <ul className="flex flex-wrap gap-2 pt-1">
               {item.sizeCodes.map((code) => (
-                <li key={code} className="border border-border-subtle px-2 py-1 text-sm text-text-primary">
+                <li
+                  key={code}
+                  className="border border-border-subtle px-2 py-1 text-sm text-text-primary"
+                >
                   {SIZE_LABELS.get(code)}
                 </li>
               ))}
@@ -36,7 +39,10 @@ export function GraveStoneCard({ item }: { item: GraveStoneListItem }) {
             <h4 className="text-sm text-text-caption">سنگ</h4>
             <ul className="flex flex-wrap gap-2 pt-1">
               {item.stoneCodes.map((code) => (
-                <li key={code} className="border border-border-subtle px-2 py-1 text-sm text-text-primary">
+                <li
+                  key={code}
+                  className="border border-border-subtle px-2 py-1 text-sm text-text-primary"
+                >
                   <bdi dir="ltr">{code}</bdi>
                 </li>
               ))}

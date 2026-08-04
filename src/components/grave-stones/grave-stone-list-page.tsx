@@ -26,7 +26,10 @@ const PATH_SELECTED = "border-action-primary bg-action-primary text-text-inverse
 export function GraveStoneListPage({ model }: { model: GraveStoneListModel }) {
   const [filters, setFilters] = useState<GraveStoneFilters>(NEUTRAL_GRAVE_STONE_FILTERS);
 
-  const visible = useMemo(() => filterGraveStoneItems(model.items, filters), [model.items, filters]);
+  const visible = useMemo(
+    () => filterGraveStoneItems(model.items, filters),
+    [model.items, filters],
+  );
   const catalogEmpty = model.items.length === 0;
   const reset = () => setFilters(NEUTRAL_GRAVE_STONE_FILTERS);
 
