@@ -32,9 +32,7 @@ export function CustomFunnelPage({
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof performance === "undefined") return;
-    const entry = performance.getEntriesByType("navigation")[0] as
-      | { type?: string }
-      | undefined;
+    const entry = performance.getEntriesByType("navigation")[0] as { type?: string } | undefined;
     if (entry?.type === "reload") setReloaded(true);
   }, []);
 

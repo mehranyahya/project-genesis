@@ -108,9 +108,7 @@ export function CustomFunnelStepper({
   onDraftReady: (draft: GraveStoneRequestDraft) => void;
 }) {
   const [step, setStep] = useState(0);
-  const [selection, setSelection] = useState<CustomFunnelSelection>(
-    EMPTY_CUSTOM_FUNNEL_SELECTION,
-  );
+  const [selection, setSelection] = useState<CustomFunnelSelection>(EMPTY_CUSTOM_FUNNEL_SELECTION);
   const [cascadeStep, setCascadeStep] = useState<number | null>(null);
   const ready = useRef(false);
 
@@ -172,10 +170,7 @@ export function CustomFunnelStepper({
 
   const catalogReady = typeof catalogVersion === "string" && isCatalogVersion(catalogVersion);
 
-  const apply = (
-    reduction: ReturnType<typeof reduceCustomFunnel>,
-    stepIndex: number,
-  ) => {
+  const apply = (reduction: ReturnType<typeof reduceCustomFunnel>, stepIndex: number) => {
     if (!reduction.changed) return;
     setSelection(reduction.selection);
     setCascadeStep(reduction.clearedDownstream ? stepIndex : null);
@@ -186,10 +181,7 @@ export function CustomFunnelStepper({
 
   return (
     <>
-      <nav
-        aria-label="مراحل ساخت"
-        className="col-span-4 md:col-span-8 lg:col-span-3 lg:self-start"
-      >
+      <nav aria-label="مراحل ساخت" className="col-span-4 md:col-span-8 lg:col-span-3 lg:self-start">
         <ol className="flex flex-col gap-2 border border-border-subtle bg-surface p-4">
           {CUSTOM_FUNNEL_STEPS.map((label, index) => (
             <li
@@ -262,7 +254,11 @@ export function CustomFunnelStepper({
               <legend className="px-2 text-sm font-bold text-text-primary">انتخاب اندازه</legend>
               <div className="flex flex-col gap-3 pt-2">
                 {stone.sizes.map((choice) => (
-                  <label key={choice.variantId} className={ROW} htmlFor={`size-${choice.variantId}`}>
+                  <label
+                    key={choice.variantId}
+                    className={ROW}
+                    htmlFor={`size-${choice.variantId}`}
+                  >
                     <input
                       type="radio"
                       id={`size-${choice.variantId}`}

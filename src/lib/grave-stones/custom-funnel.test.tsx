@@ -33,7 +33,7 @@ test("1 the route consumes only getProducts() and getCatalogVersion()", () => {
   }
 });
 
-test("2 getProducts({ type: \"simple\" }) is used", () => {
+test('2 getProducts({ type: "simple" }) is used', () => {
   assert.ok(read(ROUTE).includes('getProducts({ type: "simple" })'));
 });
 
@@ -75,7 +75,7 @@ test("8 progress uses an ordered list", () => {
   assert.ok(read(STEPPER).includes("<ol"));
 });
 
-test("9 aria-current=\"step\" marks the active step", () => {
+test('9 aria-current="step" marks the active step', () => {
   assert.ok(read(STEPPER).includes('aria-current={index === step ? "step" : undefined}'));
 });
 
@@ -104,7 +104,15 @@ test("13 the callback consumes the existing draft type", () => {
 });
 
 test("14 no api, fetch or form element exists", () => {
-  for (const banned of ["fetch(", "<form", "onSubmit", "createServerFn", "supabase", "<textarea", 'type="text"']) {
+  for (const banned of [
+    "fetch(",
+    "<form",
+    "onSubmit",
+    "createServerFn",
+    "supabase",
+    "<textarea",
+    'type="text"',
+  ]) {
     assert.ok(!ALL_CODE.includes(banned), `must not contain ${banned}`);
   }
 });
@@ -116,7 +124,13 @@ test("15 there is no navigation to another route", () => {
 });
 
 test("16 search params and hash are never mutated", () => {
-  for (const banned of ["location.hash", "URLSearchParams", "useSearch", "validateSearch", "location.search"]) {
+  for (const banned of [
+    "location.hash",
+    "URLSearchParams",
+    "useSearch",
+    "validateSearch",
+    "location.search",
+  ]) {
     assert.ok(!ALL_CODE.includes(banned), `must not contain ${banned}`);
   }
 });
@@ -141,7 +155,14 @@ test("19 no selection value is written into history state", () => {
   const stateWrites = stepper.match(/(push|replace)State\([\s\S]{0,160}?\)/g) ?? [];
   assert.equal(stateWrites.length, 2);
   for (const write of stateWrites) {
-    for (const banned of ["selection", "draft", "variantId", "optionId", "catalogVersion", "price"]) {
+    for (const banned of [
+      "selection",
+      "draft",
+      "variantId",
+      "optionId",
+      "catalogVersion",
+      "price",
+    ]) {
       assert.ok(!write.includes(banned), `history state must not contain ${banned}`);
     }
   }
@@ -169,15 +190,11 @@ test("22 the exact cascade announcement is present and polite", () => {
 });
 
 test("23 the exact reload announcement is present", () => {
-  assert.ok(
-    read(PAGE).includes("انتخاب‌های قبلی ذخیره نشده‌اند و مسیر از مرحلهٔ اول آغاز شد."),
-  );
+  assert.ok(read(PAGE).includes("انتخاب‌های قبلی ذخیره نشده‌اند و مسیر از مرحلهٔ اول آغاز شد."));
 });
 
 test("24 the exact empty state text is present", () => {
-  assert.ok(
-    read(STATES).includes("در حال حاضر گزینهٔ کاملی برای ساخت مرحله‌ای ثبت نشده است."),
-  );
+  assert.ok(read(STATES).includes("در حال حاضر گزینهٔ کاملی برای ساخت مرحله‌ای ثبت نشده است."));
   assert.ok(read(PAGE).includes("CustomFunnelEmpty"));
 });
 
@@ -207,7 +224,7 @@ test("27 product detail and request draft modules are only imported", () => {
 
 test("28 roles are never inferred from titles or id patterns", () => {
   const logic = stripComments(read(LOGIC));
-  for (const banned of ["startsWith(", "includes(\"dori", "toLowerCase()", "match(", "RegExp"]) {
+  for (const banned of ["startsWith(", 'includes("dori', "toLowerCase()", "match(", "RegExp"]) {
     assert.ok(!logic.includes(banned), `role classification must not use ${banned}`);
   }
   assert.ok(logic.includes("makeCustomOptionRoleKey"));
@@ -232,7 +249,9 @@ test("31 cnc is excluded from the funnel", () => {
 
 test("32 the dori rule is exactly 160x60 and 180x60", () => {
   const logic = read(LOGIC);
-  assert.ok(logic.includes('DORI_SIZE_CODES: readonly GraveStoneSizeCode[] = ["160x60", "180x60"]'));
+  assert.ok(
+    logic.includes('DORI_SIZE_CODES: readonly GraveStoneSizeCode[] = ["160x60", "180x60"]'),
+  );
   assert.ok(logic.includes("DORI_SIZE_CODES.includes(variant.sizeCode)"));
 });
 

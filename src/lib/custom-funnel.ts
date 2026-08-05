@@ -102,7 +102,10 @@ function roleOf(
   optionId: string,
 ): CustomOptionRole | null {
   const role = registry[makeCustomOptionRoleKey(variantId, optionId)];
-  return role === "dori" || role === "inscription_piece" || role === "engraving" || role === "excluded"
+  return role === "dori" ||
+    role === "inscription_piece" ||
+    role === "engraving" ||
+    role === "excluded"
     ? role
     : null;
 }
@@ -278,8 +281,7 @@ export function reduceCustomFunnel(
       };
     }
     case "toggleDori": {
-      const cleared =
-        selection.inscriptionIds.length > 0 || selection.engravingIds.length > 0;
+      const cleared = selection.inscriptionIds.length > 0 || selection.engravingIds.length > 0;
       return {
         selection: {
           ...selection,
@@ -342,12 +344,14 @@ export function buildCustomFunnelDraft(input: {
   for (const option of size.engraving) allowed.set(option.id, "engraving");
 
   const requested = new Set<string>();
-  const groups: readonly (readonly [readonly string[], "dori" | "inscription_piece" | "engraving"])[] =
-    [
-      [selection.doriIds, "dori"],
-      [selection.inscriptionIds, "inscription_piece"],
-      [selection.engravingIds, "engraving"],
-    ];
+  const groups: readonly (readonly [
+    readonly string[],
+    "dori" | "inscription_piece" | "engraving",
+  ])[] = [
+    [selection.doriIds, "dori"],
+    [selection.inscriptionIds, "inscription_piece"],
+    [selection.engravingIds, "engraving"],
+  ];
 
   for (const [ids, role] of groups) {
     for (const id of ids) {

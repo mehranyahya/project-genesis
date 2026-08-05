@@ -89,8 +89,18 @@ test("5 products without a valid variant are dropped", () => {
 
 test("6 stone order follows adapter order", () => {
   const model = build([
-    product({ id: "p-2", slug: "b", code: "C2", variants: [variant({ id: "v-2", stoneCode: "Z" })] }),
-    product({ id: "p-1", slug: "a", code: "C1", variants: [variant({ id: "v-1", stoneCode: "A" })] }),
+    product({
+      id: "p-2",
+      slug: "b",
+      code: "C2",
+      variants: [variant({ id: "v-2", stoneCode: "Z" })],
+    }),
+    product({
+      id: "p-1",
+      slug: "a",
+      code: "C1",
+      variants: [variant({ id: "v-1", stoneCode: "A" })],
+    }),
   ]);
   assert.deepEqual(
     model.stones.map((stone) => stone.stoneCode),
@@ -297,13 +307,7 @@ test("23 dori, inscription and engraving cascade exactly as contracted", () => {
 
 test("24 the reducer has no step concept, so plain back clears nothing", () => {
   const keys = Object.keys(EMPTY_CUSTOM_FUNNEL_SELECTION);
-  assert.deepEqual(keys, [
-    "stoneKey",
-    "variantId",
-    "doriIds",
-    "inscriptionIds",
-    "engravingIds",
-  ]);
+  assert.deepEqual(keys, ["stoneKey", "variantId", "doriIds", "inscriptionIds", "engravingIds"]);
   assert.ok(!keys.includes("step"));
 });
 
@@ -350,10 +354,8 @@ const baseSelection: CustomFunnelSelection = {
   engravingIds: [] as readonly string[],
 };
 
-const makeDraft = (
-  selection: CustomFunnelSelection,
-  catalogVersion: string | null = VERSION,
-) => buildCustomFunnelDraft({ model: draftModel, catalogVersion, selection });
+const makeDraft = (selection: CustomFunnelSelection, catalogVersion: string | null = VERSION) =>
+  buildCustomFunnelDraft({ model: draftModel, catalogVersion, selection });
 
 test("26 an invalid catalog version yields a null draft", () => {
   assert.equal(makeDraft(baseSelection, "short"), null);
@@ -381,7 +383,10 @@ test("30 an excluded option id yields a null draft", () => {
 });
 
 test("31 an unclassified option id yields a null draft", () => {
-  const partialModel = build([draftProduct], roles({ ...draftRoles, [makeCustomOptionRoleKey("v-s", "o-x")]: "excluded" }));
+  const partialModel = build(
+    [draftProduct],
+    roles({ ...draftRoles, [makeCustomOptionRoleKey("v-s", "o-x")]: "excluded" }),
+  );
   assert.equal(partialModel.stones.length, 1);
   assert.equal(makeDraft({ ...baseSelection, doriIds: ["unknown-option"] }), null);
 });
