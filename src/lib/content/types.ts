@@ -96,6 +96,9 @@ export interface Product {
 export interface PortfolioItem {
   publicReferenceId: string;
   media: Media[];
+  stoneCode?: string | null;
+  sizeCode?: GraveStoneSizeCode | null;
+  summary?: string | null;
 }
 
 export interface Guide {

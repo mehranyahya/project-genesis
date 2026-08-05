@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { RouteSkeleton } from "@/components/layout/route-skeleton";
+import { PortfolioPage } from "@/components/portfolio/portfolio-page";
+import { PortfolioError, PortfolioLoading } from "@/components/portfolio/portfolio-states";
+import { getPortfolioItems } from "@/lib/content/adapters";
+import { buildPortfolioModel } from "@/lib/portfolio";
 
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
@@ -12,9 +15,13 @@ export const Route = createFileRoute("/portfolio")({
     ],
     links: [{ rel: "canonical", href: "/portfolio" }],
   }),
+  loader: async () => buildPortfolioModel(await getPortfolioItems()),
+  pendingComponent: PortfolioLoading,
+  errorComponent: PortfolioError,
   component: PortfolioRoute,
 });
 
 function PortfolioRoute() {
-  return <RouteSkeleton title="نمونه‌کارها" />;
+  const cards = Route.useLoaderData();
+  return <PortfolioPage cards={cards} />;
 }

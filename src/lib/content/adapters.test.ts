@@ -6,6 +6,7 @@ import * as adapters from "./adapters";
 import { CATALOG_VERSION_PATTERN, PAGE_SLUGS, isCatalogVersion } from "./types";
 import type {
   CatalogVersion,
+  GraveStoneSizeCode,
   Media,
   PriceType,
   Product,
@@ -129,6 +130,17 @@ type _PortfolioRequired = Expect<
   Equals<RequiredKeys<PortfolioItem>, "publicReferenceId" | "media">
 >;
 
+type _PortfolioOptional = Expect<
+  Equals<OptionalKeys<PortfolioItem>, "stoneCode" | "sizeCode" | "summary">
+>;
+
+type _PortfolioSizeCode = Expect<
+  Equals<PortfolioItem["sizeCode"], GraveStoneSizeCode | null | undefined>
+>;
+
+type _PortfolioStoneCode = Expect<Equals<PortfolioItem["stoneCode"], string | null | undefined>>;
+type _PortfolioSummary = Expect<Equals<PortfolioItem["summary"], string | null | undefined>>;
+
 // Portfolio exposes no customer-identifying surface.
 type _PortfolioNoPii = Expect<
   Equals<Extract<keyof PortfolioItem, `${string}customer${string}` | "name" | "phone">, never>
@@ -150,6 +162,10 @@ test("type-level contract assertions compile", () => {
     true as _MediaOptional,
     true as _GuideRequired,
     true as _PortfolioRequired,
+    true as _PortfolioOptional,
+    true as _PortfolioSizeCode,
+    true as _PortfolioStoneCode,
+    true as _PortfolioSummary,
     true as _PortfolioNoPii,
     true as _BrandedCatalogVersion,
   ];
