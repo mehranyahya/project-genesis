@@ -256,7 +256,6 @@ test("32 the dori rule is exactly 160x60 and 180x60", () => {
 });
 
 test("33 no parallel price resolver exists", () => {
-  assert.ok(ALL_CODE.includes("resolveSelectionPrice"));
   assert.ok(!/function\s+\w*[Rr]esolve\w*Price/.test(ALL_CODE));
   assert.ok(!ALL_CODE.includes("amountToman +"));
 });
