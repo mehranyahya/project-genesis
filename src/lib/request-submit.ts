@@ -133,25 +133,38 @@ const SERVER_FIELDS: Readonly<Record<string, RequestFieldKey>> = {
   terms: "termsAccepted",
 };
 
+/** Fixed client copy. A server-supplied message is never stored or rendered. */
+const CLIENT_FIELD_MESSAGES: Readonly<Record<RequestFieldKey, string>> = {
+  customerName: REQUEST_FIELD_ERRORS.customerName,
+  phone: REQUEST_FIELD_ERRORS.phone,
+  city: REQUEST_FIELD_ERRORS.cityRequired,
+  locationText: REQUEST_FIELD_ERRORS.locationRequired,
+  locationUnknown: REQUEST_FIELD_ERRORS.locationRequired,
+  preferredContact: REQUEST_FIELD_ERRORS.preferredContact,
+  preferredContactTime: REQUEST_FIELD_ERRORS.preferredContactTime,
+  customerNote: REQUEST_FIELD_ERRORS.customerNote,
+  termsAccepted: REQUEST_FIELD_ERRORS.termsAccepted,
+};
+
 function mapFieldErrors(value: unknown): Readonly<Partial<Record<RequestFieldKey, string>>> {
   if (typeof value !== "object" || value === null) return {};
   const out: Partial<Record<RequestFieldKey, string>> = {};
-  for (const [key, message] of Object.entries(value as Record<string, unknown>)) {
+  for (const key of Object.keys(value as Record<string, unknown>)) {
     const field = SERVER_FIELDS[key];
     if (field === undefined) continue;
-    if (typeof message !== "string" || message.trim().length === 0) continue;
-    out[field] = message.trim();
+    out[field] = CLIENT_FIELD_MESSAGES[field];
   }
   return out;
 }
 
+/** Accepts only a fully valid price object; nothing is repaired or defaulted. */
 function readPrice(value: unknown): SubmitPrice | null {
   if (typeof value !== "object" || value === null) return null;
   const candidate = value as { price_type?: unknown; amount_toman?: unknown };
   const type = candidate.price_type;
-  if (type !== "fixed" && type !== "estimate" && type !== "review") return null;
   const amount = candidate.amount_toman;
-  if (type === "review") return { priceType: "review", amountToman: null };
+  if (type === "review") return amount === null ? { priceType: "review", amountToman: null } : null;
+  if (type !== "fixed" && type !== "estimate") return null;
   if (typeof amount !== "number" || !Number.isSafeInteger(amount) || amount <= 0) return null;
   return { priceType: type, amountToman: amount };
 }
