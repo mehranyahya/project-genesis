@@ -4,6 +4,8 @@ import { ProductDraftSummary } from "./product-draft-summary";
 import { ProductMediaStage } from "./product-media-stage";
 import { ProductPricePanel } from "./product-price-panel";
 import { ProductSelection } from "./product-selection";
+import { RequestForm } from "@/components/request-form/request-form";
+import type { Site } from "@/lib/content/types";
 import { isCatalogVersion } from "@/lib/content/types";
 import type { ProductDetailModel } from "@/lib/product-detail";
 import { resolveSelectionPrice } from "@/lib/product-detail";
@@ -19,9 +21,11 @@ const ACTION =
 export function ProductDetailPage({
   model,
   catalogVersion,
+  site,
 }: {
   model: ProductDetailModel;
   catalogVersion: string | null;
+  site?: Site | null;
 }) {
   const [variantId, setVariantId] = useState(model.variants[0]!.id);
   const [optionIds, setOptionIds] = useState<readonly string[]>([]);
@@ -98,7 +102,16 @@ export function ProductDetailPage({
           {!canReview ? <p className="text-sm text-text-secondary">{DRAFT_BLOCKED_TEXT}</p> : null}
         </div>
 
-        {draft ? <ProductDraftSummary draft={draft} /> : null}
+        {draft ? (
+          <>
+            <ProductDraftSummary draft={draft} />
+            <RequestForm
+              source={{ kind: "grave_stone", draft }}
+              site={site ?? null}
+              termsDocument={null}
+            />
+          </>
+        ) : null}
       </div>
     </section>
   );
