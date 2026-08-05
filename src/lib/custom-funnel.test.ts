@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import type { Product, ProductOption, ProductVariant } from "../lib/content/types";
-import type { CustomOptionRoleRegistry } from "../lib/custom-funnel";
+import type { CustomFunnelSelection, CustomOptionRoleRegistry } from "../lib/custom-funnel";
 import {
   CUSTOM_FUNNEL_OPTION_ROLES,
   CUSTOM_FUNNEL_SIZE_ORDER,
@@ -342,7 +342,7 @@ const draftRoles = roles({
 
 const draftModel = build([draftProduct], draftRoles);
 const stoneKey = makeCustomFunnelStoneKey("p-1", "MA-1001");
-const baseSelection = {
+const baseSelection: CustomFunnelSelection = {
   stoneKey,
   variantId: "v-s",
   doriIds: [] as readonly string[],
@@ -351,7 +351,7 @@ const baseSelection = {
 };
 
 const makeDraft = (
-  selection: typeof baseSelection,
+  selection: CustomFunnelSelection,
   catalogVersion: string | null = VERSION,
 ) => buildCustomFunnelDraft({ model: draftModel, catalogVersion, selection });
 
