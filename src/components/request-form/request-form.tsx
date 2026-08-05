@@ -201,8 +201,6 @@ export function RequestForm({
       </div>
 
       <div className="col-span-4 flex flex-col gap-4 md:col-span-8 lg:col-span-4">
-        {extension ? <p className="text-sm text-text-caption">{extension.kind}</p> : null}
-
         <button
           type="submit"
           className={ACTION}
@@ -219,6 +217,10 @@ export function RequestForm({
           outcome={submitting ? null : outcome}
           onRetry={() => void run(priceRevision)}
           onConfirmPrice={() => void run(priceRevision)}
+          onNewAttempt={() => {
+            submissionId.current = null;
+            setOutcome(null);
+          }}
         />
       </div>
     </form>
