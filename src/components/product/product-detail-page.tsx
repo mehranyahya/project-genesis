@@ -35,7 +35,7 @@ export function ProductDetailPage({
   const selectedOptions = variant.options.filter((option) => optionIds.includes(option.id));
   const price = resolveSelectionPrice(variant, selectedOptions);
 
-  const canReview = typeof catalogVersion === "string" && catalogVersion.length > 0;
+  const canReview = typeof catalogVersion === "string" && isCatalogVersion(catalogVersion);
 
   const selectVariant = (nextId: string) => {
     setVariantId(nextId);
