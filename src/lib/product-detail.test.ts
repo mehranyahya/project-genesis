@@ -5,6 +5,7 @@ import type { Product, ProductOption, ProductVariant } from "../lib/content/type
 import {
   PRODUCT_SIZE_ORDER,
   buildProductDetailModel,
+  hasValidNumericPrice,
   normalizePriceDate,
   resolveSelectionPrice,
 } from "../lib/product-detail";
