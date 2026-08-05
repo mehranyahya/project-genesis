@@ -36,6 +36,31 @@ type Phase = "editing" | "submitting" | "success";
 
 const PII_FREE_VALUES = EMPTY_REQUEST_FORM_VALUES;
 
+/**
+ * A stable identity for the current selection. A new object with identical
+ * content is not a selection change, so a re-render never clears a blocked
+ * selection or a pending price revision.
+ */
+function sourceIdentity(source: RequestSource): string {
+  if (source.kind === "grave_stone") {
+    const draft = source.draft;
+    const snapshot = draft.displaySnapshot;
+    return [
+      "grave_stone",
+      draft.catalogVersion,
+      draft.productId,
+      draft.productCode,
+      draft.variantId,
+      draft.stoneCode,
+      draft.sizeCode,
+      draft.optionIds.join("|"),
+      snapshot.priceType,
+      String(snapshot.amountToman),
+    ].join("~");
+  }
+  return `contact~${source.portfolioReferenceId ?? ""}`;
+}
+
 export function RequestForm({
   source,
   site,
