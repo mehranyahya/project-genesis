@@ -249,6 +249,24 @@ export function buildProductDetailModel(
 }
 
 /**
+ * A single numeric price component (variant or option). Fixed/estimate amounts
+ * are only valid when both a positive safe-integer amount and an exact
+ * YYYY-MM-DD price date are present. Dates are never fabricated or borrowed.
+ */
+export interface PriceComponent {
+  readonly priceType: PriceType;
+  readonly amountToman: number | null;
+  readonly priceUpdatedAt: string | null;
+}
+
+export function hasValidNumericPrice(component: PriceComponent): boolean {
+  if (component.priceType === "review") return false;
+  return (
+    isValidAmount(component.amountToman) && normalizePriceDate(component.priceUpdatedAt) !== null
+  );
+}
+
+/**
  * Display-only price resolution. Precedence is review > estimate > fixed.
  * The server remains the sole authority for the final amount.
  */
@@ -259,17 +277,15 @@ export function resolveSelectionPrice(
   const review: SelectionPrice = { priceType: "review", amountToman: null };
 
   if (variant.sizeCode === "custom") return review;
-  if (variant.priceType === "review") return review;
-  if (!isValidAmount(variant.amountToman)) return review;
+  if (!hasValidNumericPrice(variant)) return review;
 
-  let total = variant.amountToman;
+  let total = variant.amountToman as number;
   let hasEstimate = variant.priceType === "estimate";
 
   for (const option of selectedOptions) {
-    if (option.priceType === "review") return review;
-    if (!isValidAmount(option.amountToman)) return review;
+    if (!hasValidNumericPrice(option)) return review;
     if (option.priceType === "estimate") hasEstimate = true;
-    total += option.amountToman;
+    total += option.amountToman as number;
   }
 
   if (!Number.isSafeInteger(total)) return review;

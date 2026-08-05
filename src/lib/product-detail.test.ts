@@ -5,6 +5,7 @@ import type { Product, ProductOption, ProductVariant } from "../lib/content/type
 import {
   PRODUCT_SIZE_ORDER,
   buildProductDetailModel,
+  hasValidNumericPrice,
   normalizePriceDate,
   resolveSelectionPrice,
 } from "../lib/product-detail";
@@ -301,4 +302,102 @@ test("resolveSelectionPrice does not mutate its inputs", () => {
   const before = JSON.stringify(v);
   resolveSelectionPrice(v, v.options);
   assert.equal(JSON.stringify(v), before);
+});
+
+test("R1 a fixed variant with a valid amount but null price date forces review", () => {
+  const v = detailVariant({ variants: [variant({ priceUpdatedAt: null })] });
+  assert.deepEqual(resolveSelectionPrice(v, []), { priceType: "review", amountToman: null });
+});
+
+test("R2 an estimate variant with an invalid price date forces review", () => {
+  const v = detailVariant({
+    variants: [variant({ priceType: "estimate", priceUpdatedAt: "2026/01/01" })],
+  });
+  assert.deepEqual(resolveSelectionPrice(v, []), { priceType: "review", amountToman: null });
+});
+
+test("R3 a fixed option with a valid amount but null price date forces review", () => {
+  const v = detailVariant({
+    variants: [variant({ options: [option({ id: "o1", priceUpdatedAt: null })] })],
+  });
+  assert.deepEqual(resolveSelectionPrice(v, v.options), {
+    priceType: "review",
+    amountToman: null,
+  });
+});
+
+test("R4 an estimate option with an invalid price date forces review", () => {
+  const v = detailVariant({
+    variants: [
+      variant({
+        options: [option({ id: "o1", priceType: "estimate", priceUpdatedAt: "13-01-2026" })],
+      }),
+    ],
+  });
+  assert.deepEqual(resolveSelectionPrice(v, v.options), {
+    priceType: "review",
+    amountToman: null,
+  });
+});
+
+test("R5 a fixed variant plus a fixed option with valid dates sums to fixed", () => {
+  const v = detailVariant({ variants: [variant({ options: [option({ id: "o1" })] })] });
+  assert.deepEqual(resolveSelectionPrice(v, v.options), {
+    priceType: "fixed",
+    amountToman: 1_100_000,
+  });
+});
+
+test("R6 a valid estimate component with a valid date yields an estimate sum", () => {
+  const v = detailVariant({
+    variants: [variant({ options: [option({ id: "o1", priceType: "estimate" })] })],
+  });
+  assert.deepEqual(resolveSelectionPrice(v, v.options), {
+    priceType: "estimate",
+    amountToman: 1_100_000,
+  });
+});
+
+test("R7 a review component without a price date stays review", () => {
+  const v = detailVariant({
+    variants: [variant({ priceType: "review", amountToman: null, priceUpdatedAt: null })],
+  });
+  assert.deepEqual(resolveSelectionPrice(v, []), { priceType: "review", amountToman: null });
+});
+
+test("R8 a custom size stays review even with a valid amount and date", () => {
+  const v = detailVariant({ variants: [variant({ sizeCode: "custom" })] });
+  assert.deepEqual(resolveSelectionPrice(v, []), { priceType: "review", amountToman: null });
+});
+
+test("R9 date validation does not mutate its inputs", () => {
+  const v = detailVariant({
+    variants: [variant({ priceUpdatedAt: null, options: [option({ id: "o1" })] })],
+  });
+  const before = JSON.stringify(v);
+  resolveSelectionPrice(v, v.options);
+  assert.equal(JSON.stringify(v), before);
+});
+
+test("R10 hasValidNumericPrice requires both a valid amount and a valid date", () => {
+  assert.equal(
+    hasValidNumericPrice({ priceType: "fixed", amountToman: 100, priceUpdatedAt: "2026-01-01" }),
+    true,
+  );
+  assert.equal(
+    hasValidNumericPrice({ priceType: "fixed", amountToman: 100, priceUpdatedAt: null }),
+    false,
+  );
+  assert.equal(
+    hasValidNumericPrice({
+      priceType: "estimate",
+      amountToman: null,
+      priceUpdatedAt: "2026-01-01",
+    }),
+    false,
+  );
+  assert.equal(
+    hasValidNumericPrice({ priceType: "review", amountToman: 100, priceUpdatedAt: "2026-01-01" }),
+    false,
+  );
 });

@@ -276,3 +276,64 @@ test("37 changing the variant clears every selected option", () => {
   const page = read(PAGE);
   assert.match(page, /setVariantId\(nextId\);\s*setOptionIds\(\[\]\);/);
 });
+
+test("R1 the page validates the catalog version with the official predicate", () => {
+  const page = read(PAGE);
+  assert.ok(page.includes('import { isCatalogVersion } from "@/lib/content/types"'));
+  assert.ok(page.includes("isCatalogVersion(catalogVersion)"));
+});
+
+test("R2 length-only or truthiness-only catalog validation is absent", () => {
+  const page = stripComments(read(PAGE));
+  assert.ok(!page.includes("catalogVersion.length"));
+  assert.ok(!/canReview\s*=\s*Boolean\(catalogVersion\)/.test(page));
+});
+
+test("R3 no local catalog-version regex is introduced", () => {
+  const page = stripComments(read(PAGE));
+  assert.ok(!page.includes("64"));
+  assert.ok(!/\[0-9a-f\]/.test(page));
+  assert.ok(!/new RegExp/.test(page));
+});
+
+test("R4 option display uses the shared price-validity helper", () => {
+  const selection = stripComments(read(SELECTION));
+  assert.ok(selection.includes("hasValidNumericPrice"));
+  assert.ok(!selection.includes("isValidAmount"));
+  assert.ok(!selection.includes('priceType === "review" ||'));
+  assert.ok(read(MODEL).includes("export function hasValidNumericPrice"));
+});
+
+test("R5 an option amount is only rendered behind the shared validity guard", () => {
+  const selection = stripComments(read(SELECTION));
+  assert.match(
+    selection,
+    /if \(!hasValidNumericPrice\(option\)\) \{\s*return PRICE_TYPE_LABELS\.review;/,
+  );
+  assert.ok(selection.includes("formatPriceDate(option.priceUpdatedAt)"));
+});
+
+test("R6 no protected module is imported as a workaround", () => {
+  for (const rel of [PAGE, SELECTION, MODEL]) {
+    const code = stripComments(read(rel));
+    assert.ok(!code.includes("content/adapters"), `adapter import in ${rel}`);
+    assert.ok(!code.includes("routeTree"), `route tree import in ${rel}`);
+  }
+});
+
+test("R7 no form, api, storage, PII or navigation behavior is introduced", () => {
+  const code = [PAGE, SELECTION, MODEL].map((rel) => stripComments(read(rel))).join("\n");
+  for (const banned of [
+    "localStorage",
+    "sessionStorage",
+    "document.cookie",
+    "fetch(",
+    "useNavigate",
+    "<Link",
+    "<form",
+    "phone",
+    "mobile",
+  ]) {
+    assert.ok(!code.includes(banned), `${banned} must not appear`);
+  }
+});

@@ -230,3 +230,42 @@ test("15 building a draft mutates neither model nor inputs", () => {
   assert.equal(JSON.stringify(detail), before);
   assert.deepEqual(optionIds, ["o1", "o2"]);
 });
+
+test("R1 a variant numeric price without a valid date yields a review draft", () => {
+  const value = buildGraveStoneRequestDraft({
+    model: model({ variants: [variant({ priceUpdatedAt: null })] }),
+    catalogVersion: VALID_CATALOG_VERSION,
+    variantId: "v-1",
+    optionIds: [],
+  })!;
+  assert.equal(value.displaySnapshot.priceType, "review");
+  assert.equal(value.displaySnapshot.amountToman, null);
+  assert.equal(value.displaySnapshot.priceUpdatedAt, null);
+  assert.equal(value.displaySnapshot.priceLabel, "نیازمند بررسی");
+  assert.equal(/[0-9۰-۹]/.test(value.displaySnapshot.priceLabel), false);
+});
+
+test("R2 an option numeric price without a valid date yields a review draft", () => {
+  const value = buildGraveStoneRequestDraft({
+    model: model({
+      variants: [variant({ options: [option({ id: "o1", title: "اول", priceUpdatedAt: null })] })],
+    }),
+    catalogVersion: VALID_CATALOG_VERSION,
+    variantId: "v-1",
+    optionIds: ["o1"],
+  })!;
+  assert.equal(value.displaySnapshot.priceType, "review");
+  assert.equal(value.displaySnapshot.amountToman, null);
+  assert.equal(value.displaySnapshot.priceUpdatedAt, null);
+  assert.equal(value.displaySnapshot.priceLabel, "نیازمند بررسی");
+});
+
+test("R3 the review draft keeps the allowed key set unchanged", () => {
+  const value = buildGraveStoneRequestDraft({
+    model: model({ variants: [variant({ priceUpdatedAt: null })] }),
+    catalogVersion: VALID_CATALOG_VERSION,
+    variantId: "v-1",
+    optionIds: [],
+  })!;
+  assert.deepEqual(Object.keys(value).sort(), [...DRAFT_KEYS].sort());
+});

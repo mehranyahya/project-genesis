@@ -2,7 +2,7 @@ import {
   PRICE_TYPE_LABELS,
   formatAmount,
   formatPriceDate,
-  isValidAmount,
+  hasValidNumericPrice,
 } from "@/lib/product-detail";
 import type { ProductDetailOption, ProductDetailVariant } from "@/lib/product-detail";
 
@@ -15,10 +15,10 @@ const CONTROL =
   "mt-1 h-5 w-5 shrink-0 accent-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
 function optionPriceText(option: ProductDetailOption): string {
-  if (option.priceType === "review" || !isValidAmount(option.amountToman)) {
+  if (!hasValidNumericPrice(option)) {
     return PRICE_TYPE_LABELS.review;
   }
-  const amount = `${formatAmount(option.amountToman)} تومان`;
+  const amount = `${formatAmount(option.amountToman as number)} تومان`;
   return option.priceType === "estimate"
     ? `${PRICE_TYPE_LABELS.estimate}: ${amount}`
     : `${PRICE_TYPE_LABELS.fixed}: ${amount}`;
