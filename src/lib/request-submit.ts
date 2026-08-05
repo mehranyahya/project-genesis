@@ -251,22 +251,32 @@ export async function submitRequest(input: {
   const timeoutMs = input.timeoutMs ?? SUBMIT_TIMEOUT_MS;
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  // The deadline resolves on its own, so a transport that ignores the abort
+  // signal can never keep the form in the submitting phase.
+  const deadline = new Promise<SubmitOutcome>((resolve) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      resolve(TEMPORARY);
+    }, timeoutMs);
+  });
+
+  const attempt = transport({
+    url: SUBMIT_ENDPOINT,
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(input.payload),
+    cache: "no-store",
+    signal: controller.signal,
+  })
+    .then(interpretSubmitResponse)
+    .catch(() => TEMPORARY);
 
   try {
-    const result = await transport({
-      url: SUBMIT_ENDPOINT,
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify(input.payload),
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    return interpretSubmitResponse(result);
-  } catch {
-    return TEMPORARY;
+    return await Promise.race([attempt, deadline]);
   } finally {
-    clearTimeout(timer);
+    if (timer !== null) clearTimeout(timer);
   }
 }
 
