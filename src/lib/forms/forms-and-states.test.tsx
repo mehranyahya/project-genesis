@@ -30,7 +30,11 @@ test("1 no direct JSON, markdown, fixture or asset import exists", () => {
 });
 
 test("2 no absolute URL, secret or backend key appears in the form surface", () => {
-  assert.ok(!/https?:\/\//.test(ALL_CODE));
+  // The single allowed absolute URL is the WhatsApp deep link built from the
+  // site adapter contact value; no backend URL or key may appear anywhere.
+  for (const match of ALL_CODE.match(/https?:\/\/[^\s`"']*/g) ?? []) {
+    assert.ok(match.startsWith("https://wa.me/"), `unexpected absolute URL ${match}`);
+  }
   assert.ok(!/supabase|api[_-]?key|secret|token\s*=/i.test(ALL_CODE));
 });
 
