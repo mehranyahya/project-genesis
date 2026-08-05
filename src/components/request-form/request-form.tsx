@@ -109,7 +109,9 @@ export function RequestForm({
       setPhase("submitting");
       setOutcome(null);
 
-      const result = await submitRequest({ payload, transport });
+      const result = await submitRequest(
+        transport ? { payload, transport } : { payload },
+      );
 
       inFlight.current = false;
       setOutcome(result);
