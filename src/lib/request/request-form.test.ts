@@ -66,7 +66,7 @@ test("2 a complete form is valid", () => {
 });
 
 test("3 persian digits normalize to a latin mobile number", () => {
-  assert.equal(normalizePhone("۰۹۱۲ ۳۴۵-۶۷۸۹"), "09123456789");
+  assert.equal(normalizePhone("۰۹۱۲ ۳۴۵-۶۷۸۹"), "+989123456789");
 });
 
 test("4 an invalid mobile number is rejected", () => {
@@ -109,7 +109,7 @@ test("7 a valid terms document produces a normalized payload", () => {
     priceRevision: null,
   });
   assert.ok(payload);
-  assert.equal(payload.phone, "09123456789");
+  assert.equal(payload.phone, "+989123456789");
   assert.equal(payload.terms_accepted, true);
   assert.equal(payload.terms_content_hash, terms.contentHash);
 });
