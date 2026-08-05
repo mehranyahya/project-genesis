@@ -194,3 +194,92 @@ test("20 the grid contract of the form surface is 4/8/12", () => {
   assert.ok(form.includes("md:grid-cols-8"));
   assert.ok(form.includes("lg:grid-cols-12"));
 });
+
+test("21 a server validation error is ordered through REQUEST_FIELD_ORDER and focused after commit", () => {
+  const form = stripComments(read(FORM));
+  assert.ok(form.includes("REQUEST_FIELD_ORDER"));
+  assert.ok(form.includes("function firstMappedFieldError("));
+  assert.ok(form.includes("setPendingFocus(firstMappedFieldError(result.fieldErrors))"));
+  assert.ok(form.includes("}, [pendingFocus]);"));
+  assert.ok(form.includes("document.getElementById(fieldId(pendingFocus))"));
+  assert.ok(form.includes('if (pendingFocus === null || typeof document === "undefined") return;'));
+  // Only the already-sanitized client map is stored.
+  assert.ok(form.includes("setErrors(result.fieldErrors)"));
+  assert.ok(!/result\.(message|detail|serverMessage)/.test(form));
+});
+
+test("22 the client-side first-invalid-field focus is preserved", () => {
+  const form = stripComments(read(FORM));
+  assert.ok(form.includes("focusFirstInvalid(validation)"));
+  assert.ok(form.includes("validation.firstInvalidField"));
+});
+
+test("23 an idempotency outcome never submits again automatically", () => {
+  const form = stripComments(read(FORM));
+  const marker = form.indexOf('case "idempotency_conflict":');
+  assert.ok(marker > 0);
+  const branch = form.slice(marker, form.indexOf('case "validation_error":', marker));
+  assert.ok(branch.includes("submissionId.current = null"));
+  assert.ok(!/run\(/.test(branch), "the idempotency branch must not start a new run");
+  assert.ok(!/setTimeout|setInterval|retryCount|autoRetry/.test(form));
+});
+
+test("24 the dedicated new-attempt action clears the id and runs once with the price revision", () => {
+  const form = stripComments(read(FORM));
+  const start = form.indexOf("onNewAttempt={");
+  assert.ok(start > 0);
+  const handler = form.slice(start, form.indexOf("}}", start));
+  assert.ok(handler.includes("submissionId.current = null"));
+  assert.ok(handler.includes("setOutcome(null)"));
+  assert.ok(handler.includes("void run(priceRevision)"));
+  assert.equal(handler.split("run(").length - 1, 1);
+  assert.ok(
+    form.includes(
+      "if (submissionId.current === null) submissionId.current = createSubmissionId();",
+    ),
+  );
+});
+
+test("25 a real semantic source change invalidates the source-coupled state only", () => {
+  const form = stripComments(read(FORM));
+  const start = form.indexOf("useEffect(() => {\n    submissionId.current = null;");
+  assert.ok(start > 0, "the identity reset effect must exist");
+  const effect = form.slice(start, form.indexOf("}, [identity]);", start));
+  for (const call of [
+    "submissionId.current = null",
+    "inFlight.current = false",
+    "setOutcome(null)",
+    "setSelectionBlocked(false)",
+    "setPriceRevision(null)",
+    "setErrors({})",
+    "setTrackingCode(null)",
+    'setPhase("editing")',
+  ]) {
+    assert.ok(effect.includes(call), `the identity reset must include ${call}`);
+  }
+  // The entered values and the terms document survive a source change.
+  assert.ok(!effect.includes("setValues("));
+  assert.ok(!effect.includes("setTerms("));
+});
+
+test("26 the reset depends on semantic identity, not object reference", () => {
+  const form = stripComments(read(FORM));
+  assert.ok(form.includes("const identity = sourceIdentity(source)"));
+  assert.ok(form.includes("}, [identity]);"));
+  assert.ok(!form.includes("}, [source]);"));
+  assert.ok(!form.includes("}, [source, "));
+});
+
+test("27 a response from an obsolete source attempt is discarded before any state is applied", () => {
+  const form = stripComments(read(FORM));
+  assert.ok(form.includes("const attemptIdentity = useRef(identity)"));
+  assert.ok(form.includes("attemptIdentity.current = identity;"));
+  assert.ok(form.includes("const attempt = attemptIdentity.current;"));
+  const guard = form.indexOf("if (attempt !== attemptIdentity.current) return;");
+  assert.ok(guard > 0, "a stale attempt guard must exist");
+  const awaitIndex = form.indexOf("const result = await submitRequest(");
+  assert.ok(awaitIndex > 0 && guard > awaitIndex);
+  // No result state may be applied before the guard.
+  assert.ok(form.indexOf("setOutcome(result)") > guard);
+  assert.ok(form.indexOf("inFlight.current = false;\n      setOutcome(result)") > guard);
+});
