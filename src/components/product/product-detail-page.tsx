@@ -4,6 +4,7 @@ import { ProductDraftSummary } from "./product-draft-summary";
 import { ProductMediaStage } from "./product-media-stage";
 import { ProductPricePanel } from "./product-price-panel";
 import { ProductSelection } from "./product-selection";
+import { isCatalogVersion } from "@/lib/content/types";
 import type { ProductDetailModel } from "@/lib/product-detail";
 import { resolveSelectionPrice } from "@/lib/product-detail";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
