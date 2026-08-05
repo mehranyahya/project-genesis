@@ -202,7 +202,7 @@ test("21 a server validation error is ordered through REQUEST_FIELD_ORDER and fo
   assert.ok(form.includes("setPendingFocus(firstMappedFieldError(result.fieldErrors))"));
   assert.ok(form.includes("}, [pendingFocus]);"));
   assert.ok(form.includes("document.getElementById(fieldId(pendingFocus))"));
-  assert.ok(form.includes("if (pendingFocus === null || typeof document === \"undefined\") return;"));
+  assert.ok(form.includes('if (pendingFocus === null || typeof document === "undefined") return;'));
   // Only the already-sanitized client map is stored.
   assert.ok(form.includes("setErrors(result.fieldErrors)"));
   assert.ok(!/result\.(message|detail|serverMessage)/.test(form));
@@ -218,7 +218,7 @@ test("23 an idempotency outcome never submits again automatically", () => {
   const form = stripComments(read(FORM));
   const marker = form.indexOf('case "idempotency_conflict":');
   assert.ok(marker > 0);
-  const branch = form.slice(marker, form.indexOf("case \"validation_error\":", marker));
+  const branch = form.slice(marker, form.indexOf('case "validation_error":', marker));
   assert.ok(branch.includes("submissionId.current = null"));
   assert.ok(!/run\(/.test(branch), "the idempotency branch must not start a new run");
   assert.ok(!/setTimeout|setInterval|retryCount|autoRetry/.test(form));
@@ -233,7 +233,11 @@ test("24 the dedicated new-attempt action clears the id and runs once with the p
   assert.ok(handler.includes("setOutcome(null)"));
   assert.ok(handler.includes("void run(priceRevision)"));
   assert.equal(handler.split("run(").length - 1, 1);
-  assert.ok(form.includes("if (submissionId.current === null) submissionId.current = createSubmissionId();"));
+  assert.ok(
+    form.includes(
+      "if (submissionId.current === null) submissionId.current = createSubmissionId();",
+    ),
+  );
 });
 
 test("25 a real semantic source change invalidates the source-coupled state only", () => {
