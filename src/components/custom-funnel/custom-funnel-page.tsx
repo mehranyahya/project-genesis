@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import { CustomFunnelEmpty } from "./custom-funnel-states";
 import { CustomFunnelStepper } from "./custom-funnel-stepper";
-import type { Product } from "@/lib/content/types";
+import { RequestForm } from "@/components/request-form/request-form";
+import type { Product, Site } from "@/lib/content/types";
 import { CUSTOM_FUNNEL_OPTION_ROLES, buildCustomFunnelModel } from "@/lib/custom-funnel";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
 
@@ -17,9 +18,11 @@ export const CUSTOM_FUNNEL_DRAFT_READY_TEXT =
 export function CustomFunnelPage({
   products,
   catalogVersion,
+  site,
 }: {
   products: readonly Product[];
   catalogVersion: string | null;
+  site?: Site | null;
 }) {
   // Draft stays in React memory only: no storage, no URL, no network.
   const [draft, setDraft] = useState<GraveStoneRequestDraft | null>(null);
@@ -64,6 +67,16 @@ export function CustomFunnelPage({
       >
         {draft ? CUSTOM_FUNNEL_DRAFT_READY_TEXT : null}
       </p>
+
+      {draft ? (
+        <div className="col-span-4 md:col-span-8 lg:col-span-12">
+          <RequestForm
+            source={{ kind: "grave_stone", draft }}
+            site={site ?? null}
+            termsDocument={null}
+          />
+        </div>
+      ) : null}
     </section>
   );
 }

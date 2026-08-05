@@ -25,13 +25,14 @@ const stripComments = (source: string) =>
 const ALL = FILES.map(read).join("\n");
 const ALL_CODE = FILES.map((rel) => stripComments(read(rel))).join("\n");
 
-test("1 the route consumes only getProduct() and getCatalogVersion()", () => {
+test("1 the route consumes only getProduct(), getCatalogVersion() and getSite()", () => {
   const route = read(ROUTE);
   assert.ok(route.includes('from "@/lib/content/adapters"'));
   assert.ok(route.includes("getProduct(params.slug)"));
   assert.ok(route.includes("getCatalogVersion()"));
+  assert.ok(route.includes("getSite()"));
   assert.ok(route.includes("Promise.all"));
-  for (const name of ["getProducts(", "getPortfolioItems", "getGuides", "getSite", "getPage("]) {
+  for (const name of ["getProducts(", "getPortfolioItems", "getGuides", "getPage("]) {
     assert.ok(!route.includes(name), `route must not call ${name}`);
   }
 });
