@@ -6,6 +6,7 @@ import * as adapters from "./adapters";
 import { CATALOG_VERSION_PATTERN, PAGE_SLUGS, isCatalogVersion } from "./types";
 import type {
   CatalogVersion,
+  GraveStoneSizeCode,
   Media,
   PriceType,
   Product,
@@ -161,6 +162,10 @@ test("type-level contract assertions compile", () => {
     true as _MediaOptional,
     true as _GuideRequired,
     true as _PortfolioRequired,
+    true as _PortfolioOptional,
+    true as _PortfolioSizeCode,
+    true as _PortfolioStoneCode,
+    true as _PortfolioSummary,
     true as _PortfolioNoPii,
     true as _BrandedCatalogVersion,
   ];
