@@ -109,9 +109,7 @@ export function RequestForm({
       setPhase("submitting");
       setOutcome(null);
 
-      const result = await submitRequest(
-        transport ? { payload, transport } : { payload },
-      );
+      const result = await submitRequest(transport ? { payload, transport } : { payload });
 
       inFlight.current = false;
       setOutcome(result);
@@ -178,9 +176,7 @@ export function RequestForm({
       </div>
 
       <div className="col-span-4 flex flex-col gap-4 md:col-span-8 lg:col-span-4">
-        {extension ? (
-          <p className="text-sm text-text-caption">{extension.kind}</p>
-        ) : null}
+        {extension ? <p className="text-sm text-text-caption">{extension.kind}</p> : null}
 
         <button
           type="submit"

@@ -180,7 +180,7 @@ export function interpretSubmitResponse(result: RequestSubmitTransportResult): S
   if (typeof parsed !== "object" || parsed === null) return TEMPORARY;
 
   const body = parsed as Record<string, unknown>;
-  const code = body['code'];
+  const code = body["code"];
   if (typeof code !== "string" || !(RESPONSE_CODES as readonly string[]).includes(code)) {
     return TEMPORARY;
   }
@@ -192,20 +192,20 @@ export function interpretSubmitResponse(result: RequestSubmitTransportResult): S
     case "REQUEST_REPLAYED": {
       const expected = code === "REQUEST_CREATED" ? 201 : 200;
       if (status !== expected) return TEMPORARY;
-      const tracking = body['tracking_code'];
+      const tracking = body["tracking_code"];
       if (!isTrackingCode(tracking)) return TEMPORARY;
       return { kind: "success", trackingCode: tracking, replayed: code === "REQUEST_REPLAYED" };
     }
     case "PRICE_CHANGED": {
       if (status !== 409) return TEMPORARY;
-      const price = readPrice(body['price']);
+      const price = readPrice(body["price"]);
       return { kind: "price_changed", price: price ?? { priceType: "review", amountToman: null } };
     }
     case "SELECTION_UNAVAILABLE":
       return status === 409 ? { kind: "selection_unavailable" } : TEMPORARY;
     case "TERMS_UPDATED":
       return status === 409
-        ? { kind: "terms_updated", termsDocument: readTerms(body['terms']) }
+        ? { kind: "terms_updated", termsDocument: readTerms(body["terms"]) }
         : TEMPORARY;
     case "IDEMPOTENCY_CONFLICT":
       return status === 409 ? { kind: "idempotency_conflict" } : TEMPORARY;
@@ -213,7 +213,7 @@ export function interpretSubmitResponse(result: RequestSubmitTransportResult): S
       return status === 409 ? { kind: "idempotency_expired" } : TEMPORARY;
     case "VALIDATION_ERROR":
       return status === 422
-        ? { kind: "validation_error", fieldErrors: mapFieldErrors(body['field_errors']) }
+        ? { kind: "validation_error", fieldErrors: mapFieldErrors(body["field_errors"]) }
         : TEMPORARY;
     case "BOT_VERIFICATION_INVALID":
       return status === 422 ? { kind: "bot_verification_invalid" } : TEMPORARY;

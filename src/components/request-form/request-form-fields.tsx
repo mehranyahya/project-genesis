@@ -68,11 +68,7 @@ function TextField({
         {REQUEST_FIELD_LABELS[fieldKey]}
       </label>
       {multiline ? (
-        <textarea
-          {...shared}
-          rows={4}
-          onChange={(event) => onChange(event.currentTarget.value)}
-        />
+        <textarea {...shared} rows={4} onChange={(event) => onChange(event.currentTarget.value)} />
       ) : (
         <input {...shared} type="text" onChange={(event) => onChange(event.currentTarget.value)} />
       )}
