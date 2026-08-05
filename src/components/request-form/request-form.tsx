@@ -7,6 +7,7 @@ import type { Site } from "@/lib/content/types";
 import type {
   PriceRevision,
   RequestFieldErrors,
+  RequestFieldKey,
   RequestFormExtension,
   RequestFormValues,
   RequestSource,
@@ -14,6 +15,7 @@ import type {
 } from "@/lib/request-form";
 import {
   EMPTY_REQUEST_FORM_VALUES,
+  REQUEST_FIELD_ORDER,
   SUBMISSION_BLOCKED_TEXT,
   buildRequestPayload,
   isRequestTermsDocument,
@@ -61,6 +63,11 @@ function sourceIdentity(source: RequestSource): string {
   return `contact~${source.portfolioReferenceId ?? ""}`;
 }
 
+/** The first errored field in the official contract order, never insertion order. */
+function firstMappedFieldError(errors: RequestFieldErrors): RequestFieldKey | null {
+  return REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
+}
+
 export function RequestForm({
   source,
   site,
@@ -84,21 +91,41 @@ export function RequestForm({
   const [terms, setTerms] = useState<RequestTermsDocument | null>(termsDocument);
   const [priceRevision, setPriceRevision] = useState<PriceRevision | null>(null);
   const [selectionBlocked, setSelectionBlocked] = useState(false);
+  const [pendingFocus, setPendingFocus] = useState<RequestFieldKey | null>(null);
 
   const submissionId = useRef<string | null>(null);
   const inFlight = useRef(false);
 
   const identity = sourceIdentity(source);
+  // The attempt token of the running request; a response from an older
+  // identity is discarded before any result state is applied.
+  const attemptIdentity = useRef(identity);
+  attemptIdentity.current = identity;
 
-  // Only a real selection change clears the blocked state and price revision.
+  // Only a real semantic selection change resets the source-coupled state.
   useEffect(() => {
+    submissionId.current = null;
+    inFlight.current = false;
+    setOutcome(null);
     setSelectionBlocked(false);
     setPriceRevision(null);
+    setErrors({});
+    setTrackingCode(null);
+    setPendingFocus(null);
+    setPhase("editing");
   }, [identity]);
 
   useEffect(() => {
     setTerms(termsDocument);
   }, [termsDocument]);
+
+  // Focus runs after React has committed the error state.
+  useEffect(() => {
+    if (pendingFocus === null || typeof document === "undefined") return;
+    const element = document.getElementById(fieldId(pendingFocus));
+    if (element instanceof HTMLElement) element.focus();
+    setPendingFocus(null);
+  }, [pendingFocus]);
 
   const termsReady = isRequestTermsDocument(terms);
 
@@ -132,11 +159,16 @@ export function RequestForm({
       });
       if (payload === null) return;
 
+      const attempt = attemptIdentity.current;
+
       inFlight.current = true;
       setPhase("submitting");
       setOutcome(null);
 
       const result = await submitRequest(transport ? { payload, transport } : { payload });
+
+      // A stale response from an obsolete source attempt is ignored completely.
+      if (attempt !== attemptIdentity.current) return;
 
       inFlight.current = false;
       setOutcome(result);
@@ -163,10 +195,12 @@ export function RequestForm({
           break;
         case "idempotency_conflict":
         case "idempotency_expired":
+          // No automatic retry: only the dedicated action starts a new attempt.
           submissionId.current = null;
           break;
         case "validation_error":
           setErrors(result.fieldErrors);
+          setPendingFocus(firstMappedFieldError(result.fieldErrors));
           break;
         default:
           break;
@@ -222,6 +256,7 @@ export function RequestForm({
           onNewAttempt={() => {
             submissionId.current = null;
             setOutcome(null);
+            void run(priceRevision);
           }}
         />
       </div>
