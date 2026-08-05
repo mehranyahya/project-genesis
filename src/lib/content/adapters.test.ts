@@ -129,6 +129,17 @@ type _PortfolioRequired = Expect<
   Equals<RequiredKeys<PortfolioItem>, "publicReferenceId" | "media">
 >;
 
+type _PortfolioOptional = Expect<
+  Equals<OptionalKeys<PortfolioItem>, "stoneCode" | "sizeCode" | "summary">
+>;
+
+type _PortfolioSizeCode = Expect<
+  Equals<PortfolioItem["sizeCode"], GraveStoneSizeCode | null | undefined>
+>;
+
+type _PortfolioStoneCode = Expect<Equals<PortfolioItem["stoneCode"], string | null | undefined>>;
+type _PortfolioSummary = Expect<Equals<PortfolioItem["summary"], string | null | undefined>>;
+
 // Portfolio exposes no customer-identifying surface.
 type _PortfolioNoPii = Expect<
   Equals<Extract<keyof PortfolioItem, `${string}customer${string}` | "name" | "phone">, never>
