@@ -64,6 +64,9 @@ export function RequestFormState({
     return (
       <section role="status" aria-live="polite" className={PANEL}>
         <p className="text-sm text-text-primary">{SUBMIT_MESSAGES.idempotency}</p>
+        <button type="button" className={ACTION} onClick={onNewAttempt}>
+          {SUBMIT_MESSAGES.idempotency_action}
+        </button>
       </section>
     );
   }
