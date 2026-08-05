@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ProductDraftSummary } from "@/components/product/product-draft-summary";
-import { ProductPricePanel } from "@/components/product/product-price-panel";
 import { DRAFT_BLOCKED_TEXT } from "@/components/product/product-detail-page";
 import { isCatalogVersion } from "@/lib/content/types";
 import type {
@@ -24,7 +23,6 @@ import {
   formatAmount,
   formatPriceDate,
   hasValidNumericPrice,
-  resolveSelectionPrice,
 } from "@/lib/product-detail";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
 
