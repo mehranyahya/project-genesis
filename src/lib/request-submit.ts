@@ -7,7 +7,7 @@
 
 import type { PriceType } from "./content/types";
 import type { RequestFieldKey, RequestPayload, RequestTermsDocument } from "./request-form";
-import { isRequestTermsDocument } from "./request-form";
+import { REQUEST_FIELD_ERRORS, isRequestTermsDocument } from "./request-form";
 
 export const SUBMIT_ENDPOINT = "/api/submit-request";
 export const SUBMIT_TIMEOUT_MS = 15000;
