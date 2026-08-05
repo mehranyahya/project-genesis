@@ -44,9 +44,7 @@ export function ProductDetailPage({
 
   const toggleOption = (optionId: string) => {
     setOptionIds((current) =>
-      current.includes(optionId)
-        ? current.filter((id) => id !== optionId)
-        : [...current, optionId],
+      current.includes(optionId) ? current.filter((id) => id !== optionId) : [...current, optionId],
     );
     setDraft(null);
   };

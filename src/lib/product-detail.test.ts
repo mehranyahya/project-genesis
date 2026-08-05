@@ -81,14 +81,20 @@ test("6 unavailable variants are dropped", () => {
   const model = build({
     variants: [variant({ id: "a" }), variant({ id: "b", isAvailable: false })],
   });
-  assert.deepEqual(model?.variants.map((item) => item.id), ["a"]);
+  assert.deepEqual(
+    model?.variants.map((item) => item.id),
+    ["a"],
+  );
 });
 
 test("7 variants with blank id or stone code are dropped", () => {
   const model = build({
     variants: [variant({ id: "  " }), variant({ id: "b", stoneCode: " " }), variant({ id: "c" })],
   });
-  assert.deepEqual(model?.variants.map((item) => item.id), ["c"]);
+  assert.deepEqual(
+    model?.variants.map((item) => item.id),
+    ["c"],
+  );
 });
 
 test("8 size order is exactly the locked M5 order", () => {
@@ -101,12 +107,10 @@ test("8 size order is exactly the locked M5 order", () => {
       variant({ id: "a", sizeCode: "120x60" }),
     ],
   });
-  assert.deepEqual(model?.variants.map((item) => item.sizeCode), [
-    "120x60",
-    "160x60",
-    "180x60",
-    "custom",
-  ]);
+  assert.deepEqual(
+    model?.variants.map((item) => item.sizeCode),
+    ["120x60", "160x60", "180x60", "custom"],
+  );
 });
 
 test("9 adapter order is preserved inside a size", () => {
@@ -117,7 +121,10 @@ test("9 adapter order is preserved inside a size", () => {
       variant({ id: "a1", stoneCode: "S1" }),
     ],
   });
-  assert.deepEqual(model?.variants.map((item) => item.id), ["a2", "a1", "b1"]);
+  assert.deepEqual(
+    model?.variants.map((item) => item.id),
+    ["a2", "a1", "b1"],
+  );
 });
 
 test("10 duplicate variant id keeps only the first occurrence", () => {
@@ -134,7 +141,10 @@ test("11 unavailable options are dropped", () => {
       variant({ options: [option({ id: "o1" }), option({ id: "o2", isAvailable: false })] }),
     ],
   });
-  assert.deepEqual(model?.variants[0]?.options.map((item) => item.id), ["o1"]);
+  assert.deepEqual(
+    model?.variants[0]?.options.map((item) => item.id),
+    ["o1"],
+  );
 });
 
 test("12 options incompatible with the variant size are dropped", () => {
@@ -145,13 +155,18 @@ test("12 options incompatible with the variant size are dropped", () => {
       }),
     ],
   });
-  assert.deepEqual(model?.variants[0]?.options.map((item) => item.id), ["o1"]);
+  assert.deepEqual(
+    model?.variants[0]?.options.map((item) => item.id),
+    ["o1"],
+  );
 });
 
 test("13 duplicate option id keeps only the first occurrence", () => {
   const model = build({
     variants: [
-      variant({ options: [option({ id: "dup", title: "اول" }), option({ id: "dup", title: "دوم" })] }),
+      variant({
+        options: [option({ id: "dup", title: "اول" }), option({ id: "dup", title: "دوم" })],
+      }),
     ],
   });
   assert.equal(model?.variants[0]?.options.length, 1);
@@ -165,7 +180,10 @@ test("14 media that is not privacy cleared is dropped", () => {
       { mediaKey: "k2", alt: "ب", caption: null, privacyCleared: true, consentReference: null },
     ],
   });
-  assert.deepEqual(model?.media.map((item) => item.alt), ["ب"]);
+  assert.deepEqual(
+    model?.media.map((item) => item.alt),
+    ["ب"],
+  );
 });
 
 test("15 media with a blank alt is dropped", () => {
@@ -180,7 +198,13 @@ test("15 media with a blank alt is dropped", () => {
 test("16 mediaKey never enters the display view-model", () => {
   const model = build({
     media: [
-      { mediaKey: "secret-key", alt: "الف", caption: "ب", privacyCleared: true, consentReference: null },
+      {
+        mediaKey: "secret-key",
+        alt: "الف",
+        caption: "ب",
+        privacyCleared: true,
+        consentReference: null,
+      },
     ],
   });
   assert.deepEqual(Object.keys(model!.media[0]!).sort(), ["alt", "caption"]);
@@ -224,7 +248,9 @@ test("20 any estimate component makes the sum an estimate", () => {
 
 test("21 any review component forces review with a null amount", () => {
   const v = detailVariant({
-    variants: [variant({ options: [option({ id: "o1", priceType: "review", amountToman: null })] })],
+    variants: [
+      variant({ options: [option({ id: "o1", priceType: "review", amountToman: null })] }),
+    ],
   });
   assert.deepEqual(resolveSelectionPrice(v, v.options), {
     priceType: "review",

@@ -1,9 +1,13 @@
-import { CURRENCY_NOTE, PRICE_DATE_LABEL, PRICE_TYPE_LABELS, formatPriceDate } from "@/lib/product-detail";
+import {
+  CURRENCY_NOTE,
+  PRICE_DATE_LABEL,
+  PRICE_TYPE_LABELS,
+  formatPriceDate,
+} from "@/lib/product-detail";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
 
 export const DRAFT_HEADING = "خلاصه انتخاب";
-export const DRAFT_LOGISTICS_NOTE =
-  "هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.";
+export const DRAFT_LOGISTICS_NOTE = "هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.";
 
 /** Renders derived snapshot data only. No PII, no tracking code, no submission. */
 export function ProductDraftSummary({ draft }: { draft: GraveStoneRequestDraft }) {

@@ -91,9 +91,7 @@ test("3 an unknown option id yields a null draft", () => {
 
 test("4 an incompatible option id yields a null draft", () => {
   const withIncompatible = model({
-    variants: [
-      variant({ options: [option({ id: "o9", compatibleSizeCodes: ["180x60"] })] }),
-    ],
+    variants: [variant({ options: [option({ id: "o9", compatibleSizeCodes: ["180x60"] })] })],
   });
   assert.equal(
     buildGraveStoneRequestDraft({

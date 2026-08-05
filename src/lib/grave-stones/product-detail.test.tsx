@@ -184,7 +184,9 @@ test("23 includes and excludes render as semantic lists", () => {
 test("24 the review button triggers neither an API call nor navigation", () => {
   const page = read(PAGE);
   assert.ok(page.includes("بازبینی انتخاب"));
-  assert.ok(!/fetch\(|axios|useNavigate|navigate\(|<Link|router\.navigate|createServerFn/.test(page));
+  assert.ok(
+    !/fetch\(|axios|useNavigate|navigate\(|<Link|router\.navigate|createServerFn/.test(page),
+  );
 });
 
 test("25 no form element exists", () => {
@@ -196,7 +198,9 @@ test("26 no submit control or submission handler exists", () => {
 });
 
 test("27 no storage or cookie access exists", () => {
-  assert.ok(!/localStorage|sessionStorage|document\.cookie|searchParams|window\.location/.test(ALL_CODE));
+  assert.ok(
+    !/localStorage|sessionStorage|document\.cookie|searchParams|window\.location/.test(ALL_CODE),
+  );
 });
 
 test("28 no PII input field exists", () => {
@@ -209,7 +213,8 @@ test("29 no tracking code is produced", () => {
 
 test("30 zero raw colors and zero banned effects in the new files", () => {
   const rawColor = /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|oklch\(/;
-  const banned = /gradient|backdrop-filter|backdrop-blur|blur\(|animate-|shimmer|spinner|mix-blend|grayscale|sepia|brightness-|shadow-(lg|xl|2xl)/i;
+  const banned =
+    /gradient|backdrop-filter|backdrop-blur|blur\(|animate-|shimmer|spinner|mix-blend|grayscale|sepia|brightness-|shadow-(lg|xl|2xl)/i;
   for (const rel of FILES) {
     const code = stripComments(read(rel));
     assert.ok(!rawColor.test(code), `raw color in ${rel}`);
