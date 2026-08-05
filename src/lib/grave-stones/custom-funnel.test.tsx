@@ -256,7 +256,6 @@ test("32 the dori rule is exactly 160x60 and 180x60", () => {
 });
 
 test("33 no parallel price resolver exists", () => {
-  assert.ok(ALL_CODE.includes("resolveSelectionPrice"));
   assert.ok(!/function\s+\w*[Rr]esolve\w*Price/.test(ALL_CODE));
   assert.ok(!ALL_CODE.includes("amountToman +"));
 });
@@ -299,4 +298,102 @@ test("39 no success or tracking code exists", () => {
 
 test("40 routeTree.gen is never imported at runtime", () => {
   assert.ok(!ALL_CODE.includes("routeTree"));
+});
+
+test("41 the page passes onDraftInvalidated wired to setDraft(null)", () => {
+  const page = read(PAGE);
+  assert.ok(page.includes("onDraftInvalidated={() => setDraft(null)}"));
+  assert.ok(page.includes("onDraftReady={(next) => setDraft(next)}"));
+});
+
+test("42 the stepper declares the exact invalidation prop type", () => {
+  const stepper = read(STEPPER);
+  assert.ok(stepper.includes("onDraftInvalidated: () => void;"));
+  assert.ok(/onDraftInvalidated,\s/.test(stepper));
+});
+
+test("43 apply checks reduction.changed first and returns early", () => {
+  const stepper = read(STEPPER);
+  const apply = stepper.slice(stepper.indexOf("const apply ="));
+  const body = apply.slice(0, apply.indexOf("};") + 2);
+  const guard = body.indexOf("if (!reduction.changed) return;");
+  const invalidate = body.indexOf("onDraftInvalidated()");
+  const setSelection = body.indexOf("setSelection(reduction.selection)");
+  assert.ok(guard >= 0);
+  assert.ok(invalidate > guard);
+  assert.ok(setSelection > invalidate);
+});
+
+test("44 draft invalidation does not depend on clearedDownstream", () => {
+  const stepper = read(STEPPER);
+  const apply = stepper.slice(stepper.indexOf("const apply ="));
+  const body = apply.slice(0, apply.indexOf("};") + 2);
+  assert.ok(!/clearedDownstream[\s\S]{0,80}onDraftInvalidated/.test(body));
+  assert.ok(body.indexOf("onDraftInvalidated()") < body.indexOf("clearedDownstream"));
+});
+
+test("45 invalidation is called from exactly one place", () => {
+  const stepper = read(STEPPER);
+  assert.equal((stepper.match(/onDraftInvalidated\(\)/g) ?? []).length, 1);
+});
+
+test("46 navigation and history paths never invalidate the draft", () => {
+  const stepper = stripComments(read(STEPPER));
+  const goToStep = stepper.slice(stepper.indexOf("const goToStep ="));
+  const goToStepBody = goToStep.slice(0, goToStep.indexOf("}, []);"));
+  assert.ok(!goToStepBody.includes("onDraftInvalidated"));
+  const effect = stepper.slice(stepper.indexOf("const onPopState"));
+  const effectBody = effect.slice(0, effect.indexOf("}, []);"));
+  assert.ok(!effectBody.includes("onDraftInvalidated"));
+  for (const fragment of stepper.match(/(push|replace)State\([\s\S]{0,160}?\)/g) ?? []) {
+    assert.ok(!fragment.includes("onDraftInvalidated"));
+  }
+});
+
+test("47 ProductPricePanel is absent from the custom funnel", () => {
+  assert.ok(!ALL.includes("ProductPricePanel"));
+  assert.ok(!ALL.includes("product-price-panel"));
+});
+
+test("48 the summary consumes only the draft summary component", () => {
+  const stepper = read(STEPPER);
+  assert.ok(stepper.includes("{draft ? <ProductDraftSummary draft={draft} /> : null}"));
+  for (const banned of ["variant={", "includes.length", "excludes.length"]) {
+    assert.ok(!stepper.includes(banned), `summary must not use ${banned}`);
+  }
+});
+
+test("49 no unused price state remains in the stepper", () => {
+  const stepper = read(STEPPER);
+  assert.ok(!stepper.includes("resolveSelectionPrice"));
+  assert.ok(!stepper.includes("selectedOptions"));
+  assert.ok(!/const price =/.test(stepper));
+});
+
+test("50 option-row pricing helpers are preserved", () => {
+  const stepper = read(STEPPER);
+  for (const helper of [
+    "hasValidNumericPrice",
+    "formatAmount",
+    "formatPriceDate",
+    "PRICE_TYPE_LABELS",
+  ]) {
+    assert.ok(stepper.includes(helper), `must keep ${helper}`);
+  }
+  assert.ok(stepper.includes("function optionPriceText"));
+});
+
+test("51 no form, network, storage, cookie or PII surface is added", () => {
+  for (const banned of [
+    "fetch(",
+    "localStorage",
+    "sessionStorage",
+    "document.cookie",
+    "<form",
+    "useNavigate",
+    "phone",
+    "mobile",
+  ]) {
+    assert.ok(!ALL_CODE.includes(banned), `must not contain ${banned}`);
+  }
 });

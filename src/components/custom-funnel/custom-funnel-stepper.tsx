@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ProductDraftSummary } from "@/components/product/product-draft-summary";
-import { ProductPricePanel } from "@/components/product/product-price-panel";
 import { DRAFT_BLOCKED_TEXT } from "@/components/product/product-detail-page";
 import { isCatalogVersion } from "@/lib/content/types";
 import type {
@@ -24,7 +23,6 @@ import {
   formatAmount,
   formatPriceDate,
   hasValidNumericPrice,
-  resolveSelectionPrice,
 } from "@/lib/product-detail";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
 
@@ -102,10 +100,12 @@ export function CustomFunnelStepper({
   model,
   catalogVersion,
   onDraftReady,
+  onDraftInvalidated,
 }: {
   model: CustomFunnelModel;
   catalogVersion: string | null;
   onDraftReady: (draft: GraveStoneRequestDraft) => void;
+  onDraftInvalidated: () => void;
 }) {
   const [step, setStep] = useState(0);
   const [selection, setSelection] = useState<CustomFunnelSelection>(EMPTY_CUSTOM_FUNNEL_SELECTION);
@@ -151,18 +151,6 @@ export function CustomFunnelStepper({
   const stone = findStoneChoice(model, selection.stoneKey);
   const size: CustomFunnelVariantChoice | null = findVariantChoice(stone, selection.variantId);
 
-  const selectedOptions = useMemo(() => {
-    if (size === null) return [];
-    const ids = new Set<string>([
-      ...selection.doriIds,
-      ...selection.inscriptionIds,
-      ...selection.engravingIds,
-    ]);
-    return size.variant.options.filter((option) => ids.has(option.id));
-  }, [selection.doriIds, selection.engravingIds, selection.inscriptionIds, size]);
-
-  const price = size ? resolveSelectionPrice(size.variant, selectedOptions) : null;
-
   const draft = useMemo(
     () => buildCustomFunnelDraft({ model, catalogVersion, selection }),
     [catalogVersion, model, selection],
@@ -172,6 +160,7 @@ export function CustomFunnelStepper({
 
   const apply = (reduction: ReturnType<typeof reduceCustomFunnel>, stepIndex: number) => {
     if (!reduction.changed) return;
+    onDraftInvalidated();
     setSelection(reduction.selection);
     setCascadeStep(reduction.clearedDownstream ? stepIndex : null);
   };
@@ -322,7 +311,6 @@ export function CustomFunnelStepper({
 
         {step === 5 ? (
           <div className="flex flex-col gap-6">
-            {size && price ? <ProductPricePanel variant={size.variant} price={price} /> : null}
             {draft ? <ProductDraftSummary draft={draft} /> : null}
             <button
               type="button"
