@@ -311,7 +311,6 @@ export function CustomFunnelStepper({
 
         {step === 5 ? (
           <div className="flex flex-col gap-6">
-            {size && price ? <ProductPricePanel variant={size.variant} price={price} /> : null}
             {draft ? <ProductDraftSummary draft={draft} /> : null}
             <button
               type="button"
