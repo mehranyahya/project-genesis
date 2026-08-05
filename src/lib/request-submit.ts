@@ -212,7 +212,8 @@ export function interpretSubmitResponse(result: RequestSubmitTransportResult): S
     case "PRICE_CHANGED": {
       if (status !== 409) return TEMPORARY;
       const price = readPrice(body["price"]);
-      return { kind: "price_changed", price: price ?? { priceType: "review", amountToman: null } };
+      // An unusable price is never repaired into a fake review state.
+      return price === null ? TEMPORARY : { kind: "price_changed", price };
     }
     case "SELECTION_UNAVAILABLE":
       return status === 409 ? { kind: "selection_unavailable" } : TEMPORARY;
