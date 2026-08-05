@@ -222,13 +222,13 @@ export function RequestFormFields({
             onChange={(event) => onChange({ termsAccepted: event.currentTarget.checked })}
           />
           <span className="text-sm text-text-primary">
-            {REQUEST_FIELD_LABELS.termsAccepted}{" "}
             <Link
               to="/terms"
               className="underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
-              شرایط ثبت
+              {TERMS_LINK_TEXT}
             </Link>
+            {TERMS_LABEL_TAIL}
           </span>
         </label>
         <FieldError id={errorId("termsAccepted")} message={errors.termsAccepted} />
