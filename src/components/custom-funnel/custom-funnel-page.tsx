@@ -53,6 +53,7 @@ export function CustomFunnelPage({
           model={model}
           catalogVersion={catalogVersion}
           onDraftReady={(next) => setDraft(next)}
+          onDraftInvalidated={() => setDraft(null)}
         />
       )}
 
