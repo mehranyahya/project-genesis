@@ -101,9 +101,7 @@ test("12 an empty alt drops the item", () => {
 });
 
 test("13 one approved media entry makes the item publishable", () => {
-  const cards = buildPortfolioModel([
-    item({ media: [media({ privacyCleared: false }), media()] }),
-  ]);
+  const cards = buildPortfolioModel([item({ media: [media({ privacyCleared: false }), media()] })]);
   assert.equal(cards.length, 1);
 });
 
@@ -179,9 +177,9 @@ test("25 the caption and media key never appear in the quote path", () => {
 });
 
 test("26 the view-model exposes only the six approved keys", () => {
-  const card = first(buildPortfolioModel([
-    item({ stoneCode: "ST-1", sizeCode: "120x60", summary: "متن" }),
-  ]));
+  const card = first(
+    buildPortfolioModel([item({ stoneCode: "ST-1", sizeCode: "120x60", summary: "متن" })]),
+  );
   assert.deepEqual(Object.keys(card).sort(), [
     "publicReferenceId",
     "quotePath",

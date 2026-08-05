@@ -28,7 +28,14 @@ test("1-4 route consumes only getPortfolioItems() and keeps the existing route i
   assert.ok(route.includes('from "@/lib/content/adapters"'));
   assert.ok(route.includes("await getPortfolioItems()"));
   assert.ok(route.includes('createFileRoute("/portfolio")'));
-  for (const name of ["getProducts", "getProduct(", "getGuides", "getGuide(", "getSite", "getPage"]) {
+  for (const name of [
+    "getProducts",
+    "getProduct(",
+    "getGuides",
+    "getGuide(",
+    "getSite",
+    "getPage",
+  ]) {
     assert.ok(!route.includes(name), `route must not call ${name}`);
   }
 });
@@ -122,7 +129,7 @@ test("19-23 media keys, captions, consent and any image surface are absent", () 
 
 test("24-26 reference and stone code are bidi-isolated; the size label is reused", () => {
   const card = read(CARD);
-  assert.equal(card.split("<bdi dir=\"ltr\">").length - 1, 2);
+  assert.equal(card.split('<bdi dir="ltr">').length - 1, 2);
   assert.ok(card.includes("{card.publicReferenceId}"));
   assert.ok(card.includes("{card.stoneCode}"));
   assert.ok(card.includes("{card.sizeLabel}"));

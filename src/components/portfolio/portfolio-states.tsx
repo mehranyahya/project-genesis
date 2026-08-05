@@ -1,8 +1,7 @@
 import { useRouter } from "@tanstack/react-router";
 
 export const PORTFOLIO_LOADING_LABEL = "در حال دریافت نمونه‌کارها";
-export const PORTFOLIO_EMPTY_TEXT =
-  "در حال حاضر نمونه‌کار عمومی و دارای مجوز نمایش ثبت نشده است.";
+export const PORTFOLIO_EMPTY_TEXT = "در حال حاضر نمونه‌کار عمومی و دارای مجوز نمایش ثبت نشده است.";
 export const PORTFOLIO_ERROR_TEXT = "دریافت نمونه‌کارها ممکن نشد.";
 export const PORTFOLIO_RETRY_LABEL = "تلاش دوباره";
 
