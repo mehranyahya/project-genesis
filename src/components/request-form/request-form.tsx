@@ -66,7 +66,7 @@ export function RequestForm({
   site,
   termsDocument,
   submitRequest: transport,
-  extension,
+  
   onSuccess,
 }: {
   source: RequestSource;
