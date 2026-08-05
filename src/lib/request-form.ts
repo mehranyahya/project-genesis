@@ -6,6 +6,7 @@
  */
 
 import type { PriceType } from "./content/types";
+import { normalizePortfolioReference } from "./portfolio-reference";
 import type { GraveStoneRequestDraft } from "./request-draft";
 
 /* -------------------------------------------------------------------------- */
