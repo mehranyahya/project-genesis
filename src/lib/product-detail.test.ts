@@ -389,7 +389,11 @@ test("R10 hasValidNumericPrice requires both a valid amount and a valid date", (
     false,
   );
   assert.equal(
-    hasValidNumericPrice({ priceType: "estimate", amountToman: null, priceUpdatedAt: "2026-01-01" }),
+    hasValidNumericPrice({
+      priceType: "estimate",
+      amountToman: null,
+      priceUpdatedAt: "2026-01-01",
+    }),
     false,
   );
   assert.equal(

@@ -292,7 +292,6 @@ export function resolveSelectionPrice(
   return { priceType: hasEstimate ? "estimate" : "fixed", amountToman: total };
 }
 
-
 export function findVariant(
   model: ProductDetailModel,
   variantId: string,

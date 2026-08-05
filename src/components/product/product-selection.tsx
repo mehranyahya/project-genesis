@@ -24,7 +24,6 @@ function optionPriceText(option: ProductDetailOption): string {
     : `${PRICE_TYPE_LABELS.fixed}: ${amount}`;
 }
 
-
 export function ProductSelection({
   variants,
   selectedVariant,
