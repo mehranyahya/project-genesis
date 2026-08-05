@@ -1,8 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { RouteSkeleton } from "@/components/layout/route-skeleton";
+import { QuotePage } from "@/components/request-form/quote-page";
+import { getPortfolioItems, getSite } from "@/lib/content/adapters";
+import { findPortfolioReference, normalizePortfolioReference } from "@/lib/portfolio-reference";
+
+interface QuoteSearch {
+  readonly source?: "portfolio";
+  readonly reference?: string;
+}
 
 export const Route = createFileRoute("/quote")({
+  validateSearch: (search: Record<string, unknown>): QuoteSearch => {
+    const reference = normalizePortfolioReference(search["reference"]);
+    if (search["source"] !== "portfolio" || reference === null) return {};
+    return { source: "portfolio", reference };
+  },
+  loaderDeps: ({ search }) => ({ reference: search.reference ?? null }),
+  loader: async ({ deps }) => {
+    const [portfolioItems, site] = await Promise.all([getPortfolioItems(), getSite()]);
+    return {
+      portfolioReferenceId: findPortfolioReference(portfolioItems, deps.reference),
+      site: site ?? null,
+    };
+  },
   head: () => ({
     meta: [
       { title: "ثبت سفارش — مهرآرا" },
@@ -16,5 +36,6 @@ export const Route = createFileRoute("/quote")({
 });
 
 function QuoteRoute() {
-  return <RouteSkeleton title="ثبت سفارش" />;
+  const { portfolioReferenceId, site } = Route.useLoaderData();
+  return <QuotePage portfolioReferenceId={portfolioReferenceId} site={site} />;
 }
