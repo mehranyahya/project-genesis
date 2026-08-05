@@ -39,10 +39,7 @@ test("3 only an exact adapter reference is accepted", () => {
 });
 
 test("4 the referral path is the single allowed destination and is encoded", () => {
-  assert.equal(
-    buildQuoteReferralPath("pf-1001"),
-    "/quote?source=portfolio&reference=pf-1001",
-  );
+  assert.equal(buildQuoteReferralPath("pf-1001"), "/quote?source=portfolio&reference=pf-1001");
   assert.equal(buildQuoteReferralPath("pf-99"), null);
 });
 

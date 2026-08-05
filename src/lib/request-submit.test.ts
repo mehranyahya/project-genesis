@@ -61,7 +61,12 @@ test("3 no success is produced on a mismatched status or invalid tracking code",
 });
 
 test("4 an unknown code, empty body or broken JSON is temporary only", () => {
-  for (const item of [reply(200, { code: "OK" }), reply(200, ""), reply(200, "{"), reply(200, "3")]) {
+  for (const item of [
+    reply(200, { code: "OK" }),
+    reply(200, ""),
+    reply(200, "{"),
+    reply(200, "3"),
+  ]) {
     assert.deepEqual(interpretSubmitResponse(item), { kind: "temporarily_unavailable" });
   }
 });
@@ -218,7 +223,10 @@ test("14 a transport that ignores the abort signal still times out", async () =>
         input.signal.addEventListener("abort", () => {
           aborted = true;
         });
-        setTimeout(() => resolve(reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1001" })), 400);
+        setTimeout(
+          () => resolve(reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1001" })),
+          400,
+        );
       }),
   });
   assert.deepEqual(outcome, { kind: "temporarily_unavailable" });
