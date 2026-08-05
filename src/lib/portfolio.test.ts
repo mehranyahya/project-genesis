@@ -14,6 +14,12 @@ const media = (overrides: Partial<Media> = {}): Media => ({
   ...overrides,
 });
 
+function first(cards: ReturnType<typeof buildPortfolioModel>) {
+  const card = cards[0];
+  assert.ok(card);
+  return card;
+}
+
 const item = (overrides: Partial<PortfolioItem> = {}): PortfolioItem => ({
   publicReferenceId: "pf-1001",
   media: [media()],
@@ -44,7 +50,7 @@ test("4 an empty reference is dropped", () => {
 });
 
 test("5 the CTA path comes from the existing helper only", () => {
-  const [card] = buildPortfolioModel([item()]);
+  const card = first(buildPortfolioModel([item()]));
   assert.equal(card.quotePath, "/quote?source=portfolio&reference=pf-1001");
 });
 
@@ -58,7 +64,7 @@ test("6 duplicate references keep only the first valid item", () => {
     cards.map((card) => card.publicReferenceId),
     ["pf-1001", "pf-2002"],
   );
-  assert.equal(cards[0].stoneCode, "A");
+  assert.equal(first(cards).stoneCode, "A");
 });
 
 test("7 adapter order is preserved", () => {
@@ -120,45 +126,45 @@ test("16 the consent reference never reaches the view-model", () => {
 });
 
 test("17 the stone code is trimmed", () => {
-  const [card] = buildPortfolioModel([item({ stoneCode: "  ST-7  " })]);
+  const card = first(buildPortfolioModel([item({ stoneCode: "  ST-7  " })]));
   assert.equal(card.stoneCode, "ST-7");
 });
 
 test("18 an empty or missing stone code becomes null", () => {
-  assert.equal(buildPortfolioModel([item({ stoneCode: "   " })])[0].stoneCode, null);
-  assert.equal(buildPortfolioModel([item()])[0].stoneCode, null);
+  assert.equal(first(buildPortfolioModel([item({ stoneCode: "   " })])).stoneCode, null);
+  assert.equal(first(buildPortfolioModel([item()])).stoneCode, null);
 });
 
 test("19 an undefined size becomes null", () => {
-  const [card] = buildPortfolioModel([item()]);
+  const card = first(buildPortfolioModel([item()]));
   assert.equal(card.sizeCode, null);
   assert.equal(card.sizeLabel, null);
 });
 
 test("20 a null size becomes null", () => {
-  const [card] = buildPortfolioModel([item({ sizeCode: null })]);
+  const card = first(buildPortfolioModel([item({ sizeCode: null })]));
   assert.equal(card.sizeCode, null);
   assert.equal(card.sizeLabel, null);
 });
 
 test("21 a valid size uses the existing label contract", () => {
-  const [card] = buildPortfolioModel([item({ sizeCode: "160x60" })]);
+  const card = first(buildPortfolioModel([item({ sizeCode: "160x60" })]));
   assert.equal(card.sizeCode, "160x60");
   assert.equal(card.sizeLabel, SIZE_LABELS["160x60"]);
 });
 
 test("22 the summary is trimmed and never rewritten", () => {
-  const [card] = buildPortfolioModel([item({ summary: "  اجرای کامل سنگ  " })]);
+  const card = first(buildPortfolioModel([item({ summary: "  اجرای کامل سنگ  " })]));
   assert.equal(card.summary, "اجرای کامل سنگ");
 });
 
 test("23 an empty summary becomes null", () => {
-  assert.equal(buildPortfolioModel([item({ summary: "   " })])[0].summary, null);
-  assert.equal(buildPortfolioModel([item({ summary: null })])[0].summary, null);
+  assert.equal(first(buildPortfolioModel([item({ summary: "   " })])).summary, null);
+  assert.equal(first(buildPortfolioModel([item({ summary: null })])).summary, null);
 });
 
 test("24 the quote path carries exactly source and reference", () => {
-  const [card] = buildPortfolioModel([item({ publicReferenceId: "pf-20304" })]);
+  const card = first(buildPortfolioModel([item({ publicReferenceId: "pf-20304" })]));
   const url = new URL(card.quotePath, "https://example.test");
   assert.equal(url.pathname, "/quote");
   assert.deepEqual([...url.searchParams.keys()].sort(), ["reference", "source"]);
@@ -167,15 +173,15 @@ test("24 the quote path carries exactly source and reference", () => {
 });
 
 test("25 the caption and media key never appear in the quote path", () => {
-  const [card] = buildPortfolioModel([item()]);
+  const card = first(buildPortfolioModel([item()]));
   assert.ok(!card.quotePath.includes("media"));
   assert.ok(!card.quotePath.includes("کپشن"));
 });
 
 test("26 the view-model exposes only the six approved keys", () => {
-  const [card] = buildPortfolioModel([
+  const card = first(buildPortfolioModel([
     item({ stoneCode: "ST-1", sizeCode: "120x60", summary: "متن" }),
-  ]);
+  ]));
   assert.deepEqual(Object.keys(card).sort(), [
     "publicReferenceId",
     "quotePath",
