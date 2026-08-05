@@ -6,6 +6,7 @@
  */
 
 import type { PriceType } from "./content/types";
+import { normalizePortfolioReference } from "./portfolio-reference";
 import type { GraveStoneRequestDraft } from "./request-draft";
 
 /* -------------------------------------------------------------------------- */
@@ -160,15 +161,23 @@ export function toLatinDigits(value: string): string {
   return out;
 }
 
-/** Returns the canonical `+989xxxxxxxxx` form, or null when unusable. */
+/**
+ * Returns the canonical `+989xxxxxxxxx` form, or null when unusable.
+ *
+ * Exactly three shapes are accepted: `09xxxxxxxxx`, `989xxxxxxxxx` and
+ * `+989xxxxxxxxx`. An international `00` prefix is rejected outright.
+ */
 export function normalizePhone(value: string): string | null {
+  if (typeof value !== "string") return null;
   const compact = toLatinDigits(value).replace(/[\s\-()]/g, "");
   if (compact.length === 0) return null;
+  if (compact.startsWith("00")) return null;
 
-  let candidate = compact;
-  if (candidate.startsWith("00")) candidate = `+${candidate.slice(2)}`;
-  if (/^09[0-9]{9}$/.test(candidate)) candidate = `+98${candidate.slice(1)}`;
-  else if (/^989[0-9]{9}$/.test(candidate)) candidate = `+${candidate}`;
+  let candidate: string;
+  if (/^09[0-9]{9}$/.test(compact)) candidate = `+98${compact.slice(1)}`;
+  else if (/^989[0-9]{9}$/.test(compact)) candidate = `+${compact}`;
+  else if (/^\+989[0-9]{9}$/.test(compact)) candidate = compact;
+  else return null;
 
   return PHONE_PATTERN.test(candidate) ? candidate : null;
 }
@@ -330,17 +339,22 @@ function isDisplayableAmount(value: unknown): value is number {
   return typeof value === "number" && Number.isSafeInteger(value) && value > 0;
 }
 
+/**
+ * Resolves the client-side displayed price, or null when the combination is
+ * not a valid client price. An invalid amount is never downgraded to review.
+ */
 export function resolveClientPrice(
   snapshotPriceType: PriceType,
   snapshotAmount: number | null,
   revision?: PriceRevision | null,
-): PriceRevision {
-  const priceType = revision?.priceType ?? snapshotPriceType;
+): PriceRevision | null {
+  const priceType = revision ? revision.priceType : snapshotPriceType;
   const amount = revision ? revision.amountToman : snapshotAmount;
-  if (priceType === "review" || !isDisplayableAmount(amount)) {
-    return { priceType, amountToman: null };
+  if (priceType === "review") {
+    return amount === null ? { priceType: "review", amountToman: null } : null;
   }
-  return { priceType, amountToman: amount };
+  if (priceType !== "fixed" && priceType !== "estimate") return null;
+  return isDisplayableAmount(amount) ? { priceType, amountToman: amount } : null;
 }
 
 export function buildRequestPayload(input: {
@@ -368,6 +382,7 @@ export function buildRequestPayload(input: {
     const draft = source.draft;
     const snapshot = draft.displaySnapshot;
     const price = resolveClientPrice(snapshot.priceType, snapshot.amountToman, priceRevision);
+    if (price === null) return null;
     return {
       submission_id: submissionId,
       request_type: "grave_stone",
@@ -385,11 +400,11 @@ export function buildRequestPayload(input: {
     };
   }
 
-  const reference = source.portfolioReferenceId;
+  const reference = normalizePortfolioReference(source.portfolioReferenceId);
   const referral =
-    typeof reference === "string" && reference.length > 0
-      ? { source_type: "portfolio" as const, portfolio_reference_id: reference }
-      : {};
+    reference === null
+      ? {}
+      : { source_type: "portfolio" as const, portfolio_reference_id: reference };
 
   return {
     submission_id: submissionId,

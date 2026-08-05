@@ -7,7 +7,7 @@
 
 import type { PriceType } from "./content/types";
 import type { RequestFieldKey, RequestPayload, RequestTermsDocument } from "./request-form";
-import { isRequestTermsDocument } from "./request-form";
+import { REQUEST_FIELD_ERRORS, isRequestTermsDocument } from "./request-form";
 
 export const SUBMIT_ENDPOINT = "/api/submit-request";
 export const SUBMIT_TIMEOUT_MS = 15000;
@@ -99,6 +99,7 @@ export const SUBMIT_MESSAGES = {
   selection_unavailable: "بخشی از انتخاب فعلی دیگر در دسترس نیست. انتخاب را بازبینی کنید.",
   terms_updated: "شرایط ثبت به‌روزرسانی شده است. شرایط را دوباره بررسی و تأیید کنید.",
   idempotency: "شناسهٔ ارسال قبلی دیگر قابل استفاده نیست. برای تلاش بعدی شناسهٔ تازه ساخته می‌شود.",
+  idempotency_action: "تلاش دوباره با شناسهٔ تازه",
   validation_error: "اطلاعات فرم نیاز به اصلاح دارد.",
   bot_verification_invalid: "اعتبارسنجی امنیتی کامل نشد. دوباره تلاش کنید.",
   rate_limited: "تعداد تلاش‌ها بیش از حد مجاز است. ۱۰ دقیقه بعد دوباره تلاش کنید.",
@@ -133,25 +134,38 @@ const SERVER_FIELDS: Readonly<Record<string, RequestFieldKey>> = {
   terms: "termsAccepted",
 };
 
+/** Fixed client copy. A server-supplied message is never stored or rendered. */
+const CLIENT_FIELD_MESSAGES: Readonly<Record<RequestFieldKey, string>> = {
+  customerName: REQUEST_FIELD_ERRORS.customerName,
+  phone: REQUEST_FIELD_ERRORS.phone,
+  city: REQUEST_FIELD_ERRORS.cityRequired,
+  locationText: REQUEST_FIELD_ERRORS.locationRequired,
+  locationUnknown: REQUEST_FIELD_ERRORS.locationRequired,
+  preferredContact: REQUEST_FIELD_ERRORS.preferredContact,
+  preferredContactTime: REQUEST_FIELD_ERRORS.preferredContactTime,
+  customerNote: REQUEST_FIELD_ERRORS.customerNote,
+  termsAccepted: REQUEST_FIELD_ERRORS.termsAccepted,
+};
+
 function mapFieldErrors(value: unknown): Readonly<Partial<Record<RequestFieldKey, string>>> {
   if (typeof value !== "object" || value === null) return {};
   const out: Partial<Record<RequestFieldKey, string>> = {};
-  for (const [key, message] of Object.entries(value as Record<string, unknown>)) {
+  for (const key of Object.keys(value as Record<string, unknown>)) {
     const field = SERVER_FIELDS[key];
     if (field === undefined) continue;
-    if (typeof message !== "string" || message.trim().length === 0) continue;
-    out[field] = message.trim();
+    out[field] = CLIENT_FIELD_MESSAGES[field];
   }
   return out;
 }
 
+/** Accepts only a fully valid price object; nothing is repaired or defaulted. */
 function readPrice(value: unknown): SubmitPrice | null {
   if (typeof value !== "object" || value === null) return null;
   const candidate = value as { price_type?: unknown; amount_toman?: unknown };
   const type = candidate.price_type;
-  if (type !== "fixed" && type !== "estimate" && type !== "review") return null;
   const amount = candidate.amount_toman;
-  if (type === "review") return { priceType: "review", amountToman: null };
+  if (type === "review") return amount === null ? { priceType: "review", amountToman: null } : null;
+  if (type !== "fixed" && type !== "estimate") return null;
   if (typeof amount !== "number" || !Number.isSafeInteger(amount) || amount <= 0) return null;
   return { priceType: type, amountToman: amount };
 }
@@ -199,7 +213,8 @@ export function interpretSubmitResponse(result: RequestSubmitTransportResult): S
     case "PRICE_CHANGED": {
       if (status !== 409) return TEMPORARY;
       const price = readPrice(body["price"]);
-      return { kind: "price_changed", price: price ?? { priceType: "review", amountToman: null } };
+      // An unusable price is never repaired into a fake review state.
+      return price === null ? TEMPORARY : { kind: "price_changed", price };
     }
     case "SELECTION_UNAVAILABLE":
       return status === 409 ? { kind: "selection_unavailable" } : TEMPORARY;
@@ -238,22 +253,32 @@ export async function submitRequest(input: {
   const timeoutMs = input.timeoutMs ?? SUBMIT_TIMEOUT_MS;
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  // The deadline resolves on its own, so a transport that ignores the abort
+  // signal can never keep the form in the submitting phase.
+  const deadline = new Promise<SubmitOutcome>((resolve) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      resolve(TEMPORARY);
+    }, timeoutMs);
+  });
+
+  const attempt = transport({
+    url: SUBMIT_ENDPOINT,
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(input.payload),
+    cache: "no-store",
+    signal: controller.signal,
+  })
+    .then(interpretSubmitResponse)
+    .catch(() => TEMPORARY);
 
   try {
-    const result = await transport({
-      url: SUBMIT_ENDPOINT,
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify(input.payload),
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    return interpretSubmitResponse(result);
-  } catch {
-    return TEMPORARY;
+    return await Promise.race([attempt, deadline]);
   } finally {
-    clearTimeout(timer);
+    if (timer !== null) clearTimeout(timer);
   }
 }
 

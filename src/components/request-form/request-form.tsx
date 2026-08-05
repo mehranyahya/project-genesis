@@ -36,12 +36,37 @@ type Phase = "editing" | "submitting" | "success";
 
 const PII_FREE_VALUES = EMPTY_REQUEST_FORM_VALUES;
 
+/**
+ * A stable identity for the current selection. A new object with identical
+ * content is not a selection change, so a re-render never clears a blocked
+ * selection or a pending price revision.
+ */
+function sourceIdentity(source: RequestSource): string {
+  if (source.kind === "grave_stone") {
+    const draft = source.draft;
+    const snapshot = draft.displaySnapshot;
+    return [
+      "grave_stone",
+      draft.catalogVersion,
+      draft.productId,
+      draft.productCode,
+      draft.variantId,
+      draft.stoneCode,
+      draft.sizeCode,
+      draft.optionIds.join("|"),
+      snapshot.priceType,
+      String(snapshot.amountToman),
+    ].join("~");
+  }
+  return `contact~${source.portfolioReferenceId ?? ""}`;
+}
+
 export function RequestForm({
   source,
   site,
   termsDocument,
   submitRequest: transport,
-  extension,
+
   onSuccess,
 }: {
   source: RequestSource;
@@ -63,11 +88,13 @@ export function RequestForm({
   const submissionId = useRef<string | null>(null);
   const inFlight = useRef(false);
 
-  // A real selection change replaces the source and clears the blocked state.
+  const identity = sourceIdentity(source);
+
+  // Only a real selection change clears the blocked state and price revision.
   useEffect(() => {
     setSelectionBlocked(false);
     setPriceRevision(null);
-  }, [source]);
+  }, [identity]);
 
   useEffect(() => {
     setTerms(termsDocument);
@@ -176,8 +203,6 @@ export function RequestForm({
       </div>
 
       <div className="col-span-4 flex flex-col gap-4 md:col-span-8 lg:col-span-4">
-        {extension ? <p className="text-sm text-text-caption">{extension.kind}</p> : null}
-
         <button
           type="submit"
           className={ACTION}
@@ -194,6 +219,10 @@ export function RequestForm({
           outcome={submitting ? null : outcome}
           onRetry={() => void run(priceRevision)}
           onConfirmPrice={() => void run(priceRevision)}
+          onNewAttempt={() => {
+            submissionId.current = null;
+            setOutcome(null);
+          }}
         />
       </div>
     </form>

@@ -17,6 +17,13 @@ import {
 
 export const FIELD_ID_PREFIX = "request";
 
+/**
+ * The accessible terms label is the official field label, split once so the
+ * `/terms` link sits inside the same sentence without repeating any wording.
+ */
+export const TERMS_LINK_TEXT = "شرایط ثبت";
+export const TERMS_LABEL_TAIL = REQUEST_FIELD_LABELS.termsAccepted.slice(TERMS_LINK_TEXT.length);
+
 export const fieldId = (key: RequestFieldKey) => `${FIELD_ID_PREFIX}-${key}`;
 export const errorId = (key: RequestFieldKey) => `${FIELD_ID_PREFIX}-${key}-error`;
 
@@ -222,13 +229,13 @@ export function RequestFormFields({
             onChange={(event) => onChange({ termsAccepted: event.currentTarget.checked })}
           />
           <span className="text-sm text-text-primary">
-            {REQUEST_FIELD_LABELS.termsAccepted}{" "}
             <Link
               to="/terms"
               className="underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
-              شرایط ثبت
+              {TERMS_LINK_TEXT}
             </Link>
+            {TERMS_LABEL_TAIL}
           </span>
         </label>
         <FieldError id={errorId("termsAccepted")} message={errors.termsAccepted} />
