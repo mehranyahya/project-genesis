@@ -88,11 +88,13 @@ export function RequestForm({
   const submissionId = useRef<string | null>(null);
   const inFlight = useRef(false);
 
-  // A real selection change replaces the source and clears the blocked state.
+  const identity = sourceIdentity(source);
+
+  // Only a real selection change clears the blocked state and price revision.
   useEffect(() => {
     setSelectionBlocked(false);
     setPriceRevision(null);
-  }, [source]);
+  }, [identity]);
 
   useEffect(() => {
     setTerms(termsDocument);
