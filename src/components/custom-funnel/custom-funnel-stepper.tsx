@@ -100,10 +100,12 @@ export function CustomFunnelStepper({
   model,
   catalogVersion,
   onDraftReady,
+  onDraftInvalidated,
 }: {
   model: CustomFunnelModel;
   catalogVersion: string | null;
   onDraftReady: (draft: GraveStoneRequestDraft) => void;
+  onDraftInvalidated: () => void;
 }) {
   const [step, setStep] = useState(0);
   const [selection, setSelection] = useState<CustomFunnelSelection>(EMPTY_CUSTOM_FUNNEL_SELECTION);
@@ -149,18 +151,6 @@ export function CustomFunnelStepper({
   const stone = findStoneChoice(model, selection.stoneKey);
   const size: CustomFunnelVariantChoice | null = findVariantChoice(stone, selection.variantId);
 
-  const selectedOptions = useMemo(() => {
-    if (size === null) return [];
-    const ids = new Set<string>([
-      ...selection.doriIds,
-      ...selection.inscriptionIds,
-      ...selection.engravingIds,
-    ]);
-    return size.variant.options.filter((option) => ids.has(option.id));
-  }, [selection.doriIds, selection.engravingIds, selection.inscriptionIds, size]);
-
-  const price = size ? resolveSelectionPrice(size.variant, selectedOptions) : null;
-
   const draft = useMemo(
     () => buildCustomFunnelDraft({ model, catalogVersion, selection }),
     [catalogVersion, model, selection],
@@ -170,6 +160,7 @@ export function CustomFunnelStepper({
 
   const apply = (reduction: ReturnType<typeof reduceCustomFunnel>, stepIndex: number) => {
     if (!reduction.changed) return;
+    onDraftInvalidated();
     setSelection(reduction.selection);
     setCascadeStep(reduction.clearedDownstream ? stepIndex : null);
   };
