@@ -133,17 +133,39 @@ test("10 the referral path carries only source and reference", () => {
 });
 
 test("11 only a valid tracking code produces success", () => {
-  const ok = interpretSubmitResponse({ status: 201, body: JSON.stringify({ code: "REQUEST_CREATED", tracking_code: "MA-1001" }) });
+  const ok = interpretSubmitResponse({
+    status: 201,
+    body: JSON.stringify({ code: "REQUEST_CREATED", tracking_code: "MA-1001" }),
+  });
   assert.equal(ok.kind, "success");
-  const bad = interpretSubmitResponse({ status: 201, body: JSON.stringify({ code: "REQUEST_CREATED", tracking_code: "MA-0001" }) });
+  const bad = interpretSubmitResponse({
+    status: 201,
+    body: JSON.stringify({ code: "REQUEST_CREATED", tracking_code: "MA-0001" }),
+  });
   assert.notEqual(bad.kind, "success");
 });
 
 test("12 known server outcomes map to explicit states", () => {
-  assert.equal(interpretSubmitResponse({ status: 409, body: JSON.stringify({ code: "SELECTION_UNAVAILABLE" }) }).kind, "selection_unavailable");
-  assert.equal(interpretSubmitResponse({ status: 422, body: JSON.stringify({ code: "VALIDATION_ERROR" }) }).kind, "validation_error");
-  assert.equal(interpretSubmitResponse({ status: 429, body: JSON.stringify({ code: "RATE_LIMITED" }) }).kind, "rate_limited");
-  assert.equal(interpretSubmitResponse({ status: 503, body: JSON.stringify({}) }).kind, "temporarily_unavailable");
+  assert.equal(
+    interpretSubmitResponse({
+      status: 409,
+      body: JSON.stringify({ code: "SELECTION_UNAVAILABLE" }),
+    }).kind,
+    "selection_unavailable",
+  );
+  assert.equal(
+    interpretSubmitResponse({ status: 422, body: JSON.stringify({ code: "VALIDATION_ERROR" }) })
+      .kind,
+    "validation_error",
+  );
+  assert.equal(
+    interpretSubmitResponse({ status: 429, body: JSON.stringify({ code: "RATE_LIMITED" }) }).kind,
+    "rate_limited",
+  );
+  assert.equal(
+    interpretSubmitResponse({ status: 503, body: JSON.stringify({}) }).kind,
+    "temporarily_unavailable",
+  );
 });
 
 test("13 no raw color and no banned effect exists in the new files", () => {
