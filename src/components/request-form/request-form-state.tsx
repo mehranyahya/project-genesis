@@ -23,10 +23,12 @@ export function RequestFormState({
   outcome,
   onRetry,
   onConfirmPrice,
+  onNewAttempt,
 }: {
   outcome: SubmitOutcome | null;
   onRetry: () => void;
   onConfirmPrice: () => void;
+  onNewAttempt: () => void;
 }): ReactNode {
   if (outcome === null || outcome.kind === "success") return null;
 
