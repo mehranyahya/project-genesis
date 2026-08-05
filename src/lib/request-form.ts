@@ -160,15 +160,23 @@ export function toLatinDigits(value: string): string {
   return out;
 }
 
-/** Returns the canonical `+989xxxxxxxxx` form, or null when unusable. */
+/**
+ * Returns the canonical `+989xxxxxxxxx` form, or null when unusable.
+ *
+ * Exactly three shapes are accepted: `09xxxxxxxxx`, `989xxxxxxxxx` and
+ * `+989xxxxxxxxx`. An international `00` prefix is rejected outright.
+ */
 export function normalizePhone(value: string): string | null {
+  if (typeof value !== "string") return null;
   const compact = toLatinDigits(value).replace(/[\s\-()]/g, "");
   if (compact.length === 0) return null;
+  if (compact.startsWith("00")) return null;
 
-  let candidate = compact;
-  if (candidate.startsWith("00")) candidate = `+${candidate.slice(2)}`;
-  if (/^09[0-9]{9}$/.test(candidate)) candidate = `+98${candidate.slice(1)}`;
-  else if (/^989[0-9]{9}$/.test(candidate)) candidate = `+${candidate}`;
+  let candidate: string;
+  if (/^09[0-9]{9}$/.test(compact)) candidate = `+98${compact.slice(1)}`;
+  else if (/^989[0-9]{9}$/.test(compact)) candidate = `+${compact}`;
+  else if (/^\+989[0-9]{9}$/.test(compact)) candidate = compact;
+  else return null;
 
   return PHONE_PATTERN.test(candidate) ? candidate : null;
 }
