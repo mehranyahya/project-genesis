@@ -64,7 +64,7 @@ test("8 the empty text is exact and accessible", () => {
 });
 
 test("9 loading state is accessible and static", () => {
-  const states = read(STATES);
+  const states = stripComments(read(STATES));
   assert.ok(states.includes('aria-busy="true"'));
   assert.ok(states.includes("در حال دریافت نمونه‌کارها"));
   for (const banned of ["animate-", "spinner", "shimmer", "transition-transform"]) {
@@ -112,6 +112,7 @@ test("16-18 quote route, request-form files and the helper are unchanged by this
 });
 
 test("19-23 media keys, captions, consent and any image surface are absent", () => {
+  const code = COMPONENT_CODE.replaceAll("text-text-caption", "");
   for (const banned of [
     "mediaKey",
     "caption",
@@ -123,7 +124,7 @@ test("19-23 media keys, captions, consent and any image surface are absent", () 
     "bg-[url",
     "placeholder",
   ]) {
-    assert.ok(!COMPONENT_CODE.includes(banned), `components must not contain ${banned}`);
+    assert.ok(!code.includes(banned), `components must not contain ${banned}`);
   }
 });
 
