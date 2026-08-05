@@ -5,22 +5,23 @@ import {
   ProductDetailError,
   ProductDetailLoading,
 } from "@/components/product/product-detail-states";
-import { getCatalogVersion, getProduct } from "@/lib/content/adapters";
+import { getCatalogVersion, getProduct, getSite } from "@/lib/content/adapters";
 import { buildProductDetailModel } from "@/lib/product-detail";
 
 const GENERIC_DESCRIPTION = "صفحهٔ جزئیات سنگ مزار مهرآرا";
 
 export const Route = createFileRoute("/grave-stones/$slug")({
   loader: async ({ params }) => {
-    const [product, catalogVersion] = await Promise.all([
+    const [product, catalogVersion, site] = await Promise.all([
       getProduct(params.slug),
       getCatalogVersion(),
+      getSite(),
     ]);
 
     const model = buildProductDetailModel(product, params.slug);
     if (model === null) throw notFound();
 
-    return { model, catalogVersion: catalogVersion ?? null };
+    return { model, catalogVersion: catalogVersion ?? null, site: site ?? null };
   },
   head: ({ loaderData, params }) => {
     const title = loaderData ? `${loaderData.model.title} — مهرآرا` : "جزئیات سنگ مزار — مهرآرا";
@@ -41,6 +42,6 @@ export const Route = createFileRoute("/grave-stones/$slug")({
 });
 
 function GraveStoneDetailRoute() {
-  const { model, catalogVersion } = Route.useLoaderData();
-  return <ProductDetailPage model={model} catalogVersion={catalogVersion} />;
+  const { model, catalogVersion, site } = Route.useLoaderData();
+  return <ProductDetailPage model={model} catalogVersion={catalogVersion} site={site} />;
 }
