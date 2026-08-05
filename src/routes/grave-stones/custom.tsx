@@ -1,8 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { RouteSkeleton } from "@/components/layout/route-skeleton";
+import { CustomFunnelPage } from "@/components/custom-funnel/custom-funnel-page";
+import {
+  CustomFunnelError,
+  CustomFunnelLoading,
+} from "@/components/custom-funnel/custom-funnel-states";
+import { getCatalogVersion, getProducts } from "@/lib/content/adapters";
 
 export const Route = createFileRoute("/grave-stones/custom")({
+  loader: async () => {
+    const [products, catalogVersion] = await Promise.all([
+      getProducts({ type: "simple" }),
+      getCatalogVersion(),
+    ]);
+    return { products, catalogVersion: catalogVersion ?? null };
+  },
   head: () => ({
     meta: [
       { title: "سفارش سفارشی سنگ مزار — مهرآرا" },
@@ -12,9 +24,12 @@ export const Route = createFileRoute("/grave-stones/custom")({
     ],
     links: [{ rel: "canonical", href: "/grave-stones/custom" }],
   }),
+  pendingComponent: CustomFunnelLoading,
+  errorComponent: CustomFunnelError,
   component: CustomGraveStoneRoute,
 });
 
 function CustomGraveStoneRoute() {
-  return <RouteSkeleton title="سفارش سفارشی سنگ مزار" />;
+  const { products, catalogVersion } = Route.useLoaderData();
+  return <CustomFunnelPage products={products} catalogVersion={catalogVersion} />;
 }
