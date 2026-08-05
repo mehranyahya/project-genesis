@@ -381,6 +381,7 @@ export function buildRequestPayload(input: {
     const draft = source.draft;
     const snapshot = draft.displaySnapshot;
     const price = resolveClientPrice(snapshot.priceType, snapshot.amountToman, priceRevision);
+    if (price === null) return null;
     return {
       submission_id: submissionId,
       request_type: "grave_stone",
@@ -398,11 +399,11 @@ export function buildRequestPayload(input: {
     };
   }
 
-  const reference = source.portfolioReferenceId;
+  const reference = normalizePortfolioReference(source.portfolioReferenceId);
   const referral =
-    typeof reference === "string" && reference.length > 0
-      ? { source_type: "portfolio" as const, portfolio_reference_id: reference }
-      : {};
+    reference === null
+      ? {}
+      : { source_type: "portfolio" as const, portfolio_reference_id: reference };
 
   return {
     submission_id: submissionId,
