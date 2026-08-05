@@ -338,17 +338,22 @@ function isDisplayableAmount(value: unknown): value is number {
   return typeof value === "number" && Number.isSafeInteger(value) && value > 0;
 }
 
+/**
+ * Resolves the client-side displayed price, or null when the combination is
+ * not a valid client price. An invalid amount is never downgraded to review.
+ */
 export function resolveClientPrice(
   snapshotPriceType: PriceType,
   snapshotAmount: number | null,
   revision?: PriceRevision | null,
-): PriceRevision {
-  const priceType = revision?.priceType ?? snapshotPriceType;
+): PriceRevision | null {
+  const priceType = revision ? revision.priceType : snapshotPriceType;
   const amount = revision ? revision.amountToman : snapshotAmount;
-  if (priceType === "review" || !isDisplayableAmount(amount)) {
-    return { priceType, amountToman: null };
+  if (priceType === "review") {
+    return amount === null ? { priceType: "review", amountToman: null } : null;
   }
-  return { priceType, amountToman: amount };
+  if (priceType !== "fixed" && priceType !== "estimate") return null;
+  return isDisplayableAmount(amount) ? { priceType, amountToman: amount } : null;
 }
 
 export function buildRequestPayload(input: {
