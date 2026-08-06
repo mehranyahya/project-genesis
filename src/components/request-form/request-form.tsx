@@ -63,10 +63,41 @@ function sourceIdentity(source: RequestSource): string {
   return `contact~${source.portfolioReferenceId ?? ""}`;
 }
 
+/**
+ * A monotonic attempt epoch. A semantic source change always produces a new
+ * generation, so an A -> B -> A cycle never reuses the generation of the first
+ * A attempt and a late response of that attempt stays detectable as stale.
+ */
+export interface GenerationTracker {
+  readonly current: () => number;
+  readonly observe: (identity: string) => number;
+}
+
+export function createGenerationTracker(initialIdentity: string): GenerationTracker {
+  let identity = initialIdentity;
+  let generation = 0;
+  return {
+    current: () => generation,
+    observe: (next: string) => {
+      if (next !== identity) {
+        identity = next;
+        generation += 1;
+      }
+      return generation;
+    },
+  };
+}
+
+/** A response is stale as soon as its recorded generation is not the current one. */
+export function isStaleAttempt(attemptGeneration: number, currentGeneration: number): boolean {
+  return attemptGeneration !== currentGeneration;
+}
+
 /** The first errored field in the official contract order, never insertion order. */
 function firstMappedFieldError(errors: RequestFieldErrors): RequestFieldKey | null {
   return REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
 }
+
 
 export function RequestForm({
   source,
