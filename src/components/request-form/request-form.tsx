@@ -189,11 +189,23 @@ export function RequestForm({
 
   const termsReady = isRequestTermsDocument(terms);
 
-  const focusFirstInvalid = (validation: ReturnType<typeof validateRequestForm>) => {
-    const key = validation.firstInvalidField;
-    if (key === null || typeof document === "undefined") return;
-    const element = document.getElementById(fieldId(key));
+  const focusById = (id: string) => {
+    if (typeof document === "undefined") return;
+    const element = document.getElementById(id);
     if (element instanceof HTMLElement) element.focus();
+  };
+
+  // The extension fields sit before the contact fields, so their first error is
+  // focused before any general field error.
+  const focusFirstInvalid = (validation: ReturnType<typeof validateRequestForm>) => {
+    const extensionKey = validation.firstInvalidExtensionField;
+    if (extensionKey !== null) {
+      focusById(buildingStoneFieldId(extensionKey));
+      return;
+    }
+    const key = validation.firstInvalidField;
+    if (key === null) return;
+    focusById(fieldId(key));
   };
 
   const run = useCallback(
@@ -207,6 +219,7 @@ export function RequestForm({
 
       const validation = validateRequestForm({ values, source });
       setErrors(validation.errors);
+      setExtensionErrors(validation.extensionErrors);
       if (!validation.valid) {
         focusFirstInvalid(validation);
         return;
