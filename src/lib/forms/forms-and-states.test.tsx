@@ -219,19 +219,25 @@ test("21 a server validation error is ordered through REQUEST_FIELD_ORDER and fo
   const form = stripComments(read(FORM));
   assert.ok(form.includes("REQUEST_FIELD_ORDER"));
   assert.ok(form.includes("function firstMappedFieldError("));
-  assert.ok(form.includes("setPendingFocus(firstMappedFieldError(result.fieldErrors))"));
-  assert.ok(form.includes("}, [pendingFocus]);"));
-  assert.ok(form.includes("document.getElementById(fieldId(pendingFocus))"));
-  assert.ok(form.includes('if (pendingFocus === null || typeof document === "undefined") return;'));
+  assert.ok(form.includes("setPendingFocusId(serverFocusDomId(result.fieldErrors))"));
+  assert.ok(form.includes("}, [pendingFocusId]);"));
+  assert.ok(form.includes("document.getElementById(pendingFocusId)"));
+  assert.ok(
+    form.includes('if (pendingFocusId === null || typeof document === "undefined") return;'),
+  );
   // Only the already-sanitized client map is stored.
   assert.ok(form.includes("setErrors(result.fieldErrors)"));
   assert.ok(!/result\.(message|detail|serverMessage)/.test(form));
 });
 
-test("22 the client-side first-invalid-field focus is preserved", () => {
+test("22 every validation focus is committed first and applied by the single effect", () => {
   const form = stripComments(read(FORM));
-  assert.ok(form.includes("focusFirstInvalid(validation)"));
+  assert.ok(form.includes("setPendingFocusId(resolvePendingFocusId(validation, extensionFieldId))"));
   assert.ok(form.includes("validation.firstInvalidField"));
+  // No path focuses an element inline; the effect is the only focusing code.
+  assert.ok(!form.includes("focusById("));
+  assert.equal(form.split(".focus();").length - 1, 1, "exactly one focus call, inside the effect");
+  assert.equal(form.split("document.getElementById(").length - 1, 1);
 });
 
 test("23 an idempotency outcome never submits again automatically", () => {
@@ -342,6 +348,8 @@ interface Recorded {
   storage: string | null;
   inFlight: boolean;
   freshAttemptRequired: boolean;
+  /** How often a run stopped because no payload could be built. */
+  payloadBlocked: number;
 }
 
 /**
@@ -349,7 +357,11 @@ interface Recorded {
  * generation, then mutation. It drives the real submit module through a mock
  * transport, so outcomes and payloads are real, not simulated.
  */
-function createHarness(initialSource: RequestSource, transport: RequestSubmitTransport) {
+function createHarness(
+  initialSource: RequestSource,
+  transport: RequestSubmitTransport,
+  options?: { readonly extension?: BuildingStoneExtensionContract | null },
+) {
   let source = initialSource;
   const tracker = createGenerationTracker(sourceIdentity(source));
   let submissionId: string | null = null;
@@ -365,13 +377,17 @@ function createHarness(initialSource: RequestSource, transport: RequestSubmitTra
     storage: null,
     inFlight: false,
     freshAttemptRequired: false,
+    payloadBlocked: 0,
   };
   const payloads: RequestPayload[] = [];
 
+  // Exactly the component contract: only a real semantic identity change resets
+  // the source-coupled state; a re-render with equal semantics changes nothing.
   const setSource = (next: RequestSource) => {
+    const before = tracker.current();
     source = next;
-    const changed = tracker.observe(sourceIdentity(next));
-    void changed;
+    const after = tracker.observe(sourceIdentity(next));
+    if (after === before) return;
     submissionId = null;
     state.inFlight = false;
     state.outcome = null;
@@ -383,21 +399,35 @@ function createHarness(initialSource: RequestSource, transport: RequestSubmitTra
     state.freshAttemptRequired = false;
   };
 
-  const run = async (options?: { allowFreshAttempt?: boolean }) => {
-    const allowFreshAttempt = options?.allowFreshAttempt === true;
+  const run = async (options2?: { allowFreshAttempt?: boolean }) => {
+    const allowFreshAttempt = options2?.allowFreshAttempt === true;
     if (state.inFlight) return;
     if (state.selectionBlocked) return;
     if (state.freshAttemptRequired && !allowFreshAttempt) return;
 
     submissionId ??= createSubmissionId();
-    const payload = buildRequestPayload({
-      submissionId,
-      source,
-      values: state.values,
-      termsDocument: TERMS,
-      priceRevision: null,
-    });
-    if (payload === null) throw new Error("payload must build");
+    const payload =
+      options !== undefined && Object.prototype.hasOwnProperty.call(options, "extension")
+        ? buildRequestPayload({
+            submissionId,
+            source,
+            values: state.values,
+            termsDocument: TERMS,
+            priceRevision: null,
+            extension: options.extension ?? null,
+          })
+        : buildRequestPayload({
+            submissionId,
+            source,
+            values: state.values,
+            termsDocument: TERMS,
+            priceRevision: null,
+          });
+    // An unbuildable payload never reaches the transport.
+    if (payload === null) {
+      state.payloadBlocked += 1;
+      return;
+    }
     payloads.push(payload);
 
     const attemptGeneration = tracker.current();
