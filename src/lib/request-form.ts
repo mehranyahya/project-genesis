@@ -328,7 +328,18 @@ export interface ContactRequestPayload extends NormalizedRequestFields, TermsPay
   readonly portfolio_reference_id?: string;
 }
 
-export type RequestPayload = GraveStoneRequestPayload | ContactRequestPayload;
+export interface BuildingStoneRequestPayload
+  extends NormalizedRequestFields,
+    TermsPayloadFields,
+    BuildingStonePayloadFields {
+  readonly submission_id: string;
+  readonly request_type: "building_stone";
+}
+
+export type RequestPayload =
+  | GraveStoneRequestPayload
+  | ContactRequestPayload
+  | BuildingStoneRequestPayload;
 
 export interface PriceRevision {
   readonly priceType: PriceType;
