@@ -283,3 +283,412 @@ test("27 a response from an obsolete source attempt is discarded before any stat
   assert.ok(form.indexOf("setOutcome(result)") > guard);
   assert.ok(form.indexOf("inFlight.current = false;\n      setOutcome(result)") > guard);
 });
+
+/* -------------------------------------------------------------------------- */
+/* Runtime contracts: generation isolation and dedicated idempotency restart   */
+/* -------------------------------------------------------------------------- */
+
+const TERMS: RequestTermsDocument = { version: "1.0", contentHash: "a".repeat(64) };
+
+const VALUES: RequestFormValues = {
+  customerName: "علی رضایی",
+  phone: "09121234567",
+  city: "تهران",
+  locationText: "آرامستان بهشت زهرا",
+  locationUnknown: false,
+  preferredContact: "phone",
+  preferredContactTime: "",
+  customerNote: "",
+  termsAccepted: true,
+};
+
+const contactSource = (reference: string | null): RequestSource => ({
+  kind: "contact",
+  portfolioReferenceId: reference,
+});
+
+const reply = (status: number, body: unknown) => ({ status, body: JSON.stringify(body) });
+
+interface Recorded {
+  outcome: SubmitOutcome | null;
+  errors: RequestFieldErrors;
+  pendingFocus: string | null;
+  trackingCode: string | null;
+  selectionBlocked: boolean;
+  priceRevision: unknown;
+  values: RequestFormValues;
+  successCalls: string[];
+  storage: string | null;
+  inFlight: boolean;
+  freshAttemptRequired: boolean;
+}
+
+/**
+ * A headless harness with exactly the guard order of the component: identity,
+ * generation, then mutation. It drives the real submit module through a mock
+ * transport, so outcomes and payloads are real, not simulated.
+ */
+function createHarness(initialSource: RequestSource, transport: RequestSubmitTransport) {
+  let source = initialSource;
+  const tracker = createGenerationTracker(sourceIdentity(source));
+  let submissionId: string | null = null;
+  const state: Recorded = {
+    outcome: null,
+    errors: {},
+    pendingFocus: null,
+    trackingCode: null,
+    selectionBlocked: false,
+    priceRevision: null,
+    values: VALUES,
+    successCalls: [],
+    storage: null,
+    inFlight: false,
+    freshAttemptRequired: false,
+  };
+  const payloads: RequestPayload[] = [];
+
+  const setSource = (next: RequestSource) => {
+    source = next;
+    const changed = tracker.observe(sourceIdentity(next));
+    void changed;
+    submissionId = null;
+    state.inFlight = false;
+    state.outcome = null;
+    state.selectionBlocked = false;
+    state.priceRevision = null;
+    state.errors = {};
+    state.trackingCode = null;
+    state.pendingFocus = null;
+    state.freshAttemptRequired = false;
+  };
+
+  const run = async (options?: { allowFreshAttempt?: boolean }) => {
+    const allowFreshAttempt = options?.allowFreshAttempt === true;
+    if (state.inFlight) return;
+    if (state.selectionBlocked) return;
+    if (state.freshAttemptRequired && !allowFreshAttempt) return;
+
+    submissionId ??= createSubmissionId();
+    const payload = buildRequestPayload({
+      submissionId,
+      source,
+      values: state.values,
+      termsDocument: TERMS,
+      priceRevision: null,
+    });
+    if (payload === null) throw new Error("payload must build");
+    payloads.push(payload);
+
+    const attemptGeneration = tracker.current();
+    state.inFlight = true;
+
+    const result = await submitRequest({ payload, transport });
+
+    if (isStaleAttempt(attemptGeneration, tracker.current())) return;
+
+    state.inFlight = false;
+    state.outcome = result;
+    switch (result.kind) {
+      case "success":
+        state.trackingCode = result.trackingCode;
+        state.storage = result.trackingCode;
+        state.values = EMPTY_REQUEST_FORM_VALUES;
+        submissionId = null;
+        state.successCalls.push(result.trackingCode);
+        break;
+      case "price_changed":
+        state.priceRevision = result.price;
+        break;
+      case "selection_unavailable":
+        state.selectionBlocked = true;
+        break;
+      case "idempotency_conflict":
+      case "idempotency_expired":
+        state.freshAttemptRequired = true;
+        break;
+      case "validation_error":
+        state.errors = result.fieldErrors;
+        state.pendingFocus = firstMappedFieldError(result.fieldErrors);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const newAttempt = async () => {
+    submissionId = null;
+    state.outcome = null;
+    state.freshAttemptRequired = false;
+    await run({ allowFreshAttempt: true });
+  };
+
+  return {
+    state,
+    payloads,
+    setSource,
+    run,
+    newAttempt,
+    generation: () => tracker.current(),
+    submissionId: () => submissionId,
+  };
+}
+
+const firstMappedFieldError = (errors: RequestFieldErrors): string | null =>
+  REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
+
+/** A transport that resolves only when the test releases it. */
+function deferredTransport(response: { status: number; body: string }) {
+  let release: (() => void) | null = null;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const transport: RequestSubmitTransport = async () => {
+    await gate;
+    return response;
+  };
+  return { transport, release: () => release?.() };
+}
+
+test("28 the generation token separates an A to B to A source cycle", () => {
+  const a = contactSource("pf-1001");
+  const b = contactSource("pf-2002");
+  const tracker = createGenerationTracker(sourceIdentity(a));
+  const first = tracker.current();
+  assert.equal(tracker.observe(sourceIdentity({ ...a })), first, "same semantics, same generation");
+  const second = tracker.observe(sourceIdentity(b));
+  assert.notEqual(second, first);
+  const third = tracker.observe(sourceIdentity(a));
+  assert.notEqual(third, second);
+  assert.notEqual(third, first);
+  assert.ok(isStaleAttempt(first, third));
+  assert.ok(!isStaleAttempt(third, tracker.current()));
+});
+
+test("29 an ABA success of the first attempt is ignored completely", async () => {
+  const created = deferredTransport(
+    reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1001" }),
+  );
+  const harness = createHarness(contactSource("pf-1001"), created.transport);
+  const pending = harness.run();
+  harness.setSource(contactSource("pf-2002"));
+  harness.setSource(contactSource("pf-1001"));
+  created.release();
+  await pending;
+  assert.equal(harness.state.outcome, null);
+  assert.equal(harness.state.trackingCode, null);
+  assert.equal(harness.state.storage, null);
+  assert.deepEqual(harness.state.successCalls, []);
+  assert.equal(harness.state.values.customerName, VALUES.customerName);
+});
+
+test("30 an ABA price_changed of the first attempt never applies a price revision", async () => {
+  const changed = deferredTransport(
+    reply(409, { code: "PRICE_CHANGED", price: { price_type: "estimate", amount_toman: 900000 } }),
+  );
+  const harness = createHarness(contactSource("pf-1001"), changed.transport);
+  const pending = harness.run();
+  harness.setSource(contactSource("pf-2002"));
+  harness.setSource(contactSource("pf-1001"));
+  changed.release();
+  await pending;
+  assert.equal(harness.state.priceRevision, null);
+  assert.equal(harness.state.outcome, null);
+});
+
+test("31 an ABA selection_unavailable never blocks the new source", async () => {
+  const blocked = deferredTransport(reply(409, { code: "SELECTION_UNAVAILABLE" }));
+  const harness = createHarness(contactSource("pf-1001"), blocked.transport);
+  const pending = harness.run();
+  harness.setSource(contactSource("pf-2002"));
+  harness.setSource(contactSource("pf-1001"));
+  blocked.release();
+  await pending;
+  assert.equal(harness.state.selectionBlocked, false);
+});
+
+test("32 an ABA validation_error applies neither errors nor focus", async () => {
+  const invalid = deferredTransport(
+    reply(422, { code: "VALIDATION_ERROR", field_errors: { phone: "x" } }),
+  );
+  const harness = createHarness(contactSource("pf-1001"), invalid.transport);
+  const pending = harness.run();
+  harness.setSource(contactSource("pf-2002"));
+  harness.setSource(contactSource("pf-1001"));
+  invalid.release();
+  await pending;
+  assert.deepEqual(harness.state.errors, {});
+  assert.equal(harness.state.pendingFocus, null);
+});
+
+test("33 a stale response cannot clear the in-flight flag of the current request", async () => {
+  const slow = deferredTransport(reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1001" }));
+  const harness = createHarness(contactSource("pf-1001"), slow.transport);
+  const pending = harness.run();
+  harness.setSource(contactSource("pf-2002"));
+  harness.setSource(contactSource("pf-1001"));
+  harness.state.inFlight = true; // a new request of the current generation is running
+  slow.release();
+  await pending;
+  assert.equal(harness.state.inFlight, true);
+});
+
+test("34 a re-render with the same semantic source never makes the running attempt stale", async () => {
+  const created = deferredTransport(
+    reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1234" }),
+  );
+  const harness = createHarness(contactSource("pf-1001"), created.transport);
+  const pending = harness.run();
+  harness.setSource(contactSource("pf-1001"));
+  created.release();
+  await pending;
+  assert.equal(harness.state.trackingCode, "MA-1234");
+  assert.deepEqual(harness.state.successCalls, ["MA-1234"]);
+  assert.equal(harness.state.values.customerName, "");
+});
+
+test("35 an idempotency conflict starts no automatic request and blocks the main submit", async () => {
+  let calls = 0;
+  const transport: RequestSubmitTransport = async () => {
+    calls += 1;
+    return reply(409, { code: "IDEMPOTENCY_CONFLICT" });
+  };
+  const harness = createHarness(contactSource(null), transport);
+  await harness.run();
+  assert.equal(calls, 1);
+  assert.equal(harness.state.outcome?.kind, "idempotency_conflict");
+  await harness.run(); // main submit
+  await harness.run(); // Enter key
+  assert.equal(calls, 1);
+});
+
+test("36 an expired idempotency id starts no automatic request and blocks the main submit", async () => {
+  let calls = 0;
+  const transport: RequestSubmitTransport = async () => {
+    calls += 1;
+    return reply(409, { code: "IDEMPOTENCY_EXPIRED" });
+  };
+  const harness = createHarness(contactSource(null), transport);
+  await harness.run();
+  assert.equal(harness.state.outcome?.kind, "idempotency_expired");
+  await harness.run();
+  await harness.run();
+  assert.equal(calls, 1);
+});
+
+test("37 the dedicated action performs exactly one attempt with a fresh submission id", async () => {
+  let calls = 0;
+  const transport: RequestSubmitTransport = async () => {
+    calls += 1;
+    return calls === 1
+      ? reply(409, { code: "IDEMPOTENCY_CONFLICT" })
+      : reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-4321" });
+  };
+  const harness = createHarness(contactSource(null), transport);
+  await harness.run();
+  await harness.newAttempt();
+  assert.equal(calls, 2);
+  assert.equal(harness.payloads.length, 2);
+  assert.notEqual(harness.payloads[0]?.submission_id, harness.payloads[1]?.submission_id);
+  assert.equal(harness.state.trackingCode, "MA-4321");
+});
+
+test("38 the dedicated action after an expired id also runs exactly once", async () => {
+  let calls = 0;
+  const transport: RequestSubmitTransport = async () => {
+    calls += 1;
+    return calls === 1
+      ? reply(409, { code: "IDEMPOTENCY_EXPIRED" })
+      : reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-5555" });
+  };
+  const harness = createHarness(contactSource(null), transport);
+  await harness.run();
+  await harness.newAttempt();
+  assert.equal(calls, 2);
+  assert.notEqual(harness.payloads[0]?.submission_id, harness.payloads[1]?.submission_id);
+});
+
+test("39 a double click on the dedicated action creates only one logical request", async () => {
+  let calls = 0;
+  const gate = deferredTransport(reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-6666" }));
+  const transport: RequestSubmitTransport = async (input) => {
+    calls += 1;
+    if (calls === 1) return reply(409, { code: "IDEMPOTENCY_CONFLICT" });
+    return gate.transport(input);
+  };
+  const harness = createHarness(contactSource(null), transport);
+  await harness.run();
+  const first = harness.newAttempt();
+  const second = harness.newAttempt();
+  gate.release();
+  await Promise.all([first, second]);
+  assert.equal(calls, 2, "one conflict plus exactly one fresh attempt");
+});
+
+test("40 a normal retry keeps the same submission id", async () => {
+  let calls = 0;
+  const transport: RequestSubmitTransport = async () => {
+    calls += 1;
+    return calls === 1
+      ? reply(503, { code: "TEMPORARILY_UNAVAILABLE" })
+      : reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-7777" });
+  };
+  const harness = createHarness(contactSource(null), transport);
+  await harness.run();
+  assert.equal(harness.state.outcome?.kind, "temporarily_unavailable");
+  await harness.run();
+  assert.equal(harness.payloads[0]?.submission_id, harness.payloads[1]?.submission_id);
+  assert.equal(harness.state.trackingCode, "MA-7777");
+});
+
+test("41 a price confirmation keeps the same submission id", async () => {
+  let calls = 0;
+  const transport: RequestSubmitTransport = async () => {
+    calls += 1;
+    return calls === 1
+      ? reply(409, {
+          code: "PRICE_CHANGED",
+          price: { price_type: "estimate", amount_toman: 800000 },
+        })
+      : reply(200, { code: "REQUEST_REPLAYED", tracking_code: "MA-8888" });
+  };
+  const harness = createHarness(contactSource(null), transport);
+  await harness.run();
+  assert.equal(harness.state.outcome?.kind, "price_changed");
+  await harness.run();
+  assert.equal(harness.payloads[0]?.submission_id, harness.payloads[1]?.submission_id);
+});
+
+test("42 a source change clears the idempotency block and keeps the entered values", async () => {
+  let calls = 0;
+  const transport: RequestSubmitTransport = async () => {
+    calls += 1;
+    return calls === 1
+      ? reply(409, { code: "IDEMPOTENCY_CONFLICT" })
+      : reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-9999" });
+  };
+  const harness = createHarness(contactSource("pf-1001"), transport);
+  await harness.run();
+  assert.equal(harness.state.freshAttemptRequired, true);
+  harness.setSource(contactSource("pf-2002"));
+  assert.equal(harness.state.freshAttemptRequired, false);
+  assert.equal(harness.state.values.customerName, VALUES.customerName);
+  await harness.run();
+  assert.equal(calls, 2);
+  assert.notEqual(harness.payloads[0]?.submission_id, harness.payloads[1]?.submission_id);
+});
+
+test("43 the component wires the generation token and the dedicated fresh attempt", () => {
+  const form = stripComments(read(FORM));
+  assert.ok(form.includes("createGenerationTracker("));
+  assert.ok(form.includes("const generation = generationTracker.current.observe(identity);"));
+  assert.ok(form.includes("const attemptGeneration = generationTracker.current?.current()"));
+  const guard = form.indexOf("if (isStaleAttempt(attemptGeneration,");
+  assert.ok(guard > 0, "a generation guard must exist");
+  assert.ok(form.indexOf("const result = await submitRequest(") < guard);
+  assert.ok(form.indexOf("setOutcome(result)") > guard);
+  assert.ok(form.includes("if (freshAttemptRequired && !allowFreshAttempt) return;"));
+  assert.ok(form.includes("setFreshAttemptRequired(true)"));
+  assert.ok(form.includes("void run(priceRevision, { allowFreshAttempt: true })"));
+  // Only the dedicated handler may enable a fresh attempt.
+  assert.equal(form.split("allowFreshAttempt: true").length - 1, 1);
+});
