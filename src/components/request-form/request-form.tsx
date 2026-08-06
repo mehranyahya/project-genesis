@@ -43,7 +43,7 @@ const PII_FREE_VALUES = EMPTY_REQUEST_FORM_VALUES;
  * content is not a selection change, so a re-render never clears a blocked
  * selection or a pending price revision.
  */
-function sourceIdentity(source: RequestSource): string {
+export function sourceIdentity(source: RequestSource): string {
   if (source.kind === "grave_stone") {
     const draft = source.draft;
     const snapshot = draft.displaySnapshot;
@@ -61,6 +61,36 @@ function sourceIdentity(source: RequestSource): string {
     ].join("~");
   }
   return `contact~${source.portfolioReferenceId ?? ""}`;
+}
+
+/**
+ * A monotonic attempt epoch. A semantic source change always produces a new
+ * generation, so an A -> B -> A cycle never reuses the generation of the first
+ * A attempt and a late response of that attempt stays detectable as stale.
+ */
+export interface GenerationTracker {
+  readonly current: () => number;
+  readonly observe: (identity: string) => number;
+}
+
+export function createGenerationTracker(initialIdentity: string): GenerationTracker {
+  let identity = initialIdentity;
+  let generation = 0;
+  return {
+    current: () => generation,
+    observe: (next: string) => {
+      if (next !== identity) {
+        identity = next;
+        generation += 1;
+      }
+      return generation;
+    },
+  };
+}
+
+/** A response is stale as soon as its recorded generation is not the current one. */
+export function isStaleAttempt(attemptGeneration: number, currentGeneration: number): boolean {
+  return attemptGeneration !== currentGeneration;
 }
 
 /** The first errored field in the official contract order, never insertion order. */
@@ -92,6 +122,7 @@ export function RequestForm({
   const [priceRevision, setPriceRevision] = useState<PriceRevision | null>(null);
   const [selectionBlocked, setSelectionBlocked] = useState(false);
   const [pendingFocus, setPendingFocus] = useState<RequestFieldKey | null>(null);
+  const [freshAttemptRequired, setFreshAttemptRequired] = useState(false);
 
   const submissionId = useRef<string | null>(null);
   const inFlight = useRef(false);
@@ -101,6 +132,13 @@ export function RequestForm({
   // identity is discarded before any result state is applied.
   const attemptIdentity = useRef(identity);
   attemptIdentity.current = identity;
+
+  // The monotonic epoch: it separates A -> B -> A, which the identity string
+  // alone cannot, and it is updated during render so a source change is
+  // detectable immediately instead of only after the effect has run.
+  const generationTracker = useRef<GenerationTracker | null>(null);
+  generationTracker.current ??= createGenerationTracker(identity);
+  const generation = generationTracker.current.observe(identity);
 
   // Only a real semantic selection change resets the source-coupled state.
   useEffect(() => {
@@ -112,6 +150,8 @@ export function RequestForm({
     setErrors({});
     setTrackingCode(null);
     setPendingFocus(null);
+    setFreshAttemptRequired(false);
+
     setPhase("editing");
   }, [identity]);
 
@@ -137,9 +177,13 @@ export function RequestForm({
   };
 
   const run = useCallback(
-    async (revision: PriceRevision | null) => {
+    async (revision: PriceRevision | null, options?: { readonly allowFreshAttempt?: boolean }) => {
+      const allowFreshAttempt = options?.allowFreshAttempt === true;
       if (inFlight.current) return;
       if (!termsReady || selectionBlocked) return;
+      // After an idempotency outcome only the dedicated action may submit again;
+      // the main submit button and the Enter key stay inert.
+      if (freshAttemptRequired && !allowFreshAttempt) return;
 
       const validation = validateRequestForm({ values, source });
       setErrors(validation.errors);
@@ -160,6 +204,7 @@ export function RequestForm({
       if (payload === null) return;
 
       const attempt = attemptIdentity.current;
+      const attemptGeneration = generationTracker.current?.current() ?? generation;
 
       inFlight.current = true;
       setPhase("submitting");
@@ -169,6 +214,10 @@ export function RequestForm({
 
       // A stale response from an obsolete source attempt is ignored completely.
       if (attempt !== attemptIdentity.current) return;
+      // An A -> B -> A cycle restores the identity string but never the epoch.
+      if (isStaleAttempt(attemptGeneration, generationTracker.current?.current() ?? generation)) {
+        return;
+      }
 
       inFlight.current = false;
       setOutcome(result);
@@ -195,8 +244,9 @@ export function RequestForm({
           break;
         case "idempotency_conflict":
         case "idempotency_expired":
-          // No automatic retry: only the dedicated action starts a new attempt.
-          submissionId.current = null;
+          // No automatic retry and no eager id reset: only the dedicated action
+          // releases the block and generates a fresh submission id.
+          setFreshAttemptRequired(true);
           break;
         case "validation_error":
           setErrors(result.fieldErrors);
@@ -207,7 +257,17 @@ export function RequestForm({
       }
       setPhase("editing");
     },
-    [onSuccess, selectionBlocked, source, terms, termsReady, transport, values],
+    [
+      freshAttemptRequired,
+      generation,
+      onSuccess,
+      selectionBlocked,
+      source,
+      terms,
+      termsReady,
+      transport,
+      values,
+    ],
   );
 
   if (phase === "success" && trackingCode !== null) {
@@ -256,7 +316,8 @@ export function RequestForm({
           onNewAttempt={() => {
             submissionId.current = null;
             setOutcome(null);
-            void run(priceRevision);
+            setFreshAttemptRequired(false);
+            void run(priceRevision, { allowFreshAttempt: true });
           }}
         />
       </div>
