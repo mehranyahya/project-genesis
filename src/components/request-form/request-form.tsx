@@ -125,6 +125,35 @@ function firstMappedFieldError(errors: RequestFieldErrors): RequestFieldKey | nu
   return REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
 }
 
+/** The shape of a validation result the focus resolver needs; nothing else. */
+export interface FocusableValidation {
+  readonly firstInvalidExtensionField: string | null;
+  readonly firstInvalidField: RequestFieldKey | null;
+}
+
+/**
+ * The pure focus contract: the extension fields sit before the contact fields,
+ * so the first extension error wins; otherwise the first common error in
+ * `REQUEST_FIELD_ORDER` wins. The "other" description is a shared-field error,
+ * so it resolves to the `customerNote` element. The result is a plain DOM id;
+ * the component only commits it and focuses it after the commit.
+ */
+export function resolvePendingFocusId(
+  validation: FocusableValidation,
+  extensionFieldId: (key: string) => string,
+): string | null {
+  const extensionKey = validation.firstInvalidExtensionField;
+  if (extensionKey !== null) return extensionFieldId(extensionKey);
+  const key = validation.firstInvalidField;
+  return key === null ? null : fieldId(key);
+}
+
+/** The server validation-error focus target, resolved through the same contract. */
+export function serverFocusDomId(errors: RequestFieldErrors): string | null {
+  const key = firstMappedFieldError(errors);
+  return key === null ? null : fieldId(key);
+}
+
 export function RequestForm({
   source,
   site,
@@ -149,16 +178,19 @@ export function RequestForm({
   const [terms, setTerms] = useState<RequestTermsDocument | null>(termsDocument);
   const [priceRevision, setPriceRevision] = useState<PriceRevision | null>(null);
   const [selectionBlocked, setSelectionBlocked] = useState(false);
-  const [pendingFocus, setPendingFocus] = useState<RequestFieldKey | null>(null);
+  const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
   const [freshAttemptRequired, setFreshAttemptRequired] = useState(false);
 
   const submissionId = useRef<string | null>(null);
   const inFlight = useRef(false);
 
-  // A binding is only active when its contract matches the source kind. A
-  // building source without a compatible binding never builds a payload and
-  // never reaches the transport.
-  const binding = extension != null && extension.kind === source.kind ? extension : null;
+  // A binding is only active when the outer kind and the bound contract kind
+  // both match the source kind. A building source without a fully compatible
+  // binding never builds a payload and never reaches the transport.
+  const binding =
+    extension != null && extension.kind === source.kind && extension.contract?.kind === source.kind
+      ? extension
+      : null;
   const contract = binding === null ? null : binding.contract;
   const extensionFieldId = binding?.fieldId ?? ((key: string) => buildingStoneFieldId(key));
 
@@ -186,7 +218,7 @@ export function RequestForm({
     setErrors({});
     setExtensionErrors({});
     setTrackingCode(null);
-    setPendingFocus(null);
+    setPendingFocusId(null);
     setFreshAttemptRequired(false);
 
     setPhase("editing");
@@ -196,35 +228,17 @@ export function RequestForm({
     setTerms(termsDocument);
   }, [termsDocument]);
 
-  // Focus runs after React has committed the error state.
+  // Focus runs only after React has committed the error state and the pending
+  // focus target. No validation path focuses an element directly.
   useEffect(() => {
-    if (pendingFocus === null || typeof document === "undefined") return;
-    const element = document.getElementById(fieldId(pendingFocus));
+    if (pendingFocusId === null || typeof document === "undefined") return;
+    const element = document.getElementById(pendingFocusId);
+    // A missing element is simply nothing to focus: no error, no retry.
     if (element instanceof HTMLElement) element.focus();
-    setPendingFocus(null);
-  }, [pendingFocus]);
+    setPendingFocusId(null);
+  }, [pendingFocusId]);
 
   const termsReady = isRequestTermsDocument(terms);
-
-  const focusById = (id: string) => {
-    if (typeof document === "undefined") return;
-    const element = document.getElementById(id);
-    if (element instanceof HTMLElement) element.focus();
-  };
-
-  // The extension fields sit before the contact fields, so their first error is
-  // focused before any general field error. The "other" description is a shared
-  // field error, so it is focused in the common order, on `customerNote`.
-  const focusFirstInvalid = (validation: ReturnType<typeof validateRequestForm>) => {
-    const extensionKey = validation.firstInvalidExtensionField;
-    if (extensionKey !== null) {
-      focusById(extensionFieldId(extensionKey));
-      return;
-    }
-    const key = validation.firstInvalidField;
-    if (key === null) return;
-    focusById(fieldId(key));
-  };
 
   const run = useCallback(
     async (revision: PriceRevision | null, options?: { readonly allowFreshAttempt?: boolean }) => {
@@ -239,7 +253,8 @@ export function RequestForm({
       setErrors(validation.errors);
       setExtensionErrors(validation.extensionErrors);
       if (!validation.valid) {
-        focusFirstInvalid(validation);
+        // Committed, never focused inline: the effect focuses after the commit.
+        setPendingFocusId(resolvePendingFocusId(validation, extensionFieldId));
         return;
       }
 
@@ -302,7 +317,7 @@ export function RequestForm({
           break;
         case "validation_error":
           setErrors(result.fieldErrors);
-          setPendingFocus(firstMappedFieldError(result.fieldErrors));
+          setPendingFocusId(serverFocusDomId(result.fieldErrors));
           break;
         default:
           break;
