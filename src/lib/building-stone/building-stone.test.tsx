@@ -4,7 +4,11 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-import { EMPTY_REQUEST_FORM_VALUES, buildRequestPayload, validateRequestForm } from "../request-form";
+import {
+  EMPTY_REQUEST_FORM_VALUES,
+  buildRequestPayload,
+  validateRequestForm,
+} from "../request-form";
 import type { RequestFormValues, RequestSource } from "../request-form";
 import { BUILDING_STONE_FIELD_ERRORS, EMPTY_BUILDING_STONE_VALUES } from "../building-stone";
 import type { BuildingStoneValues } from "../building-stone";
@@ -129,7 +133,7 @@ test("9 controls keep a 44px target and a visible focus ring", () => {
 test("10 selection uses native radio controls only", () => {
   const fields = read(FIELDS);
   assert.ok(fields.includes('type="radio"'));
-  assert.ok(!fields.includes("role=\"radiogroup\""));
+  assert.ok(!fields.includes('role="radiogroup"'));
   assert.ok(fields.includes("<fieldset"));
   assert.ok(fields.includes("<legend"));
 });
