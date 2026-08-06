@@ -213,6 +213,15 @@ export interface RequestFormExtension<TValues, TPayload> {
   };
 }
 
+/**
+ * The single active extension. It is typed against the concrete building-stone
+ * value and payload types, so no `unknown` or `any` is needed anywhere.
+ */
+export const BUILDING_STONE_EXTENSION: RequestFormExtension<
+  BuildingStoneValues,
+  BuildingStonePayloadFields
+> = buildingStoneExtension;
+
 /* -------------------------------------------------------------------------- */
 /* Validation                                                                  */
 /* -------------------------------------------------------------------------- */
