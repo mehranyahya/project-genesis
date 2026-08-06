@@ -314,3 +314,89 @@ test("23 the shared grave-stone and contact contracts are unchanged", () => {
   assert.deepEqual(grave.extensionErrors, {});
   assert.equal(grave.firstInvalidExtensionField, null);
 });
+
+/* -------------------------------------------------------------------------- */
+/* Real extension binding                                                      */
+/* -------------------------------------------------------------------------- */
+
+test("24 the page binds the official extension contract, not a local copy", () => {
+  const page = stripComments(read(PAGE));
+  assert.ok(page.includes("buildingStoneExtension"));
+  assert.ok(page.includes("contract: buildingStoneExtension"));
+  assert.ok(page.includes("kind: \"building_stone\""));
+  assert.ok(page.includes("fieldId: buildingStoneFieldId"));
+  assert.ok(page.includes("extension={binding}"));
+  // No parallel validation, payload, price or submission logic on the page.
+  for (const bad of [
+    "validateBuildingStoneSelection",
+    "buildBuildingStonePayloadFields",
+    "client_price_type",
+    "submitRequest",
+    "normalizeAreaM2",
+  ]) {
+    assert.ok(!page.includes(bad), `the page must not re-implement ${bad}`);
+  }
+});
+
+test("25 the shared form consumes the bound contract and never a hard-coded one", () => {
+  const form = stripComments(read(FORM));
+  assert.ok(form.includes("extension.contract?.kind === source.kind"));
+  assert.ok(form.includes("const contract = binding === null ? null : binding.contract;"));
+  assert.ok(form.includes("validateRequestForm({ values, source, extension: contract })"));
+  assert.ok(form.includes("extension: contract"));
+  // The building model is reached only through the contract and the field id.
+  assert.ok(!form.includes("validateBuildingStoneSelection"));
+  assert.ok(!form.includes("buildBuildingStonePayloadFields"));
+});
+
+test("26 the extension public API uses neither any nor a bypassing unknown cast", () => {
+  for (const rel of ["lib/building-stone.ts", "lib/request-form.ts", FORM, PAGE]) {
+    const code = stripComments(read(rel));
+    assert.ok(!/:\s*any\b/.test(code), `${rel} must not annotate any`);
+    assert.ok(!/\bas\s+any\b/.test(code), `${rel} must not cast to any`);
+    assert.ok(!/\bas\s+unknown\s+as\b/.test(code), `${rel} must not double-cast`);
+  }
+});
+
+test("27 a mismatched binding produces no payload from the page contract", () => {
+  const page = stripComments(read(PAGE));
+  // The page can only pass a building binding for a building source.
+  assert.ok(page.includes("BuildingStoneFormBinding"));
+  assert.equal(page.split("<RequestForm").length - 1, 1);
+  assert.equal(
+    buildRequestPayload({
+      submissionId: "sid-1",
+      source: source(),
+      values: filled(),
+      termsDocument: TERMS,
+      extension: null,
+    }),
+    null,
+  );
+});
+
+test("28 the area field accepts the official representations through the shared payload", () => {
+  const areaOf = (areaM2Input: string) => {
+    const payload = buildRequestPayload({
+      submissionId: "sid-1",
+      source: source({ areaM2Input }),
+      values: filled(),
+      termsDocument: TERMS,
+    });
+    return payload !== null && payload.request_type === "building_stone" ? payload.area_m2 : "blocked";
+  };
+  assert.equal(areaOf("1,000"), 1000);
+  assert.equal(areaOf("۱\u066c۰۰۰"), 1000);
+  assert.equal(areaOf("12.5"), 12.5);
+  assert.equal(areaOf(" 120"), "blocked");
+  assert.equal(areaOf("120 "), "blocked");
+  assert.equal(areaOf("1,2"), "blocked");
+});
+
+test("29 the focus contract is committed, never applied inline", () => {
+  const form = stripComments(read(FORM));
+  assert.ok(form.includes("setPendingFocusId(resolvePendingFocusId(validation, extensionFieldId))"));
+  assert.ok(form.includes("}, [pendingFocusId]);"));
+  assert.ok(!form.includes("focusById("));
+  assert.equal(form.split(".focus();").length - 1, 1);
+});
