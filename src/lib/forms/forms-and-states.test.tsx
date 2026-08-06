@@ -4,6 +4,23 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import {
+  createGenerationTracker,
+  isStaleAttempt,
+  sourceIdentity,
+} from "../../components/request-form/request-form";
+import type {
+  RequestFieldErrors,
+  RequestFormValues,
+  RequestPayload,
+  RequestSource,
+  RequestTermsDocument,
+} from "../request-form";
+import { EMPTY_REQUEST_FORM_VALUES, REQUEST_FIELD_ORDER, buildRequestPayload } from "../request-form";
+import type { RequestSubmitTransport, SubmitOutcome } from "../request-submit";
+import { createSubmissionId, submitRequest } from "../request-submit";
+
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
 
