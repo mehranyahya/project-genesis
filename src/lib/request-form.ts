@@ -23,12 +23,20 @@ export interface ContactRequestSource {
   readonly portfolioReferenceId: string | null;
 }
 
-export type RequestSource = GraveStoneRequestSource | ContactRequestSource;
+/** The building-stone selection. It carries no personal data whatsoever. */
+export interface BuildingStoneRequestSource {
+  readonly kind: "building_stone";
+  readonly selection: BuildingStoneValues;
+}
 
-/** Reserved for Prompt 09. No runtime instance exists in this scaffold. */
+export type RequestSource =
+  | GraveStoneRequestSource
+  | ContactRequestSource
+  | BuildingStoneRequestSource;
+
 export type BuildingStoneRequestKind = "building_stone";
 
-export type RequestKind = RequestSource["kind"] | BuildingStoneRequestKind;
+export type RequestKind = RequestSource["kind"];
 
 /* -------------------------------------------------------------------------- */
 /* Terms document (M7)                                                         */
