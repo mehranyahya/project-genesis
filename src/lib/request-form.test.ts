@@ -429,7 +429,7 @@ test("26 every building payload is review with a null displayed price", () => {
     "countertop",
   ] as const) {
     const payload = stonePayload({ application });
-    assert.ok(payload !== null);
+    assert.ok(payload !== null && payload.request_type === "building_stone");
     assert.equal(payload.client_price_type, "review");
     assert.equal(payload.client_displayed_price, null);
   }
@@ -548,6 +548,7 @@ test("32 the source identity is canonical, area-stable and free of personal data
   assert.notEqual(identity({ application: "facade" }), identity({ application: "stairs" }));
   assert.equal(requestSourceSelectionIdentity(contactSource(null)), null);
   const value = identity({});
+  assert.ok(value !== null);
   assert.ok(!value.includes("علی"));
   assert.ok(!value.includes("0912"));
 });
