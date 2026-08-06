@@ -3,8 +3,13 @@ import { useState } from "react";
 import { BuildingStoneFields } from "./building-stone-fields";
 import { BuildingStoneSummary } from "./building-stone-summary";
 import { RequestForm } from "@/components/request-form/request-form";
+import type { BuildingStoneFormBinding } from "@/components/request-form/request-form";
 import type { BuildingStoneValues } from "@/lib/building-stone";
-import { EMPTY_BUILDING_STONE_VALUES } from "@/lib/building-stone";
+import {
+  EMPTY_BUILDING_STONE_VALUES,
+  buildingStoneExtension,
+  buildingStoneFieldId,
+} from "@/lib/building-stone";
 import type { Site } from "@/lib/content/types";
 
 export const BUILDING_STONE_HEADING = "درخواست بررسی سنگ ساختمانی";
@@ -13,7 +18,26 @@ export const BUILDING_STONE_INTRO =
 export const BUILDING_STONE_SECTION_HEADING = "مشخصات درخواست";
 
 export function BuildingStonePage({ site }: { site: Site | null }) {
-  const [selection, setSelection] = useState<BuildingStoneValues>(EMPTY_BUILDING_STONE_VALUES);
+  const [selection, setSelection] = useState<BuildingStoneValues>(
+    buildingStoneExtension.initialValues ?? EMPTY_BUILDING_STONE_VALUES,
+  );
+
+  // The page binds the pure extension contract, its current values and its
+  // renderer together; the shared form owns validation, payload and price.
+  const binding: BuildingStoneFormBinding = {
+    kind: "building_stone",
+    contract: buildingStoneExtension,
+    values: selection,
+    fieldId: buildingStoneFieldId,
+    renderExtensionFields: ({ errors, disabled }) => (
+      <BuildingStoneFields
+        values={selection}
+        errors={errors}
+        disabled={disabled}
+        onChange={(next) => setSelection((current) => ({ ...current, ...next }))}
+      />
+    ),
+  };
 
   return (
     <section className="mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12">
@@ -34,16 +58,10 @@ export function BuildingStonePage({ site }: { site: Site | null }) {
           source={{ kind: "building_stone", selection }}
           site={site}
           termsDocument={null}
-          renderExtensionFields={({ errors, disabled }) => (
-            <BuildingStoneFields
-              values={selection}
-              errors={errors}
-              disabled={disabled}
-              onChange={(next) => setSelection((current) => ({ ...current, ...next }))}
-            />
-          )}
+          extension={binding}
         />
       </div>
     </section>
   );
 }
+
