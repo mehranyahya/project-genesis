@@ -215,11 +215,12 @@ export function RequestForm({
   };
 
   // The extension fields sit before the contact fields, so their first error is
-  // focused before any general field error.
+  // focused before any general field error. The "other" description is a shared
+  // field error, so it is focused in the common order, on `customerNote`.
   const focusFirstInvalid = (validation: ReturnType<typeof validateRequestForm>) => {
     const extensionKey = validation.firstInvalidExtensionField;
     if (extensionKey !== null) {
-      focusById(buildingStoneFieldId(extensionKey));
+      focusById(extensionFieldId(extensionKey));
       return;
     }
     const key = validation.firstInvalidField;
@@ -236,7 +237,7 @@ export function RequestForm({
       // the main submit button and the Enter key stay inert.
       if (freshAttemptRequired && !allowFreshAttempt) return;
 
-      const validation = validateRequestForm({ values, source });
+      const validation = validateRequestForm({ values, source, extension: contract });
       setErrors(validation.errors);
       setExtensionErrors(validation.extensionErrors);
       if (!validation.valid) {
@@ -252,8 +253,10 @@ export function RequestForm({
         values,
         termsDocument: terms,
         priceRevision: revision,
+        extension: contract,
       });
       if (payload === null) return;
+
 
       const attempt = attemptIdentity.current;
       const attemptGeneration = generationTracker.current?.current() ?? generation;
