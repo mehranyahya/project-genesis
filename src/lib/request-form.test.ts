@@ -3,8 +3,15 @@ import assert from "node:assert/strict";
 
 import type { GraveStoneRequestDraft } from "./request-draft";
 import type { PriceType } from "./content/types";
-import type { RequestFormValues, RequestSource } from "./request-form";
+import type { BuildingStoneValues } from "./building-stone";
+import { EMPTY_BUILDING_STONE_VALUES, buildingStoneExtension } from "./building-stone";
+import type {
+  BuildingStoneExtensionContract,
+  RequestFormValues,
+  RequestSource,
+} from "./request-form";
 import {
+  BUILDING_STONE_EXTENSION,
   EMPTY_REQUEST_FORM_VALUES,
   LOCATION_UNKNOWN_VALUE,
   PHONE_PATTERN,
@@ -13,7 +20,9 @@ import {
   buildRequestPayload,
   isRequestTermsDocument,
   normalizePhone,
+  requestSourceSelectionIdentity,
   resolveClientPrice,
+  resolveRequestFormExtension,
   validateRequestForm,
 } from "./request-form";
 
