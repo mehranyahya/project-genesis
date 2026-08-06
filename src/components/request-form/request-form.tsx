@@ -318,8 +318,10 @@ export function RequestForm({
           onNewAttempt={() => {
             submissionId.current = null;
             setOutcome(null);
-            void run(priceRevision);
+            setFreshAttemptRequired(false);
+            void run(priceRevision, { allowFreshAttempt: true });
           }}
+
         />
       </div>
     </form>
