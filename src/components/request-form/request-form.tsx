@@ -157,7 +157,15 @@ export function RequestForm({
   const submissionId = useRef<string | null>(null);
   const inFlight = useRef(false);
 
+  // A binding is only active when its contract matches the source kind. A
+  // building source without a compatible binding never builds a payload and
+  // never reaches the transport.
+  const binding = extension != null && extension.kind === source.kind ? extension : null;
+  const contract = binding === null ? null : binding.contract;
+  const extensionFieldId = binding?.fieldId ?? buildingStoneFieldId;
+
   const identity = sourceIdentity(source);
+
   // The attempt token of the running request; a response from an older
   // identity is discarded before any result state is applied.
   const attemptIdentity = useRef(identity);
