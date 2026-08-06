@@ -194,18 +194,22 @@ function integerDigits(part: string): string | null {
 /**
  * Normalizes the optional area input.
  *
- * Empty input is a valid absence (`null`). Persian, Arabic and Latin digits are
- * accepted, both `.` and `٫` are decimal separators, and only unambiguous
- * thousand grouping survives. Scientific notation, signs, zero, negatives and
- * more than three decimals are rejected, and the result must fall inside
- * `(0, 100000]`. The input is never mutated.
+ * An input that is empty or made only of whitespace is a valid absence
+ * (`null`). Every other input is parsed exactly as written: it is never
+ * trimmed, so a leading or trailing group separator — regular space, NBSP,
+ * `٬` or `,` — stays a real, rejected separator instead of silently
+ * disappearing. Persian, Arabic and Latin digits are accepted, both `.` and
+ * `٫` are decimal separators, and only unambiguous thousand grouping survives.
+ * Scientific notation, signs, zero, negatives and more than three decimals are
+ * rejected, and the result must fall inside `(0, 100000]`. The input is never
+ * mutated.
  */
 export function normalizeAreaM2(input: string): AreaNormalization {
   if (typeof input !== "string") return { ok: false };
-  const raw = input.trim();
-  if (raw.length === 0) return { ok: true, value: null };
+  // Only a fully blank input is an absence; nothing is stripped afterwards.
+  if (input.trim().length === 0) return { ok: true, value: null };
 
-  const parts = splitAreaParts(toLatinDigits(raw));
+  const parts = splitAreaParts(toLatinDigits(input));
   if (parts === null) return { ok: false };
 
   const integer = integerDigits(parts.integer);
