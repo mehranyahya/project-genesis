@@ -437,6 +437,8 @@ function createHarness(initialSource: RequestSource, transport: RequestSubmitTra
   };
 
   const newAttempt = async () => {
+    // Exactly the component order: guard first, mutation afterwards.
+    if (state.inFlight) return;
     submissionId = null;
     state.outcome = null;
     state.freshAttemptRequired = false;
@@ -712,4 +714,59 @@ test("43 the component wires the generation token and the dedicated fresh attemp
   assert.ok(form.includes("void run(priceRevision, { allowFreshAttempt: true })"));
   // Only the dedicated handler may enable a fresh attempt.
   assert.equal(form.split("allowFreshAttempt: true").length - 1, 1);
+});
+
+test("44 the dedicated action guards the running fresh attempt and keeps its submission id", async () => {
+  let calls = 0;
+  const gate = deferredTransport(reply(503, { code: "TEMPORARILY_UNAVAILABLE" }));
+  const transport: RequestSubmitTransport = async (input) => {
+    calls += 1;
+    if (calls === 1) return reply(409, { code: "IDEMPOTENCY_CONFLICT" });
+    if (calls === 2) return gate.transport(input);
+    return reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-3210" });
+  };
+  const harness = createHarness(contactSource(null), transport);
+
+  await harness.run();
+  assert.equal(harness.state.outcome?.kind, "idempotency_conflict");
+  const conflictId = harness.payloads[0]?.submission_id;
+
+  const first = harness.newAttempt();
+  const freshId = harness.submissionId();
+  assert.ok(typeof freshId === "string" && freshId.length > 0);
+  assert.notEqual(freshId, conflictId);
+
+  // The second click happens while the fresh attempt is still in flight.
+  await harness.newAttempt();
+  assert.equal(harness.submissionId(), freshId, "the running submission id survives");
+  assert.equal(harness.state.freshAttemptRequired, false);
+  assert.equal(calls, 2, "one conflict plus exactly one fresh attempt");
+
+  gate.release();
+  await first;
+  assert.equal(harness.state.outcome?.kind, "temporarily_unavailable");
+  assert.equal(harness.payloads[1]?.submission_id, freshId);
+
+  // A normal retry reuses the fresh submission id.
+  await harness.run();
+  assert.equal(calls, 3);
+  assert.equal(harness.payloads[2]?.submission_id, freshId);
+  assert.equal(harness.state.trackingCode, "MA-3210");
+});
+
+test("45 the dedicated handler guards in-flight work before any mutation", () => {
+  const form = stripComments(read(FORM));
+  const start = form.indexOf("onNewAttempt={");
+  assert.ok(start > 0);
+  const handler = form.slice(start, form.indexOf("}}", start));
+  const guard = handler.indexOf("if (inFlight.current) return;");
+  assert.ok(guard > 0, "the dedicated handler must guard in-flight attempts");
+  assert.ok(guard < handler.indexOf("submissionId.current = null"));
+  assert.ok(guard < handler.indexOf("setOutcome(null)"));
+  assert.ok(guard < handler.indexOf("setFreshAttemptRequired(false)"));
+  assert.ok(guard < handler.indexOf("run("));
+  assert.equal(handler.split("run(").length - 1, 1);
+  assert.ok(handler.includes("allowFreshAttempt: true"));
+  assert.equal(form.split("allowFreshAttempt: true").length - 1, 1);
+  assert.ok(!/setTimeout|setInterval|debounce/.test(form));
 });
