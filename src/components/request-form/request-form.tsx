@@ -111,23 +111,30 @@ function firstMappedFieldError(errors: RequestFieldErrors): RequestFieldKey | nu
   return REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
 }
 
+/** The type-safe slot an active extension renders into the shared form. */
+export interface RequestFormExtensionSlotState {
+  readonly errors: Readonly<Record<string, string>>;
+  readonly disabled: boolean;
+}
+
 export function RequestForm({
   source,
   site,
   termsDocument,
   submitRequest: transport,
-
+  renderExtensionFields,
   onSuccess,
 }: {
   source: RequestSource;
   site: Site | null;
   termsDocument: RequestTermsDocument | null;
   submitRequest?: RequestSubmitTransport;
-  extension?: RequestFormExtension<unknown, unknown>;
+  renderExtensionFields?: (state: RequestFormExtensionSlotState) => ReactNode;
   onSuccess?: (trackingCode: string) => void;
 }) {
   const [values, setValues] = useState<RequestFormValues>(PII_FREE_VALUES);
   const [errors, setErrors] = useState<RequestFieldErrors>({});
+  const [extensionErrors, setExtensionErrors] = useState<Readonly<Record<string, string>>>({});
   const [phase, setPhase] = useState<Phase>("editing");
   const [outcome, setOutcome] = useState<SubmitOutcome | null>(null);
   const [trackingCode, setTrackingCode] = useState<string | null>(null);
