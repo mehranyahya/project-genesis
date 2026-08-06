@@ -10,7 +10,7 @@ import type {
   PriceRevision,
   RequestFieldErrors,
   RequestFieldKey,
-  RequestFormExtension,
+  
   RequestFormValues,
   RequestSource,
   RequestTermsDocument,
