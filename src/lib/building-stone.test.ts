@@ -5,11 +5,15 @@ import type { BuildingStoneValues } from "./building-stone";
 import {
   BUILDING_STONE_APPLICATION_OPTIONS,
   BUILDING_STONE_FIELD_ERRORS,
+  BUILDING_STONE_FIELD_ORDER,
+  BUILDING_STONE_INVALID_AREA_IDENTITY,
   BUILDING_STONE_TYPE_OPTIONS,
   EMPTY_BUILDING_STONE_VALUES,
   buildBuildingStonePayloadFields,
   buildBuildingStoneSummary,
+  buildingStoneCanonicalArea,
   buildingStoneExtension,
+  buildingStoneSourceIdentity,
   isBuildingStoneApplication,
   isBuildingStoneType,
   normalizeAreaM2,
@@ -213,4 +217,183 @@ test("25 no area_estimate exists in the model or in the payload fields", () => {
   assert.ok(!JSON.stringify(fields).includes("area_estimate"));
   assert.ok(!Object.keys(EMPTY_BUILDING_STONE_VALUES).includes("area_estimate"));
   assert.ok(!buildingStoneExtension.fields.some((slot) => String(slot.key) === "area_estimate"));
+});
+
+/* -------------------------------------------------------------------------- */
+/* Grouping and boundary contract                                              */
+/* -------------------------------------------------------------------------- */
+
+test("26 unambiguous thousand grouping is accepted in every official representation", () => {
+  assert.deepEqual(normalizeAreaM2("1\u066c000"), { ok: true, value: 1000 });
+  assert.deepEqual(normalizeAreaM2("۱\u066c۰۰۰"), { ok: true, value: 1000 });
+  assert.deepEqual(normalizeAreaM2("1,000"), { ok: true, value: 1000 });
+  assert.deepEqual(normalizeAreaM2("12 345"), { ok: true, value: 12345 });
+  assert.deepEqual(normalizeAreaM2("12\u00a0345"), { ok: true, value: 12345 });
+  assert.deepEqual(normalizeAreaM2("۱۲ ۳۴۵\u066b۵"), { ok: true, value: 12345.5 });
+  assert.deepEqual(normalizeAreaM2("1,234.500"), { ok: true, value: 1234.5 });
+});
+
+test("27 ambiguous or malformed grouping is rejected", () => {
+  for (const input of [
+    "1,2",
+    "1 2",
+    "12\u066c34",
+    "1\u066c23\u066c456",
+    "1,234\u066c567",
+    "1 234,567",
+  ]) {
+    assert.deepEqual(normalizeAreaM2(input), { ok: false }, input);
+  }
+});
+
+test("28 a group separator inside the fraction and multiple decimal separators are rejected", () => {
+  for (const input of [
+    "1.234,567",
+    "1.2 3",
+    "1\u066b234\u066c567",
+    "1.2.3",
+    "1\u066b2\u066b3",
+    "1.2\u066b3",
+  ]) {
+    assert.deepEqual(normalizeAreaM2(input), { ok: false }, input);
+  }
+});
+
+test("29 a leading or trailing group separator is never trimmed away", () => {
+  for (const input of [
+    " 120",
+    "120 ",
+    "\u00a0120",
+    "120\u00a0",
+    "\u066c120",
+    "120\u066c",
+    ",120",
+    "120,",
+    "\t120",
+    "120\n",
+  ]) {
+    assert.deepEqual(normalizeAreaM2(input), { ok: false }, JSON.stringify(input));
+  }
+});
+
+test("30 a whitespace-only area is still a valid absence and no input is mutated", () => {
+  for (const blank of ["", " ", "   ", "\u00a0", "\t", "\n"]) {
+    assert.deepEqual(normalizeAreaM2(blank), { ok: true, value: null }, JSON.stringify(blank));
+  }
+  const input = values({ areaM2Input: " 1\u066c000 " });
+  const snapshot = JSON.stringify(input);
+  normalizeAreaM2(input.areaM2Input);
+  buildingStoneSourceIdentity(input);
+  buildingStoneExtension.validate(input, { customerNote: "" });
+  buildingStoneExtension.buildPayload(input);
+  assert.equal(JSON.stringify(input), snapshot);
+});
+
+/* -------------------------------------------------------------------------- */
+/* Extension contract                                                          */
+/* -------------------------------------------------------------------------- */
+
+test("31 the extension field order is exactly the official one", () => {
+  assert.deepEqual(buildingStoneExtension.fieldOrder, ["stoneType", "application", "areaM2"]);
+  assert.deepEqual([...BUILDING_STONE_FIELD_ORDER], [...buildingStoneExtension.fieldOrder]);
+  assert.deepEqual(
+    buildingStoneExtension.fields.map((slot) => slot.key),
+    ["stoneType", "application", "areaM2"],
+  );
+  assert.equal(buildingStoneExtension.kind, "building_stone");
+});
+
+test("32 the extension validation really validates the selection", () => {
+  const empty = buildingStoneExtension.validate(EMPTY_BUILDING_STONE_VALUES, { customerNote: "" });
+  assert.equal(empty.valid, false);
+  assert.equal(empty.firstInvalidField, "stoneType");
+  assert.equal(empty.errors["stoneType"], BUILDING_STONE_FIELD_ERRORS.stoneType);
+  assert.equal(empty.selection, null);
+
+  const noApplication = buildingStoneExtension.validate(values({ application: null }), {
+    customerNote: "",
+  });
+  assert.equal(noApplication.firstInvalidField, "application");
+
+  const badArea = buildingStoneExtension.validate(values({ areaM2Input: " 120" }), {
+    customerNote: "",
+  });
+  assert.equal(badArea.firstInvalidField, "areaM2");
+  assert.equal(badArea.errors["areaM2"], BUILDING_STONE_FIELD_ERRORS.areaM2);
+
+  const ok = buildingStoneExtension.validate(values({ areaM2Input: "1,000" }), {
+    customerNote: "",
+  });
+  assert.equal(ok.valid, true);
+  assert.deepEqual(ok.selection, { stone_type: "marble", application: "facade", area_m2: 1000 });
+});
+
+test("33 the other application raises its error on the shared customerNote field", () => {
+  const missing = buildingStoneExtension.validate(values({ application: "other" }), {
+    customerNote: "",
+  });
+  assert.equal(missing.valid, false);
+  assert.equal(missing.commonErrors.customerNote, BUILDING_STONE_FIELD_ERRORS.otherNote);
+  assert.equal(missing.errors["customerNote"], undefined);
+
+  const provided = buildingStoneExtension.validate(values({ application: "other" }), {
+    customerNote: "اجرای ازارهٔ سنگی راه‌پله",
+  });
+  assert.equal(provided.valid, true);
+  assert.deepEqual(provided.commonErrors, {});
+});
+
+test("34 the extension payload builder returns exactly the official selection fields", () => {
+  assert.deepEqual(buildingStoneExtension.buildPayload(values({ areaM2Input: "1,000" })), {
+    stone_type: "marble",
+    application: "facade",
+    area_m2: 1000,
+    client_price_type: "review",
+    client_displayed_price: null,
+  });
+  assert.deepEqual(buildingStoneExtension.buildPayload(values({ areaM2Input: "" }))?.area_m2, null);
+  assert.equal(buildingStoneExtension.buildPayload(EMPTY_BUILDING_STONE_VALUES), null);
+});
+
+test("35 the extension price is review with a null amount for every selection", () => {
+  for (const option of BUILDING_STONE_APPLICATION_OPTIONS) {
+    const fields = buildingStoneExtension.buildPayload(values({ application: option.value }));
+    assert.equal(fields?.client_price_type, "review");
+    assert.equal(fields?.client_displayed_price, null);
+  }
+  assert.deepEqual(buildingStoneExtension.resolvePrice(), {
+    priceType: "review",
+    amountToman: null,
+  });
+});
+
+test("36 semantically equal areas share one identity and an invalid area is a stable token", () => {
+  const identity = (area: string) => buildingStoneSourceIdentity(values({ areaM2Input: area }));
+  assert.equal(identity("1000"), identity("1\u066c000"));
+  assert.equal(identity("1000"), identity("1,000"));
+  assert.equal(identity("1000"), identity("۱\u066c۰۰۰"));
+  assert.notEqual(identity("1000"), identity("1001"));
+
+  assert.equal(buildingStoneCanonicalArea(" 120"), BUILDING_STONE_INVALID_AREA_IDENTITY);
+  assert.equal(identity(" 120"), identity("abc"));
+  const invalid = identity("۱۲ متر مربع");
+  assert.ok(!invalid.includes("متر"));
+  assert.ok(!invalid.includes("۱۲"));
+  // The shared description is personal data and never enters the identity.
+  assert.equal(buildingStoneExtension.identity(values()), buildingStoneSourceIdentity(values()));
+  assert.ok(!buildingStoneSourceIdentity(values()).includes("customer"));
+});
+
+test("37 every official type and application is a valid, labelled option", () => {
+  for (const option of BUILDING_STONE_TYPE_OPTIONS) {
+    assert.ok(isBuildingStoneType(option.value));
+    assert.ok(option.label.length > 0);
+  }
+  for (const option of BUILDING_STONE_APPLICATION_OPTIONS) {
+    assert.ok(isBuildingStoneApplication(option.value));
+    assert.ok(option.label.length > 0);
+  }
+  assert.equal(validateBuildingStoneNote(null, ""), null);
+  assert.equal(validateBuildingStoneSelection(values()).valid, true);
+  assert.equal(buildBuildingStoneSummary(values({ areaM2Input: " 120" })).length, 2);
 });

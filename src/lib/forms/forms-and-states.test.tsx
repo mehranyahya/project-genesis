@@ -7,9 +7,19 @@ import path from "node:path";
 import {
   createGenerationTracker,
   isStaleAttempt,
+  resolvePendingFocusId,
+  serverFocusDomId,
   sourceIdentity,
 } from "../../components/request-form/request-form";
+import { fieldId } from "../../components/request-form/request-form-fields";
+import type { BuildingStoneValues } from "../building-stone";
+import {
+  EMPTY_BUILDING_STONE_VALUES,
+  buildingStoneExtension,
+  buildingStoneFieldId,
+} from "../building-stone";
 import type {
+  BuildingStoneExtensionContract,
   RequestFieldErrors,
   RequestFormValues,
   RequestPayload,
@@ -17,9 +27,11 @@ import type {
   RequestTermsDocument,
 } from "../request-form";
 import {
+  BUILDING_STONE_EXTENSION,
   EMPTY_REQUEST_FORM_VALUES,
   REQUEST_FIELD_ORDER,
   buildRequestPayload,
+  validateRequestForm,
 } from "../request-form";
 import type { RequestSubmitTransport, SubmitOutcome } from "../request-submit";
 import { createSubmissionId, submitRequest } from "../request-submit";
@@ -219,19 +231,27 @@ test("21 a server validation error is ordered through REQUEST_FIELD_ORDER and fo
   const form = stripComments(read(FORM));
   assert.ok(form.includes("REQUEST_FIELD_ORDER"));
   assert.ok(form.includes("function firstMappedFieldError("));
-  assert.ok(form.includes("setPendingFocus(firstMappedFieldError(result.fieldErrors))"));
-  assert.ok(form.includes("}, [pendingFocus]);"));
-  assert.ok(form.includes("document.getElementById(fieldId(pendingFocus))"));
-  assert.ok(form.includes('if (pendingFocus === null || typeof document === "undefined") return;'));
+  assert.ok(form.includes("setPendingFocusId(serverFocusDomId(result.fieldErrors))"));
+  assert.ok(form.includes("}, [pendingFocusId]);"));
+  assert.ok(form.includes("document.getElementById(pendingFocusId)"));
+  assert.ok(
+    form.includes('if (pendingFocusId === null || typeof document === "undefined") return;'),
+  );
   // Only the already-sanitized client map is stored.
   assert.ok(form.includes("setErrors(result.fieldErrors)"));
   assert.ok(!/result\.(message|detail|serverMessage)/.test(form));
 });
 
-test("22 the client-side first-invalid-field focus is preserved", () => {
+test("22 every validation focus is committed first and applied by the single effect", () => {
   const form = stripComments(read(FORM));
-  assert.ok(form.includes("focusFirstInvalid(validation)"));
+  assert.ok(
+    form.includes("setPendingFocusId(resolvePendingFocusId(validation, extensionFieldId))"),
+  );
   assert.ok(form.includes("validation.firstInvalidField"));
+  // No path focuses an element inline; the effect is the only focusing code.
+  assert.ok(!form.includes("focusById("));
+  assert.equal(form.split(".focus();").length - 1, 1, "exactly one focus call, inside the effect");
+  assert.equal(form.split("document.getElementById(").length - 1, 1);
 });
 
 test("23 an idempotency outcome never submits again automatically", () => {
@@ -342,6 +362,8 @@ interface Recorded {
   storage: string | null;
   inFlight: boolean;
   freshAttemptRequired: boolean;
+  /** How often a run stopped because no payload could be built. */
+  payloadBlocked: number;
 }
 
 /**
@@ -349,7 +371,11 @@ interface Recorded {
  * generation, then mutation. It drives the real submit module through a mock
  * transport, so outcomes and payloads are real, not simulated.
  */
-function createHarness(initialSource: RequestSource, transport: RequestSubmitTransport) {
+function createHarness(
+  initialSource: RequestSource,
+  transport: RequestSubmitTransport,
+  options?: { readonly extension?: BuildingStoneExtensionContract | null },
+) {
   let source = initialSource;
   const tracker = createGenerationTracker(sourceIdentity(source));
   let submissionId: string | null = null;
@@ -365,13 +391,17 @@ function createHarness(initialSource: RequestSource, transport: RequestSubmitTra
     storage: null,
     inFlight: false,
     freshAttemptRequired: false,
+    payloadBlocked: 0,
   };
   const payloads: RequestPayload[] = [];
 
+  // Exactly the component contract: only a real semantic identity change resets
+  // the source-coupled state; a re-render with equal semantics changes nothing.
   const setSource = (next: RequestSource) => {
+    const before = tracker.current();
     source = next;
-    const changed = tracker.observe(sourceIdentity(next));
-    void changed;
+    const after = tracker.observe(sourceIdentity(next));
+    if (after === before) return;
     submissionId = null;
     state.inFlight = false;
     state.outcome = null;
@@ -383,21 +413,35 @@ function createHarness(initialSource: RequestSource, transport: RequestSubmitTra
     state.freshAttemptRequired = false;
   };
 
-  const run = async (options?: { allowFreshAttempt?: boolean }) => {
-    const allowFreshAttempt = options?.allowFreshAttempt === true;
+  const run = async (options2?: { allowFreshAttempt?: boolean }) => {
+    const allowFreshAttempt = options2?.allowFreshAttempt === true;
     if (state.inFlight) return;
     if (state.selectionBlocked) return;
     if (state.freshAttemptRequired && !allowFreshAttempt) return;
 
     submissionId ??= createSubmissionId();
-    const payload = buildRequestPayload({
-      submissionId,
-      source,
-      values: state.values,
-      termsDocument: TERMS,
-      priceRevision: null,
-    });
-    if (payload === null) throw new Error("payload must build");
+    const payload =
+      options !== undefined && Object.prototype.hasOwnProperty.call(options, "extension")
+        ? buildRequestPayload({
+            submissionId,
+            source,
+            values: state.values,
+            termsDocument: TERMS,
+            priceRevision: null,
+            extension: options.extension ?? null,
+          })
+        : buildRequestPayload({
+            submissionId,
+            source,
+            values: state.values,
+            termsDocument: TERMS,
+            priceRevision: null,
+          });
+    // An unbuildable payload never reaches the transport.
+    if (payload === null) {
+      state.payloadBlocked += 1;
+      return;
+    }
     payloads.push(payload);
 
     const attemptGeneration = tracker.current();
@@ -769,4 +813,149 @@ test("45 the dedicated handler guards in-flight work before any mutation", () =>
   assert.ok(handler.includes("allowFreshAttempt: true"));
   assert.equal(form.split("allowFreshAttempt: true").length - 1, 1);
   assert.ok(!/setTimeout|setInterval|debounce/.test(form));
+});
+
+/* -------------------------------------------------------------------------- */
+/* Building-stone runtime behaviour                                            */
+/* -------------------------------------------------------------------------- */
+
+const stoneValues = (over: Partial<BuildingStoneValues> = {}): BuildingStoneValues => ({
+  ...EMPTY_BUILDING_STONE_VALUES,
+  stoneType: "travertine",
+  application: "facade",
+  areaM2Input: "",
+  ...over,
+});
+
+const stoneSource = (over: Partial<BuildingStoneValues> = {}): RequestSource => ({
+  kind: "building_stone",
+  selection: stoneValues(over),
+});
+
+test("46 the focus target follows the extension-then-shared field order", () => {
+  const empty = validateRequestForm({
+    values: VALUES,
+    source: { kind: "building_stone", selection: EMPTY_BUILDING_STONE_VALUES },
+  });
+  assert.equal(
+    resolvePendingFocusId(empty, buildingStoneFieldId),
+    buildingStoneFieldId("stoneType"),
+  );
+
+  const area = validateRequestForm({
+    values: VALUES,
+    source: stoneSource({ areaM2Input: " 120" }),
+  });
+  assert.equal(resolvePendingFocusId(area, buildingStoneFieldId), buildingStoneFieldId("areaM2"));
+
+  // The "other" description is a shared field, so it focuses the shared element.
+  const note = validateRequestForm({
+    values: { ...VALUES, customerNote: "" },
+    source: stoneSource({ application: "other" }),
+  });
+  assert.equal(resolvePendingFocusId(note, buildingStoneFieldId), fieldId("customerNote"));
+
+  const contact = validateRequestForm({
+    values: { ...VALUES, phone: "" },
+    source: contactSource(null),
+  });
+  assert.equal(resolvePendingFocusId(contact, buildingStoneFieldId), fieldId("phone"));
+
+  const valid = validateRequestForm({ values: VALUES, source: stoneSource() });
+  assert.equal(resolvePendingFocusId(valid, buildingStoneFieldId), null);
+  assert.equal(serverFocusDomId({ phone: "خطا" }), fieldId("phone"));
+  assert.equal(serverFocusDomId({}), null);
+});
+
+test("47 a building submission sends exactly one review payload", async () => {
+  const created = reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1001" });
+  const harness = createHarness(stoneSource({ areaM2Input: "1,000" }), async () => created);
+  await harness.run();
+  assert.equal(harness.payloads.length, 1);
+  const payload = harness.payloads[0];
+  assert.ok(payload !== undefined && payload.request_type === "building_stone");
+  assert.equal(payload.client_price_type, "review");
+  assert.equal(payload.client_displayed_price, null);
+  assert.equal(payload.area_m2, 1000);
+  assert.equal(harness.state.trackingCode, "MA-1001");
+});
+
+test("48 an invalid building selection never reaches the transport", async () => {
+  let calls = 0;
+  const harness = createHarness(
+    { kind: "building_stone", selection: EMPTY_BUILDING_STONE_VALUES },
+    async () => {
+      calls += 1;
+      return reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1001" });
+    },
+  );
+  await harness.run();
+  assert.equal(calls, 0);
+  assert.equal(harness.payloads.length, 0);
+  assert.equal(harness.state.payloadBlocked, 1);
+  assert.equal(harness.state.trackingCode, null);
+});
+
+test("49 a missing binding blocks the building submission entirely", async () => {
+  let calls = 0;
+  const harness = createHarness(
+    stoneSource(),
+    async () => {
+      calls += 1;
+      return reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1001" });
+    },
+    { extension: null },
+  );
+  await harness.run();
+  assert.equal(calls, 0);
+  assert.equal(harness.state.payloadBlocked, 1);
+
+  const bound = createHarness(
+    stoneSource(),
+    async () =>
+      reply(201, {
+        code: "REQUEST_CREATED",
+        tracking_code: "MA-1002",
+      }),
+    { extension: BUILDING_STONE_EXTENSION },
+  );
+  await bound.run();
+  assert.equal(bound.state.trackingCode, "MA-1002");
+  assert.equal(BUILDING_STONE_EXTENSION, buildingStoneExtension);
+});
+
+test("50 a purely visual area change is not a semantic source change", async () => {
+  const conflict = reply(409, { code: "IDEMPOTENCY_CONFLICT" });
+  const harness = createHarness(stoneSource({ areaM2Input: "1000" }), async () => conflict);
+  await harness.run();
+  assert.equal(harness.state.freshAttemptRequired, true);
+
+  // The same area written with a group separator is the same selection.
+  harness.setSource(stoneSource({ areaM2Input: "1,000" }));
+  assert.equal(harness.state.freshAttemptRequired, true, "no reset without a real change");
+
+  harness.setSource(stoneSource({ areaM2Input: "1001" }));
+  assert.equal(harness.state.freshAttemptRequired, false, "a real change resets the block");
+});
+
+test("51 a building response from an obsolete selection is discarded", async () => {
+  const slow = deferredTransport(reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1001" }));
+  const harness = createHarness(stoneSource({ application: "facade" }), slow.transport);
+  const pending = harness.run();
+  harness.setSource(stoneSource({ application: "stairs" }));
+  slow.release();
+  await pending;
+  assert.equal(harness.state.trackingCode, null);
+  assert.equal(harness.state.outcome, null);
+  assert.equal(harness.state.successCalls.length, 0);
+});
+
+test("52 the building page and form never carry personal data in the source", () => {
+  const page = stripComments(read("components/building-stone/building-stone-page.tsx"));
+  assert.ok(page.includes("<RequestForm"));
+  assert.ok(page.includes("buildingStoneExtension"));
+  assert.ok(!/customerName|phone|localStorage|sessionStorage|location\.search/.test(page));
+  const identity = sourceIdentity(stoneSource());
+  assert.ok(!identity.includes("علی"));
+  assert.ok(!identity.includes("0912"));
 });

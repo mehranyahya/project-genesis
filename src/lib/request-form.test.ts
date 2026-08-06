@@ -3,8 +3,15 @@ import assert from "node:assert/strict";
 
 import type { GraveStoneRequestDraft } from "./request-draft";
 import type { PriceType } from "./content/types";
-import type { RequestFormValues, RequestSource } from "./request-form";
+import type { BuildingStoneValues } from "./building-stone";
+import { EMPTY_BUILDING_STONE_VALUES, buildingStoneExtension } from "./building-stone";
+import type {
+  BuildingStoneExtensionContract,
+  RequestFormValues,
+  RequestSource,
+} from "./request-form";
 import {
+  BUILDING_STONE_EXTENSION,
   EMPTY_REQUEST_FORM_VALUES,
   LOCATION_UNKNOWN_VALUE,
   PHONE_PATTERN,
@@ -13,7 +20,9 @@ import {
   buildRequestPayload,
   isRequestTermsDocument,
   normalizePhone,
+  requestSourceSelectionIdentity,
   resolveClientPrice,
+  resolveRequestFormExtension,
   validateRequestForm,
 } from "./request-form";
 
@@ -305,4 +314,251 @@ test("20 only a valid portfolio reference becomes a referral, never free text", 
   assert.ok(rejected !== null && rejected.request_type === "contact");
   assert.equal(rejected.source_type, undefined);
   assert.equal(rejected.portfolio_reference_id, undefined);
+});
+
+/* -------------------------------------------------------------------------- */
+/* Building-stone source through the shared extension                          */
+/* -------------------------------------------------------------------------- */
+
+const stone = (over: Partial<BuildingStoneValues> = {}): BuildingStoneValues => ({
+  ...EMPTY_BUILDING_STONE_VALUES,
+  stoneType: "granite",
+  application: "flooring",
+  areaM2Input: "",
+  ...over,
+});
+
+const stoneSource = (over: Partial<BuildingStoneValues> = {}): RequestSource => ({
+  kind: "building_stone",
+  selection: stone(over),
+});
+
+const stonePayload = (
+  over: Partial<BuildingStoneValues> = {},
+  values: RequestFormValues = filled(),
+) =>
+  buildRequestPayload({
+    submissionId: "sid-1",
+    source: stoneSource(over),
+    values,
+    termsDocument: TERMS,
+  });
+
+test("21 building_stone is an official source kind and carries no personal data", () => {
+  const source = stoneSource();
+  assert.equal(source.kind, "building_stone");
+  assert.deepEqual(Object.keys(source).sort(), ["kind", "selection"]);
+  const serialized = JSON.stringify(source);
+  assert.ok(!serialized.includes("customerName"));
+  assert.ok(!serialized.includes("phone"));
+  assert.ok(!serialized.includes("customer_note"));
+});
+
+test("22 the official extension is resolved from the source, never re-implemented", () => {
+  const resolved = resolveRequestFormExtension(stoneSource());
+  assert.equal(resolved, BUILDING_STONE_EXTENSION);
+  assert.equal(BUILDING_STONE_EXTENSION, buildingStoneExtension);
+  assert.equal(resolved?.kind, "building_stone");
+  assert.equal(resolveRequestFormExtension(contactSource(null)), null);
+  assert.equal(resolveRequestFormExtension(graveSource("fixed", 1000)), null);
+});
+
+test("23 shared validation delegates the selection to the extension", () => {
+  const invalid = validateRequestForm({
+    values: filled(),
+    source: { kind: "building_stone", selection: EMPTY_BUILDING_STONE_VALUES },
+  });
+  assert.equal(invalid.valid, false);
+  assert.equal(invalid.firstInvalidExtensionField, "stoneType");
+  assert.equal(invalid.extensionErrors["stoneType"] !== undefined, true);
+
+  const valid = validateRequestForm({ values: filled(), source: stoneSource() });
+  assert.equal(valid.valid, true);
+  assert.deepEqual(valid.extensionErrors, {});
+  assert.equal(valid.firstInvalidExtensionField, null);
+});
+
+test("24 the other application needs its shared description through the extension", () => {
+  const missing = validateRequestForm({
+    values: filled({ customerNote: "" }),
+    source: stoneSource({ application: "other" }),
+  });
+  assert.equal(missing.valid, false);
+  assert.ok(missing.errors.customerNote !== undefined);
+  assert.equal(missing.firstInvalidExtensionField, null);
+  assert.equal(missing.firstInvalidField, "customerNote");
+  assert.equal(stonePayload({ application: "other" }, filled({ customerNote: "" })), null);
+
+  const provided = stonePayload(
+    { application: "other" },
+    filled({ customerNote: "اجرای ازارهٔ سنگی سالن" }),
+  );
+  assert.ok(provided !== null && provided.request_type === "building_stone");
+  assert.equal(provided.application, "other");
+  assert.equal(provided.customer_note, "اجرای ازارهٔ سنگی سالن");
+});
+
+test("25 the building payload carries only the extension selection fields", () => {
+  const payload = stonePayload({ areaM2Input: "1,000" });
+  assert.ok(payload !== null && payload.request_type === "building_stone");
+  assert.equal(payload.stone_type, "granite");
+  assert.equal(payload.application, "flooring");
+  assert.equal(payload.area_m2, 1000);
+  assert.equal(payload.submission_id, "sid-1");
+  assert.equal(payload.terms_accepted, true);
+
+  const absent = stonePayload({ areaM2Input: "" });
+  assert.ok(absent !== null && absent.request_type === "building_stone");
+  assert.equal(absent.area_m2, null);
+
+  assert.equal(
+    Object.prototype.hasOwnProperty.call(payload, "product_id"),
+    false,
+    "no grave-stone identifiers leak into a building payload",
+  );
+  assert.equal(Object.prototype.hasOwnProperty.call(payload, "option_ids"), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(payload, "portfolio_reference_id"), false);
+});
+
+test("26 every building payload is review with a null displayed price", () => {
+  for (const application of [
+    "facade",
+    "flooring",
+    "stairs",
+    "interior_wall",
+    "countertop",
+  ] as const) {
+    const payload = stonePayload({ application });
+    assert.ok(payload !== null && payload.request_type === "building_stone");
+    assert.equal(payload.client_price_type, "review");
+    assert.equal(payload.client_displayed_price, null);
+  }
+});
+
+test("27 the other description appears once, only as customer_note", () => {
+  const payload = stonePayload(
+    { application: "other" },
+    filled({ customerNote: "توضیح کاربرد خاص سنگ" }),
+  );
+  assert.ok(payload !== null);
+  const serialized = JSON.stringify(payload);
+  assert.equal(serialized.split("توضیح کاربرد خاص سنگ").length - 1, 1);
+  assert.ok(!Object.prototype.hasOwnProperty.call(payload, "application_note"));
+});
+
+test("28 an invalid selection, terms document or submission id blocks the building payload", () => {
+  assert.equal(
+    buildRequestPayload({
+      submissionId: "sid-1",
+      source: { kind: "building_stone", selection: EMPTY_BUILDING_STONE_VALUES },
+      values: filled(),
+      termsDocument: TERMS,
+    }),
+    null,
+  );
+  assert.equal(stonePayload({ areaM2Input: " 120" }), null);
+  assert.equal(stonePayload({ areaM2Input: "0" }), null);
+  assert.equal(stonePayload({ areaM2Input: "100001" }), null);
+  assert.equal(
+    buildRequestPayload({
+      submissionId: "   ",
+      source: stoneSource(),
+      values: filled(),
+      termsDocument: TERMS,
+    }),
+    null,
+  );
+  assert.equal(
+    buildRequestPayload({
+      submissionId: "sid-1",
+      source: stoneSource(),
+      values: filled(),
+      termsDocument: null,
+    }),
+    null,
+  );
+  assert.equal(stonePayload({}, filled({ termsAccepted: false })), null);
+});
+
+test("29 no area_estimate exists anywhere in the building payload", () => {
+  const payload = stonePayload({ areaM2Input: "12.5" });
+  assert.ok(payload !== null);
+  assert.ok(!JSON.stringify(payload).includes("area_estimate"));
+});
+
+test("30 the grave-stone and contact payloads are unchanged by the extension", () => {
+  const grave = buildRequestPayload({
+    submissionId: "sid-1",
+    source: graveSource("fixed", 1000),
+    values: filled(),
+    termsDocument: TERMS,
+  });
+  assert.ok(grave !== null && grave.request_type === "grave_stone");
+  assert.equal(grave.client_price_type, "fixed");
+  assert.ok(!Object.prototype.hasOwnProperty.call(grave, "stone_type"));
+
+  const contact = buildRequestPayload({
+    submissionId: "sid-1",
+    source: contactSource(null),
+    values: filled(),
+    termsDocument: TERMS,
+  });
+  assert.ok(contact !== null && contact.request_type === "contact");
+  assert.ok(!Object.prototype.hasOwnProperty.call(contact, "stone_type"));
+});
+
+test("31 a missing or mismatched extension blocks the building payload entirely", () => {
+  assert.equal(
+    buildRequestPayload({
+      submissionId: "sid-1",
+      source: stoneSource(),
+      values: filled(),
+      termsDocument: TERMS,
+      extension: null,
+    }),
+    null,
+  );
+
+  const forged = {
+    ...BUILDING_STONE_EXTENSION,
+    kind: "contact",
+  } as unknown as BuildingStoneExtensionContract;
+  assert.equal(
+    buildRequestPayload({
+      submissionId: "sid-1",
+      source: stoneSource(),
+      values: filled(),
+      termsDocument: TERMS,
+      extension: forged,
+    }),
+    null,
+  );
+  assert.equal(
+    validateRequestForm({ values: filled(), source: stoneSource(), extension: forged }).valid,
+    false,
+  );
+});
+
+test("32 the source identity is canonical, area-stable and free of personal data", () => {
+  const identity = (over: Partial<BuildingStoneValues>) =>
+    requestSourceSelectionIdentity(stoneSource(over));
+  assert.equal(identity({ areaM2Input: "1000" }), identity({ areaM2Input: "1,000" }));
+  assert.equal(identity({ areaM2Input: "1000" }), identity({ areaM2Input: "1\u066c000" }));
+  assert.notEqual(identity({ areaM2Input: "1000" }), identity({ areaM2Input: "1001" }));
+  assert.notEqual(identity({ application: "facade" }), identity({ application: "stairs" }));
+  assert.equal(requestSourceSelectionIdentity(contactSource(null)), null);
+  const value = identity({});
+  assert.ok(value !== null);
+  assert.ok(!value.includes("علی"));
+  assert.ok(!value.includes("0912"));
+});
+
+test("33 building validation and payload never mutate their inputs", () => {
+  const source = stoneSource({ areaM2Input: "1,000" });
+  const values = filled({ customerNote: "توضیح" });
+  const snapshot = JSON.stringify({ source, values });
+  validateRequestForm({ values, source });
+  buildRequestPayload({ submissionId: "sid-1", source, values, termsDocument: TERMS });
+  requestSourceSelectionIdentity(source);
+  assert.equal(JSON.stringify({ source, values }), snapshot);
 });
