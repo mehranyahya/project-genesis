@@ -249,7 +249,6 @@ export function RequestForm({
           // releases the block and generates a fresh submission id.
           setFreshAttemptRequired(true);
           break;
-
         case "validation_error":
           setErrors(result.fieldErrors);
           setPendingFocus(firstMappedFieldError(result.fieldErrors));
@@ -259,7 +258,18 @@ export function RequestForm({
       }
       setPhase("editing");
     },
-    [onSuccess, selectionBlocked, source, terms, termsReady, transport, values],
+    [
+      freshAttemptRequired,
+      generation,
+      onSuccess,
+      selectionBlocked,
+      source,
+      terms,
+      termsReady,
+      transport,
+      values,
+    ],
+
   );
 
   if (phase === "success" && trackingCode !== null) {
