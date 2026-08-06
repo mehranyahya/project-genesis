@@ -212,5 +212,5 @@ test("25 no area_estimate exists in the model or in the payload fields", () => {
   assert.ok(!Object.prototype.hasOwnProperty.call(fields, "area_estimate"));
   assert.ok(!JSON.stringify(fields).includes("area_estimate"));
   assert.ok(!Object.keys(EMPTY_BUILDING_STONE_VALUES).includes("area_estimate"));
-  assert.ok(!buildingStoneExtension.fields.some((slot) => slot.key === "area_estimate"));
+  assert.ok(!buildingStoneExtension.fields.some((slot) => String(slot.key) === "area_estimate"));
 });
