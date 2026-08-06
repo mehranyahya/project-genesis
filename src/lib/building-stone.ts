@@ -41,16 +41,15 @@ export const BUILDING_STONE_TYPE_LABELS: Readonly<Record<BuildingStoneType, stri
   crystal: "کریستال",
 };
 
-export const BUILDING_STONE_APPLICATION_LABELS: Readonly<
-  Record<BuildingStoneApplication, string>
-> = {
-  facade: "نما",
-  flooring: "کف",
-  stairs: "پله",
-  interior_wall: "دیوار داخلی",
-  countertop: "صفحه کابینت",
-  other: "سایر",
-};
+export const BUILDING_STONE_APPLICATION_LABELS: Readonly<Record<BuildingStoneApplication, string>> =
+  {
+    facade: "نما",
+    flooring: "کف",
+    stairs: "پله",
+    interior_wall: "دیوار داخلی",
+    countertop: "صفحه کابینت",
+    other: "سایر",
+  };
 
 export function isBuildingStoneType(value: unknown): value is BuildingStoneType {
   return BUILDING_STONE_TYPE_OPTIONS.some((option) => option.value === value);
@@ -141,8 +140,7 @@ export function toLatinDigits(value: string): string {
 }
 
 export type AreaNormalization =
-  | { readonly ok: true; readonly value: number | null }
-  | { readonly ok: false };
+  { readonly ok: true; readonly value: number | null } | { readonly ok: false };
 
 /** Plain decimal only: no sign, no exponent, at most three decimal places. */
 const AREA_PATTERN = /^[0-9]+(\.[0-9]{1,3})?$/;
@@ -351,4 +349,5 @@ export const BUILDING_STONE_FIELD_ID_PREFIX = "building-stone";
 
 /** Stable, focusable DOM ids shared by the fields and the focus logic. */
 export const buildingStoneFieldId = (key: string) => `${BUILDING_STONE_FIELD_ID_PREFIX}-${key}`;
-export const buildingStoneErrorId = (key: string) => `${BUILDING_STONE_FIELD_ID_PREFIX}-${key}-error`;
+export const buildingStoneErrorId = (key: string) =>
+  `${BUILDING_STONE_FIELD_ID_PREFIX}-${key}-error`;

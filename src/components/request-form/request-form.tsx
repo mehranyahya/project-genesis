@@ -10,7 +10,6 @@ import type {
   PriceRevision,
   RequestFieldErrors,
   RequestFieldKey,
-  
   RequestFormValues,
   RequestSource,
   RequestTermsDocument,

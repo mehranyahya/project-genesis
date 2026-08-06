@@ -52,7 +52,10 @@ function RadioGroup<TValue extends string>({
       <div className="flex flex-col gap-3 pt-2">
         {options.map((option, index) => {
           // The first control carries the group id so focus lands on the group.
-          const id = index === 0 ? buildingStoneFieldId(fieldKey) : `${buildingStoneFieldId(fieldKey)}-${option.value}`;
+          const id =
+            index === 0
+              ? buildingStoneFieldId(fieldKey)
+              : `${buildingStoneFieldId(fieldKey)}-${option.value}`;
           return (
             <label key={option.value} className={ROW} htmlFor={id}>
               <input

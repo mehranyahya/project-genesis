@@ -37,9 +37,7 @@ export interface BuildingStoneRequestSource {
 }
 
 export type RequestSource =
-  | GraveStoneRequestSource
-  | ContactRequestSource
-  | BuildingStoneRequestSource;
+  GraveStoneRequestSource | ContactRequestSource | BuildingStoneRequestSource;
 
 export type BuildingStoneRequestKind = "building_stone";
 
@@ -369,17 +367,13 @@ export interface ContactRequestPayload extends NormalizedRequestFields, TermsPay
 }
 
 export interface BuildingStoneRequestPayload
-  extends NormalizedRequestFields,
-    TermsPayloadFields,
-    BuildingStonePayloadFields {
+  extends NormalizedRequestFields, TermsPayloadFields, BuildingStonePayloadFields {
   readonly submission_id: string;
   readonly request_type: "building_stone";
 }
 
 export type RequestPayload =
-  | GraveStoneRequestPayload
-  | ContactRequestPayload
-  | BuildingStoneRequestPayload;
+  GraveStoneRequestPayload | ContactRequestPayload | BuildingStoneRequestPayload;
 
 export interface PriceRevision {
   readonly priceType: PriceType;
