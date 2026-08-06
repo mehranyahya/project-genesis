@@ -372,23 +372,97 @@ export const BUILDING_STONE_PRICE: {
   readonly amountToman: number | null;
 } = { priceType: "review", amountToman: null };
 
+/* -------------------------------------------------------------------------- */
+/* Canonical selection identity                                                */
+/* -------------------------------------------------------------------------- */
+
+/** The stable, personal-data-free fallback for an unusable area input. */
+export const BUILDING_STONE_INVALID_AREA_IDENTITY = "area:invalid";
+export const BUILDING_STONE_ABSENT_AREA_IDENTITY = "area:none";
+
+/**
+ * Two semantically equal area inputs produce one identity, so a purely visual
+ * change of representation never resets the form state. An unusable input is
+ * folded into a single stable token that never carries the raw text.
+ */
+export function buildingStoneCanonicalArea(input: string): string {
+  const area = normalizeAreaM2(input);
+  if (!area.ok) return BUILDING_STONE_INVALID_AREA_IDENTITY;
+  return area.value === null ? BUILDING_STONE_ABSENT_AREA_IDENTITY : `area:${area.value}`;
+}
+
+/** Only the non-personal selection: the shared note never enters the identity. */
+export function buildingStoneSourceIdentity(values: BuildingStoneValues): string {
+  return [
+    "building_stone",
+    isBuildingStoneType(values.stoneType) ? values.stoneType : "",
+    isBuildingStoneApplication(values.application) ? values.application : "",
+    buildingStoneCanonicalArea(values.areaM2Input),
+  ].join("~");
+}
+
+/* -------------------------------------------------------------------------- */
+/* Extension contract                                                          */
+/* -------------------------------------------------------------------------- */
+
+/** The shared-form values the extension is allowed to read. */
+export interface BuildingStoneExtensionContext {
+  readonly customerNote: string;
+}
+
+export interface BuildingStoneExtensionValidation {
+  readonly valid: boolean;
+  readonly errors: Readonly<Record<string, string>>;
+  readonly firstInvalidField: string | null;
+  /** Errors the extension raises on shared fields; only `customerNote` exists. */
+  readonly commonErrors: Readonly<{ readonly customerNote?: string }>;
+  readonly selection: BuildingStoneNormalizedSelection | null;
+}
+
+function validateBuildingStoneExtension(
+  values: BuildingStoneValues,
+  context: BuildingStoneExtensionContext,
+): BuildingStoneExtensionValidation {
+  const base = validateBuildingStoneSelection(values);
+
+  const errors: Record<string, string> = {};
+  for (const key of BUILDING_STONE_FIELD_ORDER) {
+    const message = base.errors[key];
+    if (message !== undefined) errors[key] = message;
+  }
+
+  const application = isBuildingStoneApplication(values.application) ? values.application : null;
+  const noteError = validateBuildingStoneNote(application, context.customerNote);
+
+  return {
+    valid: base.valid && noteError === null,
+    errors,
+    firstInvalidField: base.firstInvalidField,
+    commonErrors: noteError === null ? {} : { customerNote: noteError },
+    selection: base.selection,
+  };
+}
+
 /**
  * The concrete, type-safe extension consumed by the shared request form. It is
- * a plain data object: no React, no JSX, no runtime dependency on the UI.
+ * a plain data object: no React, no JSX, no DOM, no storage, no network, no
+ * clock, and no dependency on the UI layer.
  */
 export const buildingStoneExtension = {
-  kind: "building_stone",
+  kind: "building_stone" as const,
   fields: [
     { key: "stoneType", label: BUILDING_STONE_FIELD_LABELS.stoneType, required: true },
     { key: "application", label: BUILDING_STONE_FIELD_LABELS.application, required: true },
     { key: "areaM2", label: BUILDING_STONE_FIELD_LABELS.areaM2, required: false },
   ],
+  fieldOrder: BUILDING_STONE_FIELD_ORDER as readonly string[],
   initialValues: EMPTY_BUILDING_STONE_VALUES,
-  validate: (values: BuildingStoneValues): Readonly<Record<string, string>> =>
-    validateBuildingStoneSelection(values).errors as Readonly<Record<string, string>>,
+  validate: validateBuildingStoneExtension,
   buildPayload: buildBuildingStonePayloadFields,
   resolvePrice: () => BUILDING_STONE_PRICE,
-} as const;
+  identity: buildingStoneSourceIdentity,
+};
+
 
 /* -------------------------------------------------------------------------- */
 /* Field identifiers                                                           */
