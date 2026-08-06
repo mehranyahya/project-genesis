@@ -142,30 +142,78 @@ export function toLatinDigits(value: string): string {
 export type AreaNormalization =
   { readonly ok: true; readonly value: number | null } | { readonly ok: false };
 
-/** Plain decimal only: no sign, no exponent, at most three decimal places. */
-const AREA_PATTERN = /^[0-9]+(\.[0-9]{1,3})?$/;
-
 export const BUILDING_STONE_AREA_MAX = 100000;
+
+/** Purely visual thousand separators. Only one kind may appear in one number. */
+const GROUP_SEPARATORS: readonly string[] = [" ", "\u00a0", "\u066c", ","];
+
+/** The two accepted decimal separators, latin and Persian. */
+const DECIMAL_SEPARATORS = ".\u066b";
+
+interface AreaParts {
+  readonly integer: string;
+  readonly fraction: string | null;
+}
+
+/** Splits on the single decimal separator, or rejects when there is more than one. */
+function splitAreaParts(text: string): AreaParts | null {
+  let index = -1;
+  for (let position = 0; position < text.length; position += 1) {
+    const char = text.charAt(position);
+    if (!DECIMAL_SEPARATORS.includes(char)) continue;
+    if (index >= 0) return null;
+    index = position;
+  }
+  if (index < 0) return { integer: text, fraction: null };
+  return { integer: text.slice(0, index), fraction: text.slice(index + 1) };
+}
+
+/**
+ * Accepts either continuous digits or an unambiguous grouped integer: a first
+ * group of one to three digits followed by groups of exactly three digits, all
+ * separated by one single separator kind. Everything else is rejected.
+ */
+function integerDigits(part: string): string | null {
+  if (/^[0-9]+$/.test(part)) return part;
+
+  const used = GROUP_SEPARATORS.filter((separator) => part.includes(separator));
+  if (used.length !== 1) return null;
+  const separator = used[0];
+  if (separator === undefined) return null;
+
+  const groups = part.split(separator);
+  if (groups.length < 2) return null;
+  const head = groups[0];
+  if (head === undefined || !/^[0-9]{1,3}$/.test(head)) return null;
+  for (const group of groups.slice(1)) {
+    if (!/^[0-9]{3}$/.test(group)) return null;
+  }
+  return groups.join("");
+}
 
 /**
  * Normalizes the optional area input.
  *
  * Empty input is a valid absence (`null`). Persian, Arabic and Latin digits are
- * accepted, both `.` and `٫` are decimal separators, and purely visual grouping
- * characters are dropped only when the remainder is an unambiguous decimal.
- * Scientific notation, signs, zero, negatives and more than three decimals are
- * rejected, and the result must fall inside `(0, 100000]`.
+ * accepted, both `.` and `٫` are decimal separators, and only unambiguous
+ * thousand grouping survives. Scientific notation, signs, zero, negatives and
+ * more than three decimals are rejected, and the result must fall inside
+ * `(0, 100000]`. The input is never mutated.
  */
 export function normalizeAreaM2(input: string): AreaNormalization {
   if (typeof input !== "string") return { ok: false };
   const raw = input.trim();
   if (raw.length === 0) return { ok: true, value: null };
 
-  const latin = toLatinDigits(raw).replace(/٫/g, ".");
-  const compact = latin.replace(/[\s\u00a0\u200c\u066c,]/g, "");
-  if (!AREA_PATTERN.test(compact)) return { ok: false };
+  const parts = splitAreaParts(toLatinDigits(raw));
+  if (parts === null) return { ok: false };
 
-  const value = Number(compact);
+  const integer = integerDigits(parts.integer);
+  if (integer === null) return { ok: false };
+
+  if (parts.fraction !== null && !/^[0-9]{1,3}$/.test(parts.fraction)) return { ok: false };
+
+  const value = Number(parts.fraction === null ? integer : `${integer}.${parts.fraction}`);
   if (!Number.isFinite(value)) return { ok: false };
   if (value <= 0 || value > BUILDING_STONE_AREA_MAX) return { ok: false };
   return { ok: true, value };
@@ -323,23 +371,96 @@ export const BUILDING_STONE_PRICE: {
   readonly amountToman: number | null;
 } = { priceType: "review", amountToman: null };
 
+/* -------------------------------------------------------------------------- */
+/* Canonical selection identity                                                */
+/* -------------------------------------------------------------------------- */
+
+/** The stable, personal-data-free fallback for an unusable area input. */
+export const BUILDING_STONE_INVALID_AREA_IDENTITY = "area:invalid";
+export const BUILDING_STONE_ABSENT_AREA_IDENTITY = "area:none";
+
+/**
+ * Two semantically equal area inputs produce one identity, so a purely visual
+ * change of representation never resets the form state. An unusable input is
+ * folded into a single stable token that never carries the raw text.
+ */
+export function buildingStoneCanonicalArea(input: string): string {
+  const area = normalizeAreaM2(input);
+  if (!area.ok) return BUILDING_STONE_INVALID_AREA_IDENTITY;
+  return area.value === null ? BUILDING_STONE_ABSENT_AREA_IDENTITY : `area:${area.value}`;
+}
+
+/** Only the non-personal selection: the shared note never enters the identity. */
+export function buildingStoneSourceIdentity(values: BuildingStoneValues): string {
+  return [
+    "building_stone",
+    isBuildingStoneType(values.stoneType) ? values.stoneType : "",
+    isBuildingStoneApplication(values.application) ? values.application : "",
+    buildingStoneCanonicalArea(values.areaM2Input),
+  ].join("~");
+}
+
+/* -------------------------------------------------------------------------- */
+/* Extension contract                                                          */
+/* -------------------------------------------------------------------------- */
+
+/** The shared-form values the extension is allowed to read. */
+export interface BuildingStoneExtensionContext {
+  readonly customerNote: string;
+}
+
+export interface BuildingStoneExtensionValidation {
+  readonly valid: boolean;
+  readonly errors: Readonly<Record<string, string>>;
+  readonly firstInvalidField: string | null;
+  /** Errors the extension raises on shared fields; only `customerNote` exists. */
+  readonly commonErrors: Readonly<{ readonly customerNote?: string }>;
+  readonly selection: BuildingStoneNormalizedSelection | null;
+}
+
+function validateBuildingStoneExtension(
+  values: BuildingStoneValues,
+  context: BuildingStoneExtensionContext,
+): BuildingStoneExtensionValidation {
+  const base = validateBuildingStoneSelection(values);
+
+  const errors: Record<string, string> = {};
+  for (const key of BUILDING_STONE_FIELD_ORDER) {
+    const message = base.errors[key];
+    if (message !== undefined) errors[key] = message;
+  }
+
+  const application = isBuildingStoneApplication(values.application) ? values.application : null;
+  const noteError = validateBuildingStoneNote(application, context.customerNote);
+
+  return {
+    valid: base.valid && noteError === null,
+    errors,
+    firstInvalidField: base.firstInvalidField,
+    commonErrors: noteError === null ? {} : { customerNote: noteError },
+    selection: base.selection,
+  };
+}
+
 /**
  * The concrete, type-safe extension consumed by the shared request form. It is
- * a plain data object: no React, no JSX, no runtime dependency on the UI.
+ * a plain data object: no React, no JSX, no DOM, no storage, no network, no
+ * clock, and no dependency on the UI layer.
  */
 export const buildingStoneExtension = {
-  kind: "building_stone",
+  kind: "building_stone" as const,
   fields: [
     { key: "stoneType", label: BUILDING_STONE_FIELD_LABELS.stoneType, required: true },
     { key: "application", label: BUILDING_STONE_FIELD_LABELS.application, required: true },
     { key: "areaM2", label: BUILDING_STONE_FIELD_LABELS.areaM2, required: false },
   ],
+  fieldOrder: BUILDING_STONE_FIELD_ORDER as readonly string[],
   initialValues: EMPTY_BUILDING_STONE_VALUES,
-  validate: (values: BuildingStoneValues): Readonly<Record<string, string>> =>
-    validateBuildingStoneSelection(values).errors as Readonly<Record<string, string>>,
+  validate: validateBuildingStoneExtension,
   buildPayload: buildBuildingStonePayloadFields,
   resolvePrice: () => BUILDING_STONE_PRICE,
-} as const;
+  identity: buildingStoneSourceIdentity,
+};
 
 /* -------------------------------------------------------------------------- */
 /* Field identifiers                                                           */

@@ -4,9 +4,11 @@ import type { ReactNode } from "react";
 import { RequestFormFields, fieldId } from "./request-form-fields";
 import { RequestFormState } from "./request-form-state";
 import { RequestSuccess } from "./request-success";
-import { buildingStoneFieldId, normalizeAreaM2 } from "@/lib/building-stone";
+import type { BuildingStoneValues } from "@/lib/building-stone";
+import { buildingStoneFieldId } from "@/lib/building-stone";
 import type { Site } from "@/lib/content/types";
 import type {
+  BuildingStoneExtensionContract,
   PriceRevision,
   RequestFieldErrors,
   RequestFieldKey,
@@ -20,6 +22,7 @@ import {
   SUBMISSION_BLOCKED_TEXT,
   buildRequestPayload,
   isRequestTermsDocument,
+  requestSourceSelectionIdentity,
   validateRequestForm,
 } from "@/lib/request-form";
 import type { RequestSubmitTransport, SubmitOutcome } from "@/lib/request-submit";
@@ -39,10 +42,30 @@ type Phase = "editing" | "submitting" | "success";
 
 const PII_FREE_VALUES = EMPTY_REQUEST_FORM_VALUES;
 
+/** The type-safe slot an active extension renders into the shared form. */
+export interface RequestFormExtensionSlotState {
+  readonly errors: Readonly<Record<string, string>>;
+  readonly disabled: boolean;
+}
+
+/**
+ * The component-level binding of the building-stone extension: the pure
+ * contract, the current values and the renderer, in one type-safe object. The
+ * renderer alone is never enough to integrate an extension.
+ */
+export interface BuildingStoneFormBinding {
+  readonly kind: "building_stone";
+  readonly contract: BuildingStoneExtensionContract;
+  readonly values: BuildingStoneValues;
+  readonly fieldId?: (key: string) => string;
+  readonly renderExtensionFields: (state: RequestFormExtensionSlotState) => ReactNode;
+}
+
 /**
  * A stable identity for the current selection. A new object with identical
  * content is not a selection change, so a re-render never clears a blocked
- * selection or a pending price revision.
+ * selection or a pending price revision. The extended part of the identity is
+ * produced by the extension contract, never recomputed here.
  */
 export function sourceIdentity(source: RequestSource): string {
   if (source.kind === "grave_stone") {
@@ -62,15 +85,7 @@ export function sourceIdentity(source: RequestSource): string {
     ].join("~");
   }
   if (source.kind === "building_stone") {
-    // Only the non-personal selection: the shared note never enters identity.
-    const selection = source.selection;
-    const area = normalizeAreaM2(selection.areaM2Input);
-    return [
-      "building_stone",
-      selection.stoneType ?? "",
-      selection.application ?? "",
-      area.ok ? String(area.value) : `raw:${selection.areaM2Input.trim()}`,
-    ].join("~");
+    return requestSourceSelectionIdentity(source) ?? "building_stone~unbound";
   }
   return `contact~${source.portfolioReferenceId ?? ""}`;
 }
@@ -110,25 +125,19 @@ function firstMappedFieldError(errors: RequestFieldErrors): RequestFieldKey | nu
   return REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
 }
 
-/** The type-safe slot an active extension renders into the shared form. */
-export interface RequestFormExtensionSlotState {
-  readonly errors: Readonly<Record<string, string>>;
-  readonly disabled: boolean;
-}
-
 export function RequestForm({
   source,
   site,
   termsDocument,
   submitRequest: transport,
-  renderExtensionFields,
+  extension,
   onSuccess,
 }: {
   source: RequestSource;
   site: Site | null;
   termsDocument: RequestTermsDocument | null;
   submitRequest?: RequestSubmitTransport;
-  renderExtensionFields?: (state: RequestFormExtensionSlotState) => ReactNode;
+  extension?: BuildingStoneFormBinding | null;
   onSuccess?: (trackingCode: string) => void;
 }) {
   const [values, setValues] = useState<RequestFormValues>(PII_FREE_VALUES);
@@ -146,7 +155,15 @@ export function RequestForm({
   const submissionId = useRef<string | null>(null);
   const inFlight = useRef(false);
 
+  // A binding is only active when its contract matches the source kind. A
+  // building source without a compatible binding never builds a payload and
+  // never reaches the transport.
+  const binding = extension != null && extension.kind === source.kind ? extension : null;
+  const contract = binding === null ? null : binding.contract;
+  const extensionFieldId = binding?.fieldId ?? ((key: string) => buildingStoneFieldId(key));
+
   const identity = sourceIdentity(source);
+
   // The attempt token of the running request; a response from an older
   // identity is discarded before any result state is applied.
   const attemptIdentity = useRef(identity);
@@ -196,11 +213,12 @@ export function RequestForm({
   };
 
   // The extension fields sit before the contact fields, so their first error is
-  // focused before any general field error.
+  // focused before any general field error. The "other" description is a shared
+  // field error, so it is focused in the common order, on `customerNote`.
   const focusFirstInvalid = (validation: ReturnType<typeof validateRequestForm>) => {
     const extensionKey = validation.firstInvalidExtensionField;
     if (extensionKey !== null) {
-      focusById(buildingStoneFieldId(extensionKey));
+      focusById(extensionFieldId(extensionKey));
       return;
     }
     const key = validation.firstInvalidField;
@@ -217,7 +235,7 @@ export function RequestForm({
       // the main submit button and the Enter key stay inert.
       if (freshAttemptRequired && !allowFreshAttempt) return;
 
-      const validation = validateRequestForm({ values, source });
+      const validation = validateRequestForm({ values, source, extension: contract });
       setErrors(validation.errors);
       setExtensionErrors(validation.extensionErrors);
       if (!validation.valid) {
@@ -233,6 +251,7 @@ export function RequestForm({
         values,
         termsDocument: terms,
         priceRevision: revision,
+        extension: contract,
       });
       if (payload === null) return;
 
@@ -291,6 +310,7 @@ export function RequestForm({
       setPhase("editing");
     },
     [
+      contract,
       freshAttemptRequired,
       generation,
       onSuccess,
@@ -320,9 +340,9 @@ export function RequestForm({
       }}
     >
       <div className="col-span-4 flex flex-col gap-5 md:col-span-8 lg:col-span-8">
-        {renderExtensionFields
-          ? renderExtensionFields({ errors: extensionErrors, disabled: submitting })
-          : null}
+        {binding === null
+          ? null
+          : binding.renderExtensionFields({ errors: extensionErrors, disabled: submitting })}
 
         <RequestFormFields
           values={values}

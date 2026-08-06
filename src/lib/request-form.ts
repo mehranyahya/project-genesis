@@ -5,13 +5,13 @@
  * from the caller's inputs; nothing here mutates its arguments.
  */
 
-import type { BuildingStonePayloadFields, BuildingStoneValues } from "./building-stone";
-import {
-  buildBuildingStonePayloadFields,
-  buildingStoneExtension,
-  validateBuildingStoneNote,
-  validateBuildingStoneSelection,
+import type {
+  BuildingStoneNormalizedSelection,
+  BuildingStonePayloadFields,
+  BuildingStoneValues,
 } from "./building-stone";
+import { buildingStoneExtension } from "./building-stone";
+
 import type { PriceType } from "./content/types";
 import { normalizePortfolioReference } from "./portfolio-reference";
 import type { GraveStoneRequestDraft } from "./request-draft";
@@ -205,7 +205,7 @@ function optionalText(value: string): string | null {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Extension point (Prompt 09)                                                 */
+/* Extension contract                                                          */
 /* -------------------------------------------------------------------------- */
 
 export interface RequestFormExtensionFieldSlot {
@@ -214,26 +214,94 @@ export interface RequestFormExtensionFieldSlot {
   readonly required: boolean;
 }
 
-export interface RequestFormExtension<TValues, TPayload> {
-  readonly kind: BuildingStoneRequestKind;
-  readonly fields: readonly RequestFormExtensionFieldSlot[];
-  readonly initialValues: TValues;
-  readonly validate: (values: TValues) => Readonly<Record<string, string>>;
-  readonly buildPayload: (values: TValues) => TPayload | null;
-  readonly resolvePrice?: (values: TValues) => {
-    readonly priceType: PriceType;
-    readonly amountToman: number | null;
-  };
+/** The shared-form values an extension is allowed to read. */
+export interface RequestFormExtensionContext {
+  readonly customerNote: string;
+}
+
+/** The only shared field an extension may raise an error on. */
+export interface RequestFormExtensionCommonErrors {
+  readonly customerNote?: string;
+}
+
+export interface RequestFormExtensionValidation<TSelection> {
+  readonly valid: boolean;
+  readonly errors: Readonly<Record<string, string>>;
+  readonly firstInvalidField: string | null;
+  readonly commonErrors: RequestFormExtensionCommonErrors;
+  readonly selection: TSelection | null;
 }
 
 /**
- * The single active extension. It is typed against the concrete building-stone
- * value and payload types, so no `unknown` or `any` is needed anywhere.
+ * The type-safe contract the shared form consumes. Every rule of the extended
+ * request lives here: field order, validation, payload, price and identity.
+ * Nothing is duplicated by the shared form itself.
  */
-export const BUILDING_STONE_EXTENSION: RequestFormExtension<
+export interface RequestFormExtension<TValues, TPayload, TSelection> {
+  readonly kind: BuildingStoneRequestKind;
+  readonly fields: readonly RequestFormExtensionFieldSlot[];
+  readonly fieldOrder: readonly string[];
+  readonly initialValues: TValues;
+  readonly validate: (
+    values: TValues,
+    context: RequestFormExtensionContext,
+  ) => RequestFormExtensionValidation<TSelection>;
+  readonly buildPayload: (values: TValues) => TPayload | null;
+  readonly resolvePrice: (values: TValues) => {
+    readonly priceType: PriceType;
+    readonly amountToman: number | null;
+  };
+  readonly identity: (values: TValues) => string;
+}
+
+export type BuildingStoneExtensionContract = RequestFormExtension<
   BuildingStoneValues,
-  BuildingStonePayloadFields
-> = buildingStoneExtension;
+  BuildingStonePayloadFields,
+  BuildingStoneNormalizedSelection
+>;
+
+/**
+ * The single active extension. It is typed against the concrete building-stone
+ * value, payload and selection types, so no `unknown` or `any` is needed.
+ */
+export const BUILDING_STONE_EXTENSION: BuildingStoneExtensionContract = buildingStoneExtension;
+
+/** The official extension of a source, or null when the source needs none. */
+export function resolveRequestFormExtension(
+  source: RequestSource,
+): BuildingStoneExtensionContract | null {
+  return source.kind === "building_stone" ? BUILDING_STONE_EXTENSION : null;
+}
+
+interface ExtensionBinding {
+  readonly ok: boolean;
+  readonly extension: BuildingStoneExtensionContract | null;
+}
+
+/**
+ * An omitted `extension` key resolves the official contract. An explicitly
+ * passed `null` or a contract of a different kind is a mismatch: the request
+ * is invalid and no payload is ever produced from it.
+ */
+function bindExtension(input: {
+  readonly source: RequestSource;
+  readonly extension?: BuildingStoneExtensionContract | null;
+}): ExtensionBinding {
+  const { source } = input;
+  if (source.kind !== "building_stone") return { ok: true, extension: null };
+  const provided = Object.prototype.hasOwnProperty.call(input, "extension")
+    ? (input.extension ?? null)
+    : BUILDING_STONE_EXTENSION;
+  if (provided === null || provided.kind !== source.kind) return { ok: false, extension: null };
+  return { ok: true, extension: provided };
+}
+
+/** The canonical, personal-data-free identity of a request source. */
+export function requestSourceSelectionIdentity(source: RequestSource): string | null {
+  if (source.kind !== "building_stone") return null;
+  const extension = resolveRequestFormExtension(source);
+  return extension === null ? null : extension.identity(source.selection);
+}
 
 /* -------------------------------------------------------------------------- */
 /* Validation                                                                  */
@@ -258,12 +326,15 @@ export interface RequestFormValidation {
   /** Errors of the active extension, keyed by its own field keys. */
   readonly extensionErrors: Readonly<Record<string, string>>;
   readonly firstInvalidExtensionField: string | null;
+  /** False when a building source has no compatible extension bound. */
+  readonly extensionBound: boolean;
   readonly fields: NormalizedRequestFields | null;
 }
 
 export function validateRequestForm(input: {
   readonly values: RequestFormValues;
   readonly source: RequestSource;
+  readonly extension?: BuildingStoneExtensionContract | null;
 }): RequestFormValidation {
   const { values, source } = input;
   const errors: Partial<Record<RequestFieldKey, string>> = {};
@@ -298,28 +369,29 @@ export function validateRequestForm(input: {
   const note = optionalText(values.customerNote);
   if (note !== null && note.length > 1000) errors.customerNote = REQUEST_FIELD_ERRORS.customerNote;
 
-  // The "other" application needs its description in the shared note field, so
-  // the payload carries it exactly once, in `customer_note`.
-  const buildingStone = source.kind === "building_stone";
-  const extension = buildingStone
-    ? validateBuildingStoneSelection(source.selection)
-    : { errors: {} as Readonly<Record<string, string>>, firstInvalidField: null };
-  if (buildingStone) {
-    const noteError = validateBuildingStoneNote(source.selection.application, values.customerNote);
-    if (noteError !== null) errors.customerNote = noteError;
-  }
+  // Every extended rule comes from the bound extension contract. The shared
+  // form only branches on the kind to pick the extension, never to re-implement
+  // its validation, and the "other" description stays a shared-field error.
+  const binding = bindExtension(input);
+  const extension =
+    source.kind === "building_stone" && binding.extension !== null
+      ? binding.extension.validate(source.selection, { customerNote: values.customerNote })
+      : null;
+  const noteError = extension?.commonErrors.customerNote;
+  if (noteError !== undefined) errors.customerNote = noteError;
 
   if (values.termsAccepted !== true) errors.termsAccepted = REQUEST_FIELD_ERRORS.termsAccepted;
 
   const firstInvalidField = REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
-  const valid = firstInvalidField === null && extension.firstInvalidField === null;
+  const valid = binding.ok && firstInvalidField === null && (extension === null || extension.valid);
 
   return {
     valid,
     errors,
     firstInvalidField,
-    extensionErrors: extension.errors,
-    firstInvalidExtensionField: extension.firstInvalidField,
+    extensionErrors: extension?.errors ?? {},
+    firstInvalidExtensionField: extension?.firstInvalidField ?? null,
+    extensionBound: binding.ok,
     fields:
       valid && phone !== null && preferredContact !== null
         ? {
@@ -408,13 +480,19 @@ export function buildRequestPayload(input: {
   readonly values: RequestFormValues;
   readonly termsDocument: RequestTermsDocument | null;
   readonly priceRevision?: PriceRevision | null;
+  readonly extension?: BuildingStoneExtensionContract | null;
 }): RequestPayload | null {
   const { submissionId, source, values, termsDocument, priceRevision } = input;
 
   if (typeof submissionId !== "string" || submissionId.trim().length === 0) return null;
   if (!isRequestTermsDocument(termsDocument)) return null;
 
-  const validation = validateRequestForm({ values, source });
+  const binding = bindExtension(input);
+  if (!binding.ok) return null;
+
+  const validation = Object.prototype.hasOwnProperty.call(input, "extension")
+    ? validateRequestForm({ values, source, extension: input.extension ?? null })
+    : validateRequestForm({ values, source });
   if (!validation.valid || validation.fields === null) return null;
 
   const terms: TermsPayloadFields = {
@@ -446,12 +524,19 @@ export function buildRequestPayload(input: {
   }
 
   if (source.kind === "building_stone") {
-    const selection = buildBuildingStonePayloadFields(source.selection);
+    const extension = binding.extension;
+    if (extension === null) return null;
+    const selection = extension.buildPayload(source.selection);
     if (selection === null) return null;
+    // The price is resolved by the extension, never assembled here.
+    const price = extension.resolvePrice(source.selection);
+    if (price.priceType !== "review" || price.amountToman !== null) return null;
     return {
       submission_id: submissionId,
       request_type: "building_stone",
       ...selection,
+      client_price_type: price.priceType,
+      client_displayed_price: price.amountToman,
       ...validation.fields,
       ...terms,
     };
