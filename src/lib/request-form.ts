@@ -483,13 +483,19 @@ export function buildRequestPayload(input: {
   readonly values: RequestFormValues;
   readonly termsDocument: RequestTermsDocument | null;
   readonly priceRevision?: PriceRevision | null;
+  readonly extension?: BuildingStoneExtensionContract | null;
 }): RequestPayload | null {
   const { submissionId, source, values, termsDocument, priceRevision } = input;
 
   if (typeof submissionId !== "string" || submissionId.trim().length === 0) return null;
   if (!isRequestTermsDocument(termsDocument)) return null;
 
-  const validation = validateRequestForm({ values, source });
+  const binding = bindExtension(input);
+  if (!binding.ok) return null;
+
+  const validation = Object.prototype.hasOwnProperty.call(input, "extension")
+    ? validateRequestForm({ values, source, extension: input.extension ?? null })
+    : validateRequestForm({ values, source });
   if (!validation.valid || validation.fields === null) return null;
 
   const terms: TermsPayloadFields = {
@@ -521,16 +527,24 @@ export function buildRequestPayload(input: {
   }
 
   if (source.kind === "building_stone") {
-    const selection = buildBuildingStonePayloadFields(source.selection);
+    const extension = binding.extension;
+    if (extension === null) return null;
+    const selection = extension.buildPayload(source.selection);
     if (selection === null) return null;
+    // The price is resolved by the extension, never assembled here.
+    const price = extension.resolvePrice(source.selection);
+    if (price.priceType !== "review" || price.amountToman !== null) return null;
     return {
       submission_id: submissionId,
       request_type: "building_stone",
       ...selection,
+      client_price_type: price.priceType,
+      client_displayed_price: price.amountToman,
       ...validation.fields,
       ...terms,
     };
   }
+
 
   const reference = normalizePortfolioReference(source.portfolioReferenceId);
   const referral =
