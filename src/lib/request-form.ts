@@ -5,6 +5,13 @@
  * from the caller's inputs; nothing here mutates its arguments.
  */
 
+import type { BuildingStonePayloadFields, BuildingStoneValues } from "./building-stone";
+import {
+  buildBuildingStonePayloadFields,
+  buildingStoneExtension,
+  validateBuildingStoneNote,
+  validateBuildingStoneSelection,
+} from "./building-stone";
 import type { PriceType } from "./content/types";
 import { normalizePortfolioReference } from "./portfolio-reference";
 import type { GraveStoneRequestDraft } from "./request-draft";
