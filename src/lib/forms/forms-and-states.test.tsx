@@ -437,6 +437,8 @@ function createHarness(initialSource: RequestSource, transport: RequestSubmitTra
   };
 
   const newAttempt = async () => {
+    // Exactly the component order: guard first, mutation afterwards.
+    if (state.inFlight) return;
     submissionId = null;
     state.outcome = null;
     state.freshAttemptRequired = false;
