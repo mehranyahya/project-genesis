@@ -168,6 +168,7 @@ export function RequestForm({
     setSelectionBlocked(false);
     setPriceRevision(null);
     setErrors({});
+    setExtensionErrors({});
     setTrackingCode(null);
     setPendingFocus(null);
     setFreshAttemptRequired(false);
