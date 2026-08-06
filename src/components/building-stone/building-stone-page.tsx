@@ -64,4 +64,3 @@ export function BuildingStonePage({ site }: { site: Site | null }) {
     </section>
   );
 }
-

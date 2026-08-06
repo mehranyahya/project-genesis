@@ -90,7 +90,6 @@ export function sourceIdentity(source: RequestSource): string {
   return `contact~${source.portfolioReferenceId ?? ""}`;
 }
 
-
 /**
  * A monotonic attempt epoch. A semantic source change always produces a new
  * generation, so an A -> B -> A cycle never reuses the generation of the first
@@ -141,7 +140,6 @@ export function RequestForm({
   extension?: BuildingStoneFormBinding | null;
   onSuccess?: (trackingCode: string) => void;
 }) {
-
   const [values, setValues] = useState<RequestFormValues>(PII_FREE_VALUES);
   const [errors, setErrors] = useState<RequestFieldErrors>({});
   const [extensionErrors, setExtensionErrors] = useState<Readonly<Record<string, string>>>({});
@@ -162,7 +160,7 @@ export function RequestForm({
   // never reaches the transport.
   const binding = extension != null && extension.kind === source.kind ? extension : null;
   const contract = binding === null ? null : binding.contract;
-  const extensionFieldId = binding?.fieldId ?? buildingStoneFieldId;
+  const extensionFieldId = binding?.fieldId ?? ((key: string) => buildingStoneFieldId(key));
 
   const identity = sourceIdentity(source);
 
@@ -257,7 +255,6 @@ export function RequestForm({
       });
       if (payload === null) return;
 
-
       const attempt = attemptIdentity.current;
       const attemptGeneration = generationTracker.current?.current() ?? generation;
 
@@ -346,7 +343,6 @@ export function RequestForm({
         {binding === null
           ? null
           : binding.renderExtensionFields({ errors: extensionErrors, disabled: submitting })}
-
 
         <RequestFormFields
           values={values}
