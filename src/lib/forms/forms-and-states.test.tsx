@@ -7,9 +7,19 @@ import path from "node:path";
 import {
   createGenerationTracker,
   isStaleAttempt,
+  resolvePendingFocusId,
+  serverFocusDomId,
   sourceIdentity,
 } from "../../components/request-form/request-form";
+import { fieldId } from "../../components/request-form/request-form-fields";
+import type { BuildingStoneValues } from "../building-stone";
+import {
+  EMPTY_BUILDING_STONE_VALUES,
+  buildingStoneExtension,
+  buildingStoneFieldId,
+} from "../building-stone";
 import type {
+  BuildingStoneExtensionContract,
   RequestFieldErrors,
   RequestFormValues,
   RequestPayload,
@@ -17,9 +27,11 @@ import type {
   RequestTermsDocument,
 } from "../request-form";
 import {
+  BUILDING_STONE_EXTENSION,
   EMPTY_REQUEST_FORM_VALUES,
   REQUEST_FIELD_ORDER,
   buildRequestPayload,
+  validateRequestForm,
 } from "../request-form";
 import type { RequestSubmitTransport, SubmitOutcome } from "../request-submit";
 import { createSubmissionId, submitRequest } from "../request-submit";
