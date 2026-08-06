@@ -343,11 +343,14 @@ test("34 the extension payload builder returns exactly the official selection fi
 
 test("35 the extension price is review with a null amount for every selection", () => {
   for (const option of BUILDING_STONE_APPLICATION_OPTIONS) {
-    assert.deepEqual(buildingStoneExtension.resolvePrice(values({ application: option.value })), {
-      priceType: "review",
-      amountToman: null,
-    });
+    const fields = buildingStoneExtension.buildPayload(values({ application: option.value }));
+    assert.equal(fields?.client_price_type, "review");
+    assert.equal(fields?.client_displayed_price, null);
   }
+  assert.deepEqual(buildingStoneExtension.resolvePrice(), {
+    priceType: "review",
+    amountToman: null,
+  });
 });
 
 test("36 semantically equal areas share one identity and an invalid area is a stable token", () => {
