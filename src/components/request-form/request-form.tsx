@@ -123,6 +123,7 @@ export function RequestForm({
   const [priceRevision, setPriceRevision] = useState<PriceRevision | null>(null);
   const [selectionBlocked, setSelectionBlocked] = useState(false);
   const [pendingFocus, setPendingFocus] = useState<RequestFieldKey | null>(null);
+  const [freshAttemptRequired, setFreshAttemptRequired] = useState(false);
 
   const submissionId = useRef<string | null>(null);
   const inFlight = useRef(false);
@@ -132,6 +133,13 @@ export function RequestForm({
   // identity is discarded before any result state is applied.
   const attemptIdentity = useRef(identity);
   attemptIdentity.current = identity;
+
+  // The monotonic epoch: it separates A -> B -> A, which the identity string
+  // alone cannot, and it is updated during render so a source change is
+  // detectable immediately instead of only after the effect has run.
+  const generationTracker = useRef<GenerationTracker | null>(null);
+  generationTracker.current ??= createGenerationTracker(identity);
+  const generation = generationTracker.current.observe(identity);
 
   // Only a real semantic selection change resets the source-coupled state.
   useEffect(() => {
@@ -143,6 +151,8 @@ export function RequestForm({
     setErrors({});
     setTrackingCode(null);
     setPendingFocus(null);
+    setFreshAttemptRequired(false);
+
     setPhase("editing");
   }, [identity]);
 
