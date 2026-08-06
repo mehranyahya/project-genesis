@@ -219,7 +219,6 @@ export function normalizeAreaM2(input: string): AreaNormalization {
   return { ok: true, value };
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* Selection validation                                                        */
 /* -------------------------------------------------------------------------- */
@@ -462,7 +461,6 @@ export const buildingStoneExtension = {
   resolvePrice: () => BUILDING_STONE_PRICE,
   identity: buildingStoneSourceIdentity,
 };
-
 
 /* -------------------------------------------------------------------------- */
 /* Field identifiers                                                           */

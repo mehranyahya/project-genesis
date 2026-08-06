@@ -303,7 +303,6 @@ export function requestSourceSelectionIdentity(source: RequestSource): string | 
   return extension === null ? null : extension.identity(source.selection);
 }
 
-
 /* -------------------------------------------------------------------------- */
 /* Validation                                                                  */
 /* -------------------------------------------------------------------------- */
@@ -384,8 +383,7 @@ export function validateRequestForm(input: {
   if (values.termsAccepted !== true) errors.termsAccepted = REQUEST_FIELD_ERRORS.termsAccepted;
 
   const firstInvalidField = REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
-  const valid =
-    binding.ok && firstInvalidField === null && (extension === null || extension.valid);
+  const valid = binding.ok && firstInvalidField === null && (extension === null || extension.valid);
 
   return {
     valid,
@@ -408,7 +406,6 @@ export function validateRequestForm(input: {
         : null,
   };
 }
-
 
 /* -------------------------------------------------------------------------- */
 /* Payload                                                                     */
@@ -544,7 +541,6 @@ export function buildRequestPayload(input: {
       ...terms,
     };
   }
-
 
   const reference = normalizePortfolioReference(source.portfolioReferenceId);
   const referral =
