@@ -60,6 +60,17 @@ export function sourceIdentity(source: RequestSource): string {
       String(snapshot.amountToman),
     ].join("~");
   }
+  if (source.kind === "building_stone") {
+    // Only the non-personal selection: the shared note never enters identity.
+    const selection = source.selection;
+    const area = normalizeAreaM2(selection.areaM2Input);
+    return [
+      "building_stone",
+      selection.stoneType ?? "",
+      selection.application ?? "",
+      area.ok ? String(area.value) : `raw:${selection.areaM2Input.trim()}`,
+    ].join("~");
+  }
   return `contact~${source.portfolioReferenceId ?? ""}`;
 }
 
