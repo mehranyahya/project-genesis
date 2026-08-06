@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 
 import { RequestFormFields, fieldId } from "./request-form-fields";
 import { RequestFormState } from "./request-form-state";
 import { RequestSuccess } from "./request-success";
+import { normalizeAreaM2 } from "@/lib/building-stone";
 import type { Site } from "@/lib/content/types";
 import type {
   PriceRevision,
