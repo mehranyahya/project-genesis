@@ -4,9 +4,11 @@ import type { ReactNode } from "react";
 import { RequestFormFields, fieldId } from "./request-form-fields";
 import { RequestFormState } from "./request-form-state";
 import { RequestSuccess } from "./request-success";
-import { buildingStoneFieldId, normalizeAreaM2 } from "@/lib/building-stone";
+import type { BuildingStoneValues } from "@/lib/building-stone";
+import { buildingStoneFieldId } from "@/lib/building-stone";
 import type { Site } from "@/lib/content/types";
 import type {
+  BuildingStoneExtensionContract,
   PriceRevision,
   RequestFieldErrors,
   RequestFieldKey,
@@ -20,6 +22,7 @@ import {
   SUBMISSION_BLOCKED_TEXT,
   buildRequestPayload,
   isRequestTermsDocument,
+  requestSourceSelectionIdentity,
   validateRequestForm,
 } from "@/lib/request-form";
 import type { RequestSubmitTransport, SubmitOutcome } from "@/lib/request-submit";
@@ -39,10 +42,30 @@ type Phase = "editing" | "submitting" | "success";
 
 const PII_FREE_VALUES = EMPTY_REQUEST_FORM_VALUES;
 
+/** The type-safe slot an active extension renders into the shared form. */
+export interface RequestFormExtensionSlotState {
+  readonly errors: Readonly<Record<string, string>>;
+  readonly disabled: boolean;
+}
+
+/**
+ * The component-level binding of the building-stone extension: the pure
+ * contract, the current values and the renderer, in one type-safe object. The
+ * renderer alone is never enough to integrate an extension.
+ */
+export interface BuildingStoneFormBinding {
+  readonly kind: "building_stone";
+  readonly contract: BuildingStoneExtensionContract;
+  readonly values: BuildingStoneValues;
+  readonly fieldId?: (key: string) => string;
+  readonly renderExtensionFields: (state: RequestFormExtensionSlotState) => ReactNode;
+}
+
 /**
  * A stable identity for the current selection. A new object with identical
  * content is not a selection change, so a re-render never clears a blocked
- * selection or a pending price revision.
+ * selection or a pending price revision. The extended part of the identity is
+ * produced by the extension contract, never recomputed here.
  */
 export function sourceIdentity(source: RequestSource): string {
   if (source.kind === "grave_stone") {
@@ -62,18 +85,11 @@ export function sourceIdentity(source: RequestSource): string {
     ].join("~");
   }
   if (source.kind === "building_stone") {
-    // Only the non-personal selection: the shared note never enters identity.
-    const selection = source.selection;
-    const area = normalizeAreaM2(selection.areaM2Input);
-    return [
-      "building_stone",
-      selection.stoneType ?? "",
-      selection.application ?? "",
-      area.ok ? String(area.value) : `raw:${selection.areaM2Input.trim()}`,
-    ].join("~");
+    return requestSourceSelectionIdentity(source) ?? "building_stone~unbound";
   }
   return `contact~${source.portfolioReferenceId ?? ""}`;
 }
+
 
 /**
  * A monotonic attempt epoch. A semantic source change always produces a new
