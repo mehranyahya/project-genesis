@@ -236,7 +236,7 @@ test("23 an idempotency outcome never submits again automatically", () => {
   const marker = form.indexOf('case "idempotency_conflict":');
   assert.ok(marker > 0);
   const branch = form.slice(marker, form.indexOf('case "validation_error":', marker));
-  assert.ok(branch.includes("submissionId.current = null"));
+  assert.ok(branch.includes("setFreshAttemptRequired(true)"));
   assert.ok(!/run\(/.test(branch), "the idempotency branch must not start a new run");
   assert.ok(!/setTimeout|setInterval|retryCount|autoRetry/.test(form));
 });
@@ -248,7 +248,8 @@ test("24 the dedicated new-attempt action clears the id and runs once with the p
   const handler = form.slice(start, form.indexOf("}}", start));
   assert.ok(handler.includes("submissionId.current = null"));
   assert.ok(handler.includes("setOutcome(null)"));
-  assert.ok(handler.includes("void run(priceRevision)"));
+  assert.ok(handler.includes("setFreshAttemptRequired(false)"));
+  assert.ok(handler.includes("void run(priceRevision, { allowFreshAttempt: true })"));
   assert.equal(handler.split("run(").length - 1, 1);
   assert.ok(
     form.includes(
@@ -256,6 +257,7 @@ test("24 the dedicated new-attempt action clears the id and runs once with the p
     ),
   );
 });
+
 
 test("25 a real semantic source change invalidates the source-coupled state only", () => {
   const form = stripComments(read(FORM));
