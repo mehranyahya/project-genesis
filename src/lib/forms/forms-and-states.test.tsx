@@ -866,7 +866,7 @@ test("46 the focus target follows the extension-then-shared field order", () => 
 });
 
 test("47 a building submission sends exactly one review payload", async () => {
-  const created = reply(201, { status: "REQUEST_CREATED", tracking_code: "MA-1001" });
+  const created = reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1001" });
   const harness = createHarness(stoneSource({ areaM2Input: "1,000" }), async () => created);
   await harness.run();
   assert.equal(harness.payloads.length, 1);
@@ -884,7 +884,7 @@ test("48 an invalid building selection never reaches the transport", async () =>
     { kind: "building_stone", selection: EMPTY_BUILDING_STONE_VALUES },
     async () => {
       calls += 1;
-      return reply(201, { status: "REQUEST_CREATED", tracking_code: "MA-1001" });
+      return reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1001" });
     },
   );
   await harness.run();
@@ -900,7 +900,7 @@ test("49 a missing binding blocks the building submission entirely", async () =>
     stoneSource(),
     async () => {
       calls += 1;
-      return reply(201, { status: "REQUEST_CREATED", tracking_code: "MA-1001" });
+      return reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1001" });
     },
     { extension: null },
   );
@@ -909,7 +909,7 @@ test("49 a missing binding blocks the building submission entirely", async () =>
   assert.equal(harness.state.payloadBlocked, 1);
 
   const bound = createHarness(stoneSource(), async () => reply(201, {
-    status: "REQUEST_CREATED",
+    code: "REQUEST_CREATED",
     tracking_code: "MA-1002",
   }), { extension: BUILDING_STONE_EXTENSION });
   await bound.run();
@@ -918,7 +918,7 @@ test("49 a missing binding blocks the building submission entirely", async () =>
 });
 
 test("50 a purely visual area change is not a semantic source change", async () => {
-  const conflict = reply(409, { error: "IDEMPOTENCY_CONFLICT" });
+  const conflict = reply(409, { code: "IDEMPOTENCY_CONFLICT" });
   const harness = createHarness(stoneSource({ areaM2Input: "1000" }), async () => conflict);
   await harness.run();
   assert.equal(harness.state.freshAttemptRequired, true);
@@ -932,7 +932,7 @@ test("50 a purely visual area change is not a semantic source change", async () 
 });
 
 test("51 a building response from an obsolete selection is discarded", async () => {
-  const slow = deferredTransport(reply(201, { status: "REQUEST_CREATED", tracking_code: "MA-1001" }));
+  const slow = deferredTransport(reply(201, { code: "REQUEST_CREATED", tracking_code: "MA-1001" }));
   const harness = createHarness(stoneSource({ application: "facade" }), slow.transport);
   const pending = harness.run();
   harness.setSource(stoneSource({ application: "stairs" }));
