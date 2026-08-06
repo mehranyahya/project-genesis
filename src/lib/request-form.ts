@@ -5,6 +5,13 @@
  * from the caller's inputs; nothing here mutates its arguments.
  */
 
+import type { BuildingStonePayloadFields, BuildingStoneValues } from "./building-stone";
+import {
+  buildBuildingStonePayloadFields,
+  buildingStoneExtension,
+  validateBuildingStoneNote,
+  validateBuildingStoneSelection,
+} from "./building-stone";
 import type { PriceType } from "./content/types";
 import { normalizePortfolioReference } from "./portfolio-reference";
 import type { GraveStoneRequestDraft } from "./request-draft";
@@ -23,12 +30,18 @@ export interface ContactRequestSource {
   readonly portfolioReferenceId: string | null;
 }
 
-export type RequestSource = GraveStoneRequestSource | ContactRequestSource;
+/** The building-stone selection. It carries no personal data whatsoever. */
+export interface BuildingStoneRequestSource {
+  readonly kind: "building_stone";
+  readonly selection: BuildingStoneValues;
+}
 
-/** Reserved for Prompt 09. No runtime instance exists in this scaffold. */
+export type RequestSource =
+  GraveStoneRequestSource | ContactRequestSource | BuildingStoneRequestSource;
+
 export type BuildingStoneRequestKind = "building_stone";
 
-export type RequestKind = RequestSource["kind"] | BuildingStoneRequestKind;
+export type RequestKind = RequestSource["kind"];
 
 /* -------------------------------------------------------------------------- */
 /* Terms document (M7)                                                         */
@@ -213,6 +226,15 @@ export interface RequestFormExtension<TValues, TPayload> {
   };
 }
 
+/**
+ * The single active extension. It is typed against the concrete building-stone
+ * value and payload types, so no `unknown` or `any` is needed anywhere.
+ */
+export const BUILDING_STONE_EXTENSION: RequestFormExtension<
+  BuildingStoneValues,
+  BuildingStonePayloadFields
+> = buildingStoneExtension;
+
 /* -------------------------------------------------------------------------- */
 /* Validation                                                                  */
 /* -------------------------------------------------------------------------- */
@@ -233,6 +255,9 @@ export interface RequestFormValidation {
   readonly valid: boolean;
   readonly errors: RequestFieldErrors;
   readonly firstInvalidField: RequestFieldKey | null;
+  /** Errors of the active extension, keyed by its own field keys. */
+  readonly extensionErrors: Readonly<Record<string, string>>;
+  readonly firstInvalidExtensionField: string | null;
   readonly fields: NormalizedRequestFields | null;
 }
 
@@ -273,15 +298,28 @@ export function validateRequestForm(input: {
   const note = optionalText(values.customerNote);
   if (note !== null && note.length > 1000) errors.customerNote = REQUEST_FIELD_ERRORS.customerNote;
 
+  // The "other" application needs its description in the shared note field, so
+  // the payload carries it exactly once, in `customer_note`.
+  const buildingStone = source.kind === "building_stone";
+  const extension = buildingStone
+    ? validateBuildingStoneSelection(source.selection)
+    : { errors: {} as Readonly<Record<string, string>>, firstInvalidField: null };
+  if (buildingStone) {
+    const noteError = validateBuildingStoneNote(source.selection.application, values.customerNote);
+    if (noteError !== null) errors.customerNote = noteError;
+  }
+
   if (values.termsAccepted !== true) errors.termsAccepted = REQUEST_FIELD_ERRORS.termsAccepted;
 
   const firstInvalidField = REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
-  const valid = firstInvalidField === null;
+  const valid = firstInvalidField === null && extension.firstInvalidField === null;
 
   return {
     valid,
     errors,
     firstInvalidField,
+    extensionErrors: extension.errors,
+    firstInvalidExtensionField: extension.firstInvalidField,
     fields:
       valid && phone !== null && preferredContact !== null
         ? {
@@ -328,7 +366,14 @@ export interface ContactRequestPayload extends NormalizedRequestFields, TermsPay
   readonly portfolio_reference_id?: string;
 }
 
-export type RequestPayload = GraveStoneRequestPayload | ContactRequestPayload;
+export interface BuildingStoneRequestPayload
+  extends NormalizedRequestFields, TermsPayloadFields, BuildingStonePayloadFields {
+  readonly submission_id: string;
+  readonly request_type: "building_stone";
+}
+
+export type RequestPayload =
+  GraveStoneRequestPayload | ContactRequestPayload | BuildingStoneRequestPayload;
 
 export interface PriceRevision {
   readonly priceType: PriceType;
@@ -395,6 +440,18 @@ export function buildRequestPayload(input: {
       option_ids: [...draft.optionIds],
       client_price_type: price.priceType,
       client_displayed_price: price.amountToman,
+      ...validation.fields,
+      ...terms,
+    };
+  }
+
+  if (source.kind === "building_stone") {
+    const selection = buildBuildingStonePayloadFields(source.selection);
+    if (selection === null) return null;
+    return {
+      submission_id: submissionId,
+      request_type: "building_stone",
+      ...selection,
       ...validation.fields,
       ...terms,
     };

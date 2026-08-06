@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 
 import { RequestFormFields, fieldId } from "./request-form-fields";
 import { RequestFormState } from "./request-form-state";
 import { RequestSuccess } from "./request-success";
+import { buildingStoneFieldId, normalizeAreaM2 } from "@/lib/building-stone";
 import type { Site } from "@/lib/content/types";
 import type {
   PriceRevision,
   RequestFieldErrors,
   RequestFieldKey,
-  RequestFormExtension,
   RequestFormValues,
   RequestSource,
   RequestTermsDocument,
@@ -60,6 +61,17 @@ export function sourceIdentity(source: RequestSource): string {
       String(snapshot.amountToman),
     ].join("~");
   }
+  if (source.kind === "building_stone") {
+    // Only the non-personal selection: the shared note never enters identity.
+    const selection = source.selection;
+    const area = normalizeAreaM2(selection.areaM2Input);
+    return [
+      "building_stone",
+      selection.stoneType ?? "",
+      selection.application ?? "",
+      area.ok ? String(area.value) : `raw:${selection.areaM2Input.trim()}`,
+    ].join("~");
+  }
   return `contact~${source.portfolioReferenceId ?? ""}`;
 }
 
@@ -98,23 +110,30 @@ function firstMappedFieldError(errors: RequestFieldErrors): RequestFieldKey | nu
   return REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
 }
 
+/** The type-safe slot an active extension renders into the shared form. */
+export interface RequestFormExtensionSlotState {
+  readonly errors: Readonly<Record<string, string>>;
+  readonly disabled: boolean;
+}
+
 export function RequestForm({
   source,
   site,
   termsDocument,
   submitRequest: transport,
-
+  renderExtensionFields,
   onSuccess,
 }: {
   source: RequestSource;
   site: Site | null;
   termsDocument: RequestTermsDocument | null;
   submitRequest?: RequestSubmitTransport;
-  extension?: RequestFormExtension<unknown, unknown>;
+  renderExtensionFields?: (state: RequestFormExtensionSlotState) => ReactNode;
   onSuccess?: (trackingCode: string) => void;
 }) {
   const [values, setValues] = useState<RequestFormValues>(PII_FREE_VALUES);
   const [errors, setErrors] = useState<RequestFieldErrors>({});
+  const [extensionErrors, setExtensionErrors] = useState<Readonly<Record<string, string>>>({});
   const [phase, setPhase] = useState<Phase>("editing");
   const [outcome, setOutcome] = useState<SubmitOutcome | null>(null);
   const [trackingCode, setTrackingCode] = useState<string | null>(null);
@@ -148,6 +167,7 @@ export function RequestForm({
     setSelectionBlocked(false);
     setPriceRevision(null);
     setErrors({});
+    setExtensionErrors({});
     setTrackingCode(null);
     setPendingFocus(null);
     setFreshAttemptRequired(false);
@@ -169,11 +189,23 @@ export function RequestForm({
 
   const termsReady = isRequestTermsDocument(terms);
 
-  const focusFirstInvalid = (validation: ReturnType<typeof validateRequestForm>) => {
-    const key = validation.firstInvalidField;
-    if (key === null || typeof document === "undefined") return;
-    const element = document.getElementById(fieldId(key));
+  const focusById = (id: string) => {
+    if (typeof document === "undefined") return;
+    const element = document.getElementById(id);
     if (element instanceof HTMLElement) element.focus();
+  };
+
+  // The extension fields sit before the contact fields, so their first error is
+  // focused before any general field error.
+  const focusFirstInvalid = (validation: ReturnType<typeof validateRequestForm>) => {
+    const extensionKey = validation.firstInvalidExtensionField;
+    if (extensionKey !== null) {
+      focusById(buildingStoneFieldId(extensionKey));
+      return;
+    }
+    const key = validation.firstInvalidField;
+    if (key === null) return;
+    focusById(fieldId(key));
   };
 
   const run = useCallback(
@@ -187,6 +219,7 @@ export function RequestForm({
 
       const validation = validateRequestForm({ values, source });
       setErrors(validation.errors);
+      setExtensionErrors(validation.extensionErrors);
       if (!validation.valid) {
         focusFirstInvalid(validation);
         return;
@@ -286,7 +319,11 @@ export function RequestForm({
         void run(priceRevision);
       }}
     >
-      <div className="col-span-4 md:col-span-8 lg:col-span-8">
+      <div className="col-span-4 flex flex-col gap-5 md:col-span-8 lg:col-span-8">
+        {renderExtensionFields
+          ? renderExtensionFields({ errors: extensionErrors, disabled: submitting })
+          : null}
+
         <RequestFormFields
           values={values}
           errors={errors}

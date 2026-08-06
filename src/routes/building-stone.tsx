@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { RouteSkeleton } from "@/components/layout/route-skeleton";
+import { BuildingStonePage } from "@/components/building-stone/building-stone-page";
+import { getSite } from "@/lib/content/adapters";
 
 export const Route = createFileRoute("/building-stone")({
+  loader: async () => ({ site: (await getSite()) ?? null }),
   head: () => ({
     meta: [
       { title: "سنگ ساختمانی — مهرآرا" },
@@ -16,5 +18,6 @@ export const Route = createFileRoute("/building-stone")({
 });
 
 function BuildingStoneRoute() {
-  return <RouteSkeleton title="سنگ ساختمانی" />;
+  const { site } = Route.useLoaderData();
+  return <BuildingStonePage site={site} />;
 }
