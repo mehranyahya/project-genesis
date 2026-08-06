@@ -16,10 +16,13 @@ import type {
   RequestSource,
   RequestTermsDocument,
 } from "../request-form";
-import { EMPTY_REQUEST_FORM_VALUES, REQUEST_FIELD_ORDER, buildRequestPayload } from "../request-form";
+import {
+  EMPTY_REQUEST_FORM_VALUES,
+  REQUEST_FIELD_ORDER,
+  buildRequestPayload,
+} from "../request-form";
 import type { RequestSubmitTransport, SubmitOutcome } from "../request-submit";
 import { createSubmissionId, submitRequest } from "../request-submit";
-
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
@@ -257,7 +260,6 @@ test("24 the dedicated new-attempt action clears the id and runs once with the p
     ),
   );
 });
-
 
 test("25 a real semantic source change invalidates the source-coupled state only", () => {
   const form = stripComments(read(FORM));

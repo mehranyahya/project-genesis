@@ -98,7 +98,6 @@ function firstMappedFieldError(errors: RequestFieldErrors): RequestFieldKey | nu
   return REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
 }
 
-
 export function RequestForm({
   source,
   site,
@@ -269,7 +268,6 @@ export function RequestForm({
       transport,
       values,
     ],
-
   );
 
   if (phase === "success" && trackingCode !== null) {
@@ -321,7 +319,6 @@ export function RequestForm({
             setFreshAttemptRequired(false);
             void run(priceRevision, { allowFreshAttempt: true });
           }}
-
         />
       </div>
     </form>
