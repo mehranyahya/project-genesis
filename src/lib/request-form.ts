@@ -205,7 +205,7 @@ function optionalText(value: string): string | null {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Extension point (Prompt 09)                                                 */
+/* Extension contract                                                          */
 /* -------------------------------------------------------------------------- */
 
 export interface RequestFormExtensionFieldSlot {
@@ -214,26 +214,95 @@ export interface RequestFormExtensionFieldSlot {
   readonly required: boolean;
 }
 
-export interface RequestFormExtension<TValues, TPayload> {
-  readonly kind: BuildingStoneRequestKind;
-  readonly fields: readonly RequestFormExtensionFieldSlot[];
-  readonly initialValues: TValues;
-  readonly validate: (values: TValues) => Readonly<Record<string, string>>;
-  readonly buildPayload: (values: TValues) => TPayload | null;
-  readonly resolvePrice?: (values: TValues) => {
-    readonly priceType: PriceType;
-    readonly amountToman: number | null;
-  };
+/** The shared-form values an extension is allowed to read. */
+export interface RequestFormExtensionContext {
+  readonly customerNote: string;
+}
+
+/** The only shared field an extension may raise an error on. */
+export interface RequestFormExtensionCommonErrors {
+  readonly customerNote?: string;
+}
+
+export interface RequestFormExtensionValidation<TSelection> {
+  readonly valid: boolean;
+  readonly errors: Readonly<Record<string, string>>;
+  readonly firstInvalidField: string | null;
+  readonly commonErrors: RequestFormExtensionCommonErrors;
+  readonly selection: TSelection | null;
 }
 
 /**
- * The single active extension. It is typed against the concrete building-stone
- * value and payload types, so no `unknown` or `any` is needed anywhere.
+ * The type-safe contract the shared form consumes. Every rule of the extended
+ * request lives here: field order, validation, payload, price and identity.
+ * Nothing is duplicated by the shared form itself.
  */
-export const BUILDING_STONE_EXTENSION: RequestFormExtension<
+export interface RequestFormExtension<TValues, TPayload, TSelection> {
+  readonly kind: BuildingStoneRequestKind;
+  readonly fields: readonly RequestFormExtensionFieldSlot[];
+  readonly fieldOrder: readonly string[];
+  readonly initialValues: TValues;
+  readonly validate: (
+    values: TValues,
+    context: RequestFormExtensionContext,
+  ) => RequestFormExtensionValidation<TSelection>;
+  readonly buildPayload: (values: TValues) => TPayload | null;
+  readonly resolvePrice: (values: TValues) => {
+    readonly priceType: PriceType;
+    readonly amountToman: number | null;
+  };
+  readonly identity: (values: TValues) => string;
+}
+
+export type BuildingStoneExtensionContract = RequestFormExtension<
   BuildingStoneValues,
-  BuildingStonePayloadFields
-> = buildingStoneExtension;
+  BuildingStonePayloadFields,
+  BuildingStoneNormalizedSelection
+>;
+
+/**
+ * The single active extension. It is typed against the concrete building-stone
+ * value, payload and selection types, so no `unknown` or `any` is needed.
+ */
+export const BUILDING_STONE_EXTENSION: BuildingStoneExtensionContract = buildingStoneExtension;
+
+/** The official extension of a source, or null when the source needs none. */
+export function resolveRequestFormExtension(
+  source: RequestSource,
+): BuildingStoneExtensionContract | null {
+  return source.kind === "building_stone" ? BUILDING_STONE_EXTENSION : null;
+}
+
+interface ExtensionBinding {
+  readonly ok: boolean;
+  readonly extension: BuildingStoneExtensionContract | null;
+}
+
+/**
+ * An omitted `extension` key resolves the official contract. An explicitly
+ * passed `null` or a contract of a different kind is a mismatch: the request
+ * is invalid and no payload is ever produced from it.
+ */
+function bindExtension(input: {
+  readonly source: RequestSource;
+  readonly extension?: BuildingStoneExtensionContract | null;
+}): ExtensionBinding {
+  const { source } = input;
+  if (source.kind !== "building_stone") return { ok: true, extension: null };
+  const provided = Object.prototype.hasOwnProperty.call(input, "extension")
+    ? (input.extension ?? null)
+    : BUILDING_STONE_EXTENSION;
+  if (provided === null || provided.kind !== source.kind) return { ok: false, extension: null };
+  return { ok: true, extension: provided };
+}
+
+/** The canonical, personal-data-free identity of a request source. */
+export function requestSourceSelectionIdentity(source: RequestSource): string | null {
+  if (source.kind !== "building_stone") return null;
+  const extension = resolveRequestFormExtension(source);
+  return extension === null ? null : extension.identity(source.selection);
+}
+
 
 /* -------------------------------------------------------------------------- */
 /* Validation                                                                  */
