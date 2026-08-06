@@ -342,3 +342,13 @@ export const buildingStoneExtension = {
   buildPayload: buildBuildingStonePayloadFields,
   resolvePrice: () => BUILDING_STONE_PRICE,
 } as const;
+
+/* -------------------------------------------------------------------------- */
+/* Field identifiers                                                           */
+/* -------------------------------------------------------------------------- */
+
+export const BUILDING_STONE_FIELD_ID_PREFIX = "building-stone";
+
+/** Stable, focusable DOM ids shared by the fields and the focus logic. */
+export const buildingStoneFieldId = (key: string) => `${BUILDING_STONE_FIELD_ID_PREFIX}-${key}`;
+export const buildingStoneErrorId = (key: string) => `${BUILDING_STONE_FIELD_ID_PREFIX}-${key}-error`;
