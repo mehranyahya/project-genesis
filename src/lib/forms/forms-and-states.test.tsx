@@ -812,3 +812,143 @@ test("45 the dedicated handler guards in-flight work before any mutation", () =>
   assert.equal(form.split("allowFreshAttempt: true").length - 1, 1);
   assert.ok(!/setTimeout|setInterval|debounce/.test(form));
 });
+
+/* -------------------------------------------------------------------------- */
+/* Building-stone runtime behaviour                                            */
+/* -------------------------------------------------------------------------- */
+
+const stoneValues = (over: Partial<BuildingStoneValues> = {}): BuildingStoneValues => ({
+  ...EMPTY_BUILDING_STONE_VALUES,
+  stoneType: "travertine",
+  application: "facade",
+  areaM2Input: "",
+  ...over,
+});
+
+const stoneSource = (over: Partial<BuildingStoneValues> = {}): RequestSource => ({
+  kind: "building_stone",
+  selection: stoneValues(over),
+});
+
+test("46 the focus target follows the extension-then-shared field order", () => {
+  const empty = validateRequestForm({
+    values: VALUES,
+    source: { kind: "building_stone", selection: EMPTY_BUILDING_STONE_VALUES },
+  });
+  assert.equal(
+    resolvePendingFocusId(empty, buildingStoneFieldId),
+    buildingStoneFieldId("stoneType"),
+  );
+
+  const area = validateRequestForm({
+    values: VALUES,
+    source: stoneSource({ areaM2Input: " 120" }),
+  });
+  assert.equal(resolvePendingFocusId(area, buildingStoneFieldId), buildingStoneFieldId("areaM2"));
+
+  // The "other" description is a shared field, so it focuses the shared element.
+  const note = validateRequestForm({
+    values: { ...VALUES, customerNote: "" },
+    source: stoneSource({ application: "other" }),
+  });
+  assert.equal(resolvePendingFocusId(note, buildingStoneFieldId), fieldId("customerNote"));
+
+  const contact = validateRequestForm({
+    values: { ...VALUES, phone: "" },
+    source: contactSource(null),
+  });
+  assert.equal(resolvePendingFocusId(contact, buildingStoneFieldId), fieldId("phone"));
+
+  const valid = validateRequestForm({ values: VALUES, source: stoneSource() });
+  assert.equal(resolvePendingFocusId(valid, buildingStoneFieldId), null);
+  assert.equal(serverFocusDomId({ phone: "خطا" }), fieldId("phone"));
+  assert.equal(serverFocusDomId({}), null);
+});
+
+test("47 a building submission sends exactly one review payload", async () => {
+  const created = reply(201, { status: "REQUEST_CREATED", tracking_code: "MA-1001" });
+  const harness = createHarness(stoneSource({ areaM2Input: "1,000" }), async () => created);
+  await harness.run();
+  assert.equal(harness.payloads.length, 1);
+  const payload = harness.payloads[0];
+  assert.ok(payload !== undefined && payload.request_type === "building_stone");
+  assert.equal(payload.client_price_type, "review");
+  assert.equal(payload.client_displayed_price, null);
+  assert.equal(payload.area_m2, 1000);
+  assert.equal(harness.state.trackingCode, "MA-1001");
+});
+
+test("48 an invalid building selection never reaches the transport", async () => {
+  let calls = 0;
+  const harness = createHarness(
+    { kind: "building_stone", selection: EMPTY_BUILDING_STONE_VALUES },
+    async () => {
+      calls += 1;
+      return reply(201, { status: "REQUEST_CREATED", tracking_code: "MA-1001" });
+    },
+  );
+  await harness.run();
+  assert.equal(calls, 0);
+  assert.equal(harness.payloads.length, 0);
+  assert.equal(harness.state.payloadBlocked, 1);
+  assert.equal(harness.state.trackingCode, null);
+});
+
+test("49 a missing binding blocks the building submission entirely", async () => {
+  let calls = 0;
+  const harness = createHarness(
+    stoneSource(),
+    async () => {
+      calls += 1;
+      return reply(201, { status: "REQUEST_CREATED", tracking_code: "MA-1001" });
+    },
+    { extension: null },
+  );
+  await harness.run();
+  assert.equal(calls, 0);
+  assert.equal(harness.state.payloadBlocked, 1);
+
+  const bound = createHarness(stoneSource(), async () => reply(201, {
+    status: "REQUEST_CREATED",
+    tracking_code: "MA-1002",
+  }), { extension: BUILDING_STONE_EXTENSION });
+  await bound.run();
+  assert.equal(bound.state.trackingCode, "MA-1002");
+  assert.equal(BUILDING_STONE_EXTENSION, buildingStoneExtension);
+});
+
+test("50 a purely visual area change is not a semantic source change", async () => {
+  const conflict = reply(409, { error: "IDEMPOTENCY_CONFLICT" });
+  const harness = createHarness(stoneSource({ areaM2Input: "1000" }), async () => conflict);
+  await harness.run();
+  assert.equal(harness.state.freshAttemptRequired, true);
+
+  // The same area written with a group separator is the same selection.
+  harness.setSource(stoneSource({ areaM2Input: "1,000" }));
+  assert.equal(harness.state.freshAttemptRequired, true, "no reset without a real change");
+
+  harness.setSource(stoneSource({ areaM2Input: "1001" }));
+  assert.equal(harness.state.freshAttemptRequired, false, "a real change resets the block");
+});
+
+test("51 a building response from an obsolete selection is discarded", async () => {
+  const slow = deferredTransport(reply(201, { status: "REQUEST_CREATED", tracking_code: "MA-1001" }));
+  const harness = createHarness(stoneSource({ application: "facade" }), slow.transport);
+  const pending = harness.run();
+  harness.setSource(stoneSource({ application: "stairs" }));
+  slow.release();
+  await pending;
+  assert.equal(harness.state.trackingCode, null);
+  assert.equal(harness.state.outcome, null);
+  assert.equal(harness.state.successCalls.length, 0);
+});
+
+test("52 the building page and form never carry personal data in the source", () => {
+  const page = stripComments(read("components/building-stone/building-stone-page.tsx"));
+  assert.ok(page.includes("<RequestForm"));
+  assert.ok(page.includes("buildingStoneExtension"));
+  assert.ok(!/customerName|phone|localStorage|sessionStorage|location\.search/.test(page));
+  const identity = sourceIdentity(stoneSource());
+  assert.ok(!identity.includes("علی"));
+  assert.ok(!identity.includes("0912"));
+});
