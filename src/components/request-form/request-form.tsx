@@ -314,6 +314,9 @@ export function RequestForm({
           onRetry={() => void run(priceRevision)}
           onConfirmPrice={() => void run(priceRevision)}
           onNewAttempt={() => {
+            // A second click while the fresh attempt is running must not touch
+            // the submission id, the outcome or the fresh-attempt block.
+            if (inFlight.current) return;
             submissionId.current = null;
             setOutcome(null);
             setFreshAttemptRequired(false);
