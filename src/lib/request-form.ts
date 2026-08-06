@@ -273,15 +273,28 @@ export function validateRequestForm(input: {
   const note = optionalText(values.customerNote);
   if (note !== null && note.length > 1000) errors.customerNote = REQUEST_FIELD_ERRORS.customerNote;
 
+  // The "other" application needs its description in the shared note field, so
+  // the payload carries it exactly once, in `customer_note`.
+  const buildingStone = source.kind === "building_stone";
+  const extension = buildingStone
+    ? validateBuildingStoneSelection(source.selection)
+    : { errors: {} as Readonly<Record<string, string>>, firstInvalidField: null };
+  if (buildingStone) {
+    const noteError = validateBuildingStoneNote(source.selection.application, values.customerNote);
+    if (noteError !== null) errors.customerNote = noteError;
+  }
+
   if (values.termsAccepted !== true) errors.termsAccepted = REQUEST_FIELD_ERRORS.termsAccepted;
 
   const firstInvalidField = REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
-  const valid = firstInvalidField === null;
+  const valid = firstInvalidField === null && extension.firstInvalidField === null;
 
   return {
     valid,
     errors,
     firstInvalidField,
+    extensionErrors: extension.errors,
+    firstInvalidExtensionField: extension.firstInvalidField,
     fields:
       valid && phone !== null && preferredContact !== null
         ? {
