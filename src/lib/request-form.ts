@@ -233,6 +233,9 @@ export interface RequestFormValidation {
   readonly valid: boolean;
   readonly errors: RequestFieldErrors;
   readonly firstInvalidField: RequestFieldKey | null;
+  /** Errors of the active extension, keyed by its own field keys. */
+  readonly extensionErrors: Readonly<Record<string, string>>;
+  readonly firstInvalidExtensionField: string | null;
   readonly fields: NormalizedRequestFields | null;
 }
 
