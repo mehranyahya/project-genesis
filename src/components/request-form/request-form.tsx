@@ -43,7 +43,7 @@ const PII_FREE_VALUES = EMPTY_REQUEST_FORM_VALUES;
  * content is not a selection change, so a re-render never clears a blocked
  * selection or a pending price revision.
  */
-function sourceIdentity(source: RequestSource): string {
+export function sourceIdentity(source: RequestSource): string {
   if (source.kind === "grave_stone") {
     const draft = source.draft;
     const snapshot = draft.displaySnapshot;
