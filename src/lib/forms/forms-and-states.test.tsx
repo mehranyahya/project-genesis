@@ -244,7 +244,9 @@ test("21 a server validation error is ordered through REQUEST_FIELD_ORDER and fo
 
 test("22 every validation focus is committed first and applied by the single effect", () => {
   const form = stripComments(read(FORM));
-  assert.ok(form.includes("setPendingFocusId(resolvePendingFocusId(validation, extensionFieldId))"));
+  assert.ok(
+    form.includes("setPendingFocusId(resolvePendingFocusId(validation, extensionFieldId))"),
+  );
   assert.ok(form.includes("validation.firstInvalidField"));
   // No path focuses an element inline; the effect is the only focusing code.
   assert.ok(!form.includes("focusById("));
@@ -908,10 +910,15 @@ test("49 a missing binding blocks the building submission entirely", async () =>
   assert.equal(calls, 0);
   assert.equal(harness.state.payloadBlocked, 1);
 
-  const bound = createHarness(stoneSource(), async () => reply(201, {
-    code: "REQUEST_CREATED",
-    tracking_code: "MA-1002",
-  }), { extension: BUILDING_STONE_EXTENSION });
+  const bound = createHarness(
+    stoneSource(),
+    async () =>
+      reply(201, {
+        code: "REQUEST_CREATED",
+        tracking_code: "MA-1002",
+      }),
+    { extension: BUILDING_STONE_EXTENSION },
+  );
   await bound.run();
   assert.equal(bound.state.trackingCode, "MA-1002");
   assert.equal(BUILDING_STONE_EXTENSION, buildingStoneExtension);

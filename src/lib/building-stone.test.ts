@@ -234,13 +234,27 @@ test("26 unambiguous thousand grouping is accepted in every official representat
 });
 
 test("27 ambiguous or malformed grouping is rejected", () => {
-  for (const input of ["1,2", "1 2", "12\u066c34", "1\u066c23\u066c456", "1,234\u066c567", "1 234,567"]) {
+  for (const input of [
+    "1,2",
+    "1 2",
+    "12\u066c34",
+    "1\u066c23\u066c456",
+    "1,234\u066c567",
+    "1 234,567",
+  ]) {
     assert.deepEqual(normalizeAreaM2(input), { ok: false }, input);
   }
 });
 
 test("28 a group separator inside the fraction and multiple decimal separators are rejected", () => {
-  for (const input of ["1.234,567", "1.2 3", "1\u066b234\u066c567", "1.2.3", "1\u066b2\u066b3", "1.2\u066b3"]) {
+  for (const input of [
+    "1.234,567",
+    "1.2 3",
+    "1\u066b234\u066c567",
+    "1.2.3",
+    "1\u066b2\u066b3",
+    "1.2\u066b3",
+  ]) {
     assert.deepEqual(normalizeAreaM2(input), { ok: false }, input);
   }
 });

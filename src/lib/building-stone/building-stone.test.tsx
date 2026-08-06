@@ -323,7 +323,7 @@ test("24 the page binds the official extension contract, not a local copy", () =
   const page = stripComments(read(PAGE));
   assert.ok(page.includes("buildingStoneExtension"));
   assert.ok(page.includes("contract: buildingStoneExtension"));
-  assert.ok(page.includes("kind: \"building_stone\""));
+  assert.ok(page.includes('kind: "building_stone"'));
   assert.ok(page.includes("fieldId: buildingStoneFieldId"));
   assert.ok(page.includes("extension={binding}"));
   // No parallel validation, payload, price or submission logic on the page.
@@ -383,7 +383,9 @@ test("28 the area field accepts the official representations through the shared 
       values: filled(),
       termsDocument: TERMS,
     });
-    return payload !== null && payload.request_type === "building_stone" ? payload.area_m2 : "blocked";
+    return payload !== null && payload.request_type === "building_stone"
+      ? payload.area_m2
+      : "blocked";
   };
   assert.equal(areaOf("1,000"), 1000);
   assert.equal(areaOf("۱\u066c۰۰۰"), 1000);
@@ -395,7 +397,9 @@ test("28 the area field accepts the official representations through the shared 
 
 test("29 the focus contract is committed, never applied inline", () => {
   const form = stripComments(read(FORM));
-  assert.ok(form.includes("setPendingFocusId(resolvePendingFocusId(validation, extensionFieldId))"));
+  assert.ok(
+    form.includes("setPendingFocusId(resolvePendingFocusId(validation, extensionFieldId))"),
+  );
   assert.ok(form.includes("}, [pendingFocusId]);"));
   assert.ok(!form.includes("focusById("));
   assert.equal(form.split(".focus();").length - 1, 1);
