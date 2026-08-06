@@ -178,9 +178,13 @@ export function RequestForm({
   };
 
   const run = useCallback(
-    async (revision: PriceRevision | null) => {
+    async (revision: PriceRevision | null, options?: { readonly allowFreshAttempt?: boolean }) => {
+      const allowFreshAttempt = options?.allowFreshAttempt === true;
       if (inFlight.current) return;
       if (!termsReady || selectionBlocked) return;
+      // After an idempotency outcome only the dedicated action may submit again;
+      // the main submit button and the Enter key stay inert.
+      if (freshAttemptRequired && !allowFreshAttempt) return;
 
       const validation = validateRequestForm({ values, source });
       setErrors(validation.errors);
@@ -201,6 +205,7 @@ export function RequestForm({
       if (payload === null) return;
 
       const attempt = attemptIdentity.current;
+      const attemptGeneration = generationTracker.current?.current() ?? generation;
 
       inFlight.current = true;
       setPhase("submitting");
@@ -210,6 +215,10 @@ export function RequestForm({
 
       // A stale response from an obsolete source attempt is ignored completely.
       if (attempt !== attemptIdentity.current) return;
+      // An A -> B -> A cycle restores the identity string but never the epoch.
+      if (isStaleAttempt(attemptGeneration, generationTracker.current?.current() ?? generation)) {
+        return;
+      }
 
       inFlight.current = false;
       setOutcome(result);
@@ -236,9 +245,11 @@ export function RequestForm({
           break;
         case "idempotency_conflict":
         case "idempotency_expired":
-          // No automatic retry: only the dedicated action starts a new attempt.
-          submissionId.current = null;
+          // No automatic retry and no eager id reset: only the dedicated action
+          // releases the block and generates a fresh submission id.
+          setFreshAttemptRequired(true);
           break;
+
         case "validation_error":
           setErrors(result.fieldErrors);
           setPendingFocus(firstMappedFieldError(result.fieldErrors));
