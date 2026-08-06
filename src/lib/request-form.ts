@@ -400,6 +400,18 @@ export function buildRequestPayload(input: {
     };
   }
 
+  if (source.kind === "building_stone") {
+    const selection = buildBuildingStonePayloadFields(source.selection);
+    if (selection === null) return null;
+    return {
+      submission_id: submissionId,
+      request_type: "building_stone",
+      ...selection,
+      ...validation.fields,
+      ...terms,
+    };
+  }
+
   const reference = normalizePortfolioReference(source.portfolioReferenceId);
   const referral =
     reference === null
