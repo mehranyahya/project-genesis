@@ -320,7 +320,11 @@ export function RequestForm({
         void run(priceRevision);
       }}
     >
-      <div className="col-span-4 md:col-span-8 lg:col-span-8">
+      <div className="col-span-4 flex flex-col gap-5 md:col-span-8 lg:col-span-8">
+        {renderExtensionFields
+          ? renderExtensionFields({ errors: extensionErrors, disabled: submitting })
+          : null}
+
         <RequestFormFields
           values={values}
           errors={errors}
