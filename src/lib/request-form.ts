@@ -327,12 +327,15 @@ export interface RequestFormValidation {
   /** Errors of the active extension, keyed by its own field keys. */
   readonly extensionErrors: Readonly<Record<string, string>>;
   readonly firstInvalidExtensionField: string | null;
+  /** False when a building source has no compatible extension bound. */
+  readonly extensionBound: boolean;
   readonly fields: NormalizedRequestFields | null;
 }
 
 export function validateRequestForm(input: {
   readonly values: RequestFormValues;
   readonly source: RequestSource;
+  readonly extension?: BuildingStoneExtensionContract | null;
 }): RequestFormValidation {
   const { values, source } = input;
   const errors: Partial<Record<RequestFieldKey, string>> = {};
@@ -367,28 +370,30 @@ export function validateRequestForm(input: {
   const note = optionalText(values.customerNote);
   if (note !== null && note.length > 1000) errors.customerNote = REQUEST_FIELD_ERRORS.customerNote;
 
-  // The "other" application needs its description in the shared note field, so
-  // the payload carries it exactly once, in `customer_note`.
-  const buildingStone = source.kind === "building_stone";
-  const extension = buildingStone
-    ? validateBuildingStoneSelection(source.selection)
-    : { errors: {} as Readonly<Record<string, string>>, firstInvalidField: null };
-  if (buildingStone) {
-    const noteError = validateBuildingStoneNote(source.selection.application, values.customerNote);
-    if (noteError !== null) errors.customerNote = noteError;
-  }
+  // Every extended rule comes from the bound extension contract. The shared
+  // form only branches on the kind to pick the extension, never to re-implement
+  // its validation, and the "other" description stays a shared-field error.
+  const binding = bindExtension(input);
+  const extension =
+    source.kind === "building_stone" && binding.extension !== null
+      ? binding.extension.validate(source.selection, { customerNote: values.customerNote })
+      : null;
+  const noteError = extension?.commonErrors.customerNote;
+  if (noteError !== undefined) errors.customerNote = noteError;
 
   if (values.termsAccepted !== true) errors.termsAccepted = REQUEST_FIELD_ERRORS.termsAccepted;
 
   const firstInvalidField = REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
-  const valid = firstInvalidField === null && extension.firstInvalidField === null;
+  const valid =
+    binding.ok && firstInvalidField === null && (extension === null || extension.valid);
 
   return {
     valid,
     errors,
     firstInvalidField,
-    extensionErrors: extension.errors,
-    firstInvalidExtensionField: extension.firstInvalidField,
+    extensionErrors: extension?.errors ?? {},
+    firstInvalidExtensionField: extension?.firstInvalidField ?? null,
+    extensionBound: binding.ok,
     fields:
       valid && phone !== null && preferredContact !== null
         ? {
@@ -403,6 +408,7 @@ export function validateRequestForm(input: {
         : null,
   };
 }
+
 
 /* -------------------------------------------------------------------------- */
 /* Payload                                                                     */
