@@ -2,10 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import {
-  SUBMIT_FLOOD_LIMIT_BINDING,
-  enforcePublicSubmitFloodLimit,
-} from "../server";
+import { SUBMIT_FLOOD_LIMIT_BINDING, enforcePublicSubmitFloodLimit } from "../server";
 
 const endpoint = "https://mehrara.example/api/submit-request";
 const ip = "203.0.113.7";
