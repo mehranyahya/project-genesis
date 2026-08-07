@@ -264,7 +264,10 @@ export function hmacSha256Hex(key: string, value: string): string {
   return createHmac("sha256", key).update(value, "utf8").digest("hex");
 }
 
-export function requestFingerprint(payload: ServerRequestPayload, config: RequestApiConfig): string {
+export function requestFingerprint(
+  payload: ServerRequestPayload,
+  config: RequestApiConfig,
+): string {
   return hmacSha256Hex(config.fingerprintKey, stableJson(payload));
 }
 
