@@ -199,6 +199,7 @@ begin
      or p_attempt is null
      or p_attempt < 1
      or p_attempt > 5
+     or p_outcome is null
      or p_outcome not in ('sent', 'retryable', 'permanent_failure')
      or (p_retry_after_seconds is not null and p_retry_after_seconds < 1)
      or (p_outcome <> 'retryable' and p_retry_after_seconds is not null) then
