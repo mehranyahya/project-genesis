@@ -1,8 +1,9 @@
 /**
  * The only content surface routes may consume.
- * Default implementations are intentionally empty: no sample data, no fabricated
- * prices, contacts, media or copy ever enter runtime. Absent data is modelled
- * as [] / null so sections can be omitted entirely.
+ * Operational structured content is loaded through TanStack server functions;
+ * routes/components never import Supabase or server credentials directly.
+ * Guides and long-form pages remain Git-versioned and intentionally blocked
+ * until their repository is wired in the content integration stage.
  */
 
 import type {
@@ -17,20 +18,24 @@ import type {
   ProductQuery,
   Site,
 } from "./types";
+import {
+  getCatalogVersionFromServer,
+  getPortfolioItemsFromServer,
+  getProductFromServer,
+  getProductsFromServer,
+  getSiteFromServer,
+} from "./supabase.functions";
 
 export async function getProducts(query?: ProductQuery): Promise<Product[]> {
-  void query;
-  return [];
+  return getProductsFromServer({ data: query ?? {} });
 }
 
 export async function getProduct(slug: string): Promise<Product | null> {
-  void slug;
-  return null;
+  return getProductFromServer({ data: { slug } });
 }
 
 export async function getPortfolioItems(query?: PortfolioQuery): Promise<PortfolioItem[]> {
-  void query;
-  return [];
+  return getPortfolioItemsFromServer({ data: query ?? {} });
 }
 
 export async function getGuides(query?: GuideQuery): Promise<Guide[]> {
@@ -44,7 +49,7 @@ export async function getGuide(slug: string): Promise<Guide | null> {
 }
 
 export async function getSite(): Promise<Site | null> {
-  return null;
+  return getSiteFromServer();
 }
 
 export async function getPage(slug: PageSlug): Promise<Page | null> {
@@ -53,5 +58,5 @@ export async function getPage(slug: PageSlug): Promise<Page | null> {
 }
 
 export async function getCatalogVersion(): Promise<CatalogVersion | null> {
-  return null;
+  return getCatalogVersionFromServer();
 }
