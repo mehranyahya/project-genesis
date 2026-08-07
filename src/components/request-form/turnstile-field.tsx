@@ -12,14 +12,17 @@ interface TurnstileApi {
       action: string;
       theme: "light";
       size: "flexible";
+      execution: "execute";
       appearance: "interaction-only";
       language: "fa";
+      "refresh-expired": "auto";
       callback: (token: string) => void;
       "error-callback": () => boolean;
       "expired-callback": () => void;
       "timeout-callback": () => void;
     },
   ): string;
+  execute(container: HTMLElement): void;
   reset(widgetId: string): void;
   remove(widgetId: string): void;
 }
@@ -28,6 +31,11 @@ declare global {
   interface Window {
     turnstile?: TurnstileApi;
   }
+}
+
+interface PendingExecution {
+  readonly promise: Promise<string | null>;
+  readonly resolve: (token: string | null) => void;
 }
 
 let loader: Promise<TurnstileApi> | null = null;
@@ -78,37 +86,64 @@ function loadTurnstile(): Promise<TurnstileApi> {
 }
 
 export interface TurnstileFieldHandle {
+  readonly execute: () => Promise<string | null>;
   readonly reset: () => void;
 }
 
-export const TurnstileField = forwardRef<
-  TurnstileFieldHandle,
-  { readonly onTokenChange: (token: string | null) => void }
->(function TurnstileField({ onTokenChange }, ref) {
+export const TurnstileField = forwardRef<TurnstileFieldHandle>(function TurnstileField(_, ref) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const apiRef = useRef<TurnstileApi | null>(null);
   const widgetIdRef = useRef<string | null>(null);
-  const [state, setState] = useState<"loading" | "ready" | "unavailable">("loading");
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      reset: () => {
-        onTokenChange(null);
-        setState("loading");
-        if (apiRef.current !== null && widgetIdRef.current !== null) {
-          apiRef.current.reset(widgetIdRef.current);
-        }
-      },
-    }),
-    [onTokenChange],
+  const pendingRef = useRef<PendingExecution | null>(null);
+  const [state, setState] = useState<"loading" | "ready" | "verifying" | "unavailable">(
+    "loading",
   );
+
+  const settlePending = (token: string | null) => {
+    const pending = pendingRef.current;
+    if (pending === null) return;
+    pendingRef.current = null;
+    pending.resolve(token);
+  };
+
+  useImperativeHandle(ref, () => ({
+    execute: () => {
+      if (pendingRef.current !== null) return pendingRef.current.promise;
+
+      const api = apiRef.current;
+      const container = containerRef.current;
+      if (api === null || container === null || widgetIdRef.current === null) {
+        return Promise.resolve(null);
+      }
+
+      let resolvePending!: (token: string | null) => void;
+      const promise = new Promise<string | null>((resolve) => {
+        resolvePending = resolve;
+      });
+      pendingRef.current = { promise, resolve: resolvePending };
+      setState("verifying");
+
+      try {
+        api.execute(container);
+      } catch {
+        settlePending(null);
+        setState("unavailable");
+      }
+      return promise;
+    },
+    reset: () => {
+      settlePending(null);
+      if (apiRef.current !== null && widgetIdRef.current !== null) {
+        apiRef.current.reset(widgetIdRef.current);
+        setState("ready");
+      }
+    },
+  }));
 
   useEffect(() => {
     const key = siteKey();
     const container = containerRef.current;
     if (key === null || container === null) {
-      onTokenChange(null);
       setState("unavailable");
       return;
     }
@@ -124,57 +159,63 @@ export const TurnstileField = forwardRef<
           action: ACTION,
           theme: "light",
           size: "flexible",
+          execution: "execute",
           appearance: "interaction-only",
           language: "fa",
+          "refresh-expired": "auto",
           callback: (token) => {
             if (cancelled) return;
-            onTokenChange(token);
+            settlePending(token);
             setState("ready");
           },
           "error-callback": () => {
             if (!cancelled) {
-              onTokenChange(null);
+              settlePending(null);
               setState("unavailable");
             }
             return true;
           },
           "expired-callback": () => {
             if (!cancelled) {
-              onTokenChange(null);
-              setState("loading");
+              settlePending(null);
+              setState("ready");
             }
           },
           "timeout-callback": () => {
             if (!cancelled) {
-              onTokenChange(null);
-              setState("loading");
+              settlePending(null);
+              setState("unavailable");
             }
           },
         });
+        setState("ready");
       })
       .catch(() => {
         if (!cancelled) {
-          onTokenChange(null);
+          settlePending(null);
           setState("unavailable");
         }
       });
 
     return () => {
       cancelled = true;
-      onTokenChange(null);
+      settlePending(null);
       if (apiRef.current !== null && widgetIdRef.current !== null) {
         apiRef.current.remove(widgetIdRef.current);
       }
       widgetIdRef.current = null;
       apiRef.current = null;
     };
-  }, [onTokenChange]);
+  }, []);
 
   return (
     <div className="flex min-h-11 flex-col gap-2" aria-live="polite">
       <div ref={containerRef} className="min-h-11 w-full" />
       {state === "loading" ? (
         <p className="text-sm text-text-secondary">در حال آماده‌سازی تأیید امنیتی…</p>
+      ) : null}
+      {state === "verifying" ? (
+        <p className="text-sm text-text-secondary">در حال انجام تأیید امنیتی…</p>
       ) : null}
       {state === "unavailable" ? (
         <p role="alert" className="text-sm text-text-secondary">
