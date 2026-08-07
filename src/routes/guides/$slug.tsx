@@ -3,20 +3,22 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { GuideDetailPage, GuideError, GuidesLoading } from "@/components/guides/guides";
 import { getGuide } from "@/lib/content/adapters";
 import { buildGuideDetailModel } from "@/lib/guides";
+import type { GuideDetailModel } from "@/lib/guides";
 
 export const Route = createFileRoute("/guides/$slug")({
-  head: ({ loaderData }) => {
-    if (!loaderData) {
+  head: (ctx) => {
+    const guide = ctx.loaderData as GuideDetailModel | undefined;
+    if (!guide) {
       return { meta: [{ name: "robots", content: "noindex" }] };
     }
     return {
       meta: [
-        { title: loaderData.metaTitle },
-        ...(loaderData.metaDescription
-          ? [{ name: "description", content: loaderData.metaDescription }]
+        { title: guide.metaTitle },
+        ...(guide.metaDescription
+          ? [{ name: "description", content: guide.metaDescription }]
           : []),
       ],
-      links: [{ rel: "canonical", href: loaderData.path }],
+      links: [{ rel: "canonical", href: guide.path }],
     };
   },
   loader: async ({ params }) => {
