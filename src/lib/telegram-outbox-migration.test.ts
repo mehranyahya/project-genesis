@@ -3,10 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const migration = readFileSync(
-  new URL(
-    "../../supabase/migrations/20260807190000_add_telegram_outbox_rpcs.sql",
-    import.meta.url,
-  ),
+  new URL("../../supabase/migrations/20260807190000_add_telegram_outbox_rpcs.sql", import.meta.url),
   "utf8",
 );
 
@@ -128,6 +125,9 @@ test("Telegram RPCs are SECURITY DEFINER, fixed-path and service-role only", () 
 });
 
 test("outbox migration never edits the request creation RPC", () => {
-  assert.equal(/create\s+(or\s+replace\s+)?function\s+public\.create_request_atomic\b/i.test(migration), false);
+  assert.equal(
+    /create\s+(or\s+replace\s+)?function\s+public\.create_request_atomic\b/i.test(migration),
+    false,
+  );
   assert.equal(/alter\s+function\s+public\.create_request_atomic\b/i.test(migration), false);
 });
