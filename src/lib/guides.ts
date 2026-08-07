@@ -35,8 +35,7 @@ function formatUpdatedAt(value: unknown): string | null {
  * ------------------------------------------------------------------ */
 
 export type GuideInline =
-  | { kind: "text"; text: string }
-  | { kind: "link"; href: string; text: string };
+  { kind: "text"; text: string } | { kind: "link"; href: string; text: string };
 
 export type GuideBlock =
   | { kind: "paragraph"; content: GuideInline[] }
@@ -50,7 +49,7 @@ export function isSafeGuideHref(value: unknown): boolean {
   if (typeof value !== "string") return false;
   const href = value.trim();
   if (href === "" || href !== value.trim() || /[\s<>"']/.test(href)) return false;
-  if (/[\u0000-\u001f]/.test(href)) return false;
+  for (const char of href) if (char.charCodeAt(0) < 0x20) return false;
   if (href.startsWith("//")) return false;
   if (href.startsWith("/")) return true;
   return /^https:\/\/[^/\s]+/i.test(href);
@@ -184,9 +183,7 @@ export interface GuideDetailModel {
 }
 
 /** Ordered list model. Entries without a real slug and title are dropped. */
-export function buildGuideListModel(
-  guides: readonly Guide[] | null | undefined,
-): GuideListItem[] {
+export function buildGuideListModel(guides: readonly Guide[] | null | undefined): GuideListItem[] {
   const items: GuideListItem[] = [];
   const seen = new Set<string>();
 

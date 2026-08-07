@@ -29,9 +29,12 @@ function links(blocks: GuideBlock[]) {
   const found: { href: string; text: string }[] = [];
   for (const block of blocks) {
     const contents =
-      block.kind === "list" ? block.items : [block.kind === "paragraph" ? block.content : block.content];
+      block.kind === "list"
+        ? block.items
+        : [block.kind === "paragraph" ? block.content : block.content];
     for (const content of contents) {
-      for (const node of content) if (node.kind === "link") found.push({ href: node.href, text: node.text });
+      for (const node of content)
+        if (node.kind === "link") found.push({ href: node.href, text: node.text });
     }
   }
   return found;
@@ -84,7 +87,9 @@ test("5 the slug becomes the correct internal guide path", () => {
 
 test("6 ordinary markdown becomes the expected safe model", () => {
   const blocks = parseGuideMarkdown(
-    ["## عنوان دوم", "", "خط اول", "خط دوم", "", "- مورد یک", "- مورد دو", "", "1. گام یک"].join("\n"),
+    ["## عنوان دوم", "", "خط اول", "خط دوم", "", "- مورد یک", "- مورد دو", "", "1. گام یک"].join(
+      "\n",
+    ),
   );
   assert.deepEqual(
     blocks.map((block) => block.kind),
@@ -142,7 +147,10 @@ test("10 raw html is inert text, never markup", () => {
   const blocks = parseGuideMarkdown('<img src=x onerror="alert(1)"> <a href="javascript:1">x</a>');
   const [block] = blocks;
   assert.ok(block?.kind === "paragraph");
-  assert.equal(block.content.every((node) => node.kind === "text"), true);
+  assert.equal(
+    block.content.every((node) => node.kind === "text"),
+    true,
+  );
   assert.equal(texts(block.content).includes("onerror"), true);
 });
 

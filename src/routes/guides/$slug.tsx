@@ -14,9 +14,7 @@ export const Route = createFileRoute("/guides/$slug")({
     return {
       meta: [
         { title: guide.metaTitle },
-        ...(guide.metaDescription
-          ? [{ name: "description", content: guide.metaDescription }]
-          : []),
+        ...(guide.metaDescription ? [{ name: "description", content: guide.metaDescription }] : []),
       ],
       links: [{ rel: "canonical", href: guide.path }],
     };
