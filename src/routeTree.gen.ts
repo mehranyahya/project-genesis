@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as ApiSubmitRequestRouteImport } from './routes/api/submit-request'
 import { Route as BuildingStoneRouteImport } from './routes/building-stone'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
@@ -31,6 +32,11 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSubmitRequestRoute = ApiSubmitRequestRouteImport.update({
+  id: '/api/submit-request',
+  path: '/api/submit-request',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuildingStoneRoute = BuildingStoneRouteImport.update({
@@ -92,6 +98,7 @@ const GuidesSlugRoute = GuidesSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/api/submit-request': typeof ApiSubmitRequestRoute
   '/building-stone': typeof BuildingStoneRoute
   '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/api/submit-request': typeof ApiSubmitRequestRoute
   '/building-stone': typeof BuildingStoneRoute
   '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/api/submit-request': typeof ApiSubmitRequestRoute
   '/building-stone': typeof BuildingStoneRoute
   '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/api/submit-request'
     | '/building-stone'
     | '/contact'
     | '/portfolio'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/api/submit-request'
     | '/building-stone'
     | '/contact'
     | '/portfolio'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/api/submit-request'
     | '/building-stone'
     | '/contact'
     | '/portfolio'
@@ -186,6 +198,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  ApiSubmitRequestRoute: typeof ApiSubmitRequestRoute
   BuildingStoneRoute: typeof BuildingStoneRoute
   ContactRoute: typeof ContactRoute
   PortfolioRoute: typeof PortfolioRoute
@@ -213,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/submit-request': {
+      id: '/api/submit-request'
+      path: '/api/submit-request'
+      fullPath: '/api/submit-request'
+      preLoaderRoute: typeof ApiSubmitRequestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/building-stone': {
@@ -298,6 +318,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  ApiSubmitRequestRoute: ApiSubmitRequestRoute,
   BuildingStoneRoute: BuildingStoneRoute,
   ContactRoute: ContactRoute,
   PortfolioRoute: PortfolioRoute,
