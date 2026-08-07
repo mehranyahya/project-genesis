@@ -239,7 +239,7 @@ export function RequestForm({
   }, [pendingFocusId]);
 
   const termsReady = isRequestTermsDocument(terms);
-  const selectionBlocked = selectionBlockedByCatalog || turnstileProof === null;
+  const selectionBlocked = selectionBlockedByCatalog;
 
   const resetTurnstile = useCallback(() => {
     const field = turnstileRef.current;
@@ -254,7 +254,7 @@ export function RequestForm({
     async (revision: PriceRevision | null, options?: { readonly allowFreshAttempt?: boolean }) => {
       const allowFreshAttempt = options?.allowFreshAttempt === true;
       if (inFlight.current) return;
-      if (!termsReady || selectionBlocked || turnstileProof === null) return;
+      if (!termsReady || selectionBlocked) return;
       // After an idempotency outcome only the dedicated action may submit again;
       // the main submit button and the Enter key stay inert.
       if (freshAttemptRequired && !allowFreshAttempt) return;

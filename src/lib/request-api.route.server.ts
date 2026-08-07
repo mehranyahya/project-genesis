@@ -8,13 +8,20 @@ export async function handleProtectedSubmitRequest(request: Request): Promise<Re
   if (verification.kind === "invalid") {
     return jsonResponse({ code: "BOT_VERIFICATION_INVALID" }, 422);
   }
-  if (verification.kind === "service_error") {
-    return jsonResponse({ code: "TEMPORARILY_UNAVAILABLE" }, 503);
-  }
 
-  const response = await handleSubmitRequest(request, undefined, {
-    botVerification: "verified",
-    riskFlags: [],
-  });
+  const securityContext =
+    verification.kind === "verified"
+      ? { botVerification: "verified" as const, riskFlags: [] as const }
+      : verification.kind === "no_token"
+        ? {
+            botVerification: "unverified_no_token" as const,
+            riskFlags: ["turnstile_no_token"] as const,
+          }
+        : {
+            botVerification: "unverified_service_error" as const,
+            riskFlags: ["turnstile_unavailable"] as const,
+          };
+
+  const response = await handleSubmitRequest(request, undefined, securityContext);
   return attachTelegramDeliverySignal(response);
 }

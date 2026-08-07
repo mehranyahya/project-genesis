@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { getRequestTermsDocument } from "./request-terms";
 
-const MAX_BODY_BYTES = 32 * 1024;
+const MAX_BODY_BYTES = 16 * 1024;
 const RPC_TIMEOUT_MS = 10_000;
 const RATE_LIMIT_RETRY_SECONDS = 600;
 
@@ -118,8 +118,13 @@ const requestPayloadSchema = z.union([graveStoneSchema, buildingStoneSchema, con
 
 export type ServerRequestPayload = z.infer<typeof requestPayloadSchema>;
 
-export type RiskFlag = "turnstile_no_token";
-export type BotVerification = "verified" | "unverified_no_token";
+export type RiskFlag =
+  | "shared_ip_volume"
+  | "turnstile_no_token"
+  | "turnstile_unavailable"
+  | "fast_submit_signal"
+  | "repeat_phone_short_window";
+export type BotVerification = "verified" | "unverified_no_token" | "unverified_service_error";
 
 export interface RequestSecurityContext {
   readonly botVerification: BotVerification;

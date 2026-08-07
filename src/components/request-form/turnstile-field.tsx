@@ -178,7 +178,7 @@ export const TurnstileField = forwardRef<
       ) : null}
       {state === "unavailable" ? (
         <p role="alert" className="text-sm text-text-secondary">
-          تأیید امنیتی در دسترس نیست. لطفاً دوباره تلاش کنید.
+          تأیید امنیتی در دسترس نیست؛ ارسال درخواست همچنان ممکن است.
         </p>
       ) : null}
     </div>
