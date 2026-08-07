@@ -40,11 +40,17 @@ type Phase = "editing" | "submitting" | "success";
 
 const PII_FREE_VALUES = EMPTY_REQUEST_FORM_VALUES;
 
+/** The type-safe slot an active extension renders into the shared form. */
 export interface RequestFormExtensionSlotState {
   readonly errors: Readonly<Record<string, string>>;
   readonly disabled: boolean;
 }
 
+/**
+ * The component-level binding of the building-stone extension: the pure
+ * contract, the current values and the renderer, in one type-safe object. The
+ * renderer alone is never enough to integrate an extension.
+ */
 export interface BuildingStoneFormBinding {
   readonly kind: "building_stone";
   readonly contract: BuildingStoneExtensionContract;
@@ -53,6 +59,12 @@ export interface BuildingStoneFormBinding {
   readonly renderExtensionFields: (state: RequestFormExtensionSlotState) => ReactNode;
 }
 
+/**
+ * A stable identity for the current selection. A new object with identical
+ * content is not a selection change, so a re-render never clears a blocked
+ * selection or a pending price revision. The extended part of the identity is
+ * produced by the extension contract, never recomputed here.
+ */
 export function sourceIdentity(source: RequestSource): string {
   if (source.kind === "grave_stone") {
     const draft = source.draft;
@@ -76,6 +88,11 @@ export function sourceIdentity(source: RequestSource): string {
   return `contact~${source.portfolioReferenceId ?? ""}`;
 }
 
+/**
+ * A monotonic attempt epoch. A semantic source change always produces a new
+ * generation, so an A -> B -> A cycle never reuses the generation of the first
+ * A attempt and a late response of that attempt stays detectable as stale.
+ */
 export interface GenerationTracker {
   readonly current: () => number;
   readonly observe: (identity: string) => number;
@@ -96,19 +113,29 @@ export function createGenerationTracker(initialIdentity: string): GenerationTrac
   };
 }
 
+/** A response is stale as soon as its recorded generation is not the current one. */
 export function isStaleAttempt(attemptGeneration: number, currentGeneration: number): boolean {
   return attemptGeneration !== currentGeneration;
 }
 
+/** The first errored field in the official contract order, never insertion order. */
 function firstMappedFieldError(errors: RequestFieldErrors): RequestFieldKey | null {
   return REQUEST_FIELD_ORDER.find((key) => errors[key] !== undefined) ?? null;
 }
 
+/** The shape of a validation result the focus resolver needs; nothing else. */
 export interface FocusableValidation {
   readonly firstInvalidExtensionField: string | null;
   readonly firstInvalidField: RequestFieldKey | null;
 }
 
+/**
+ * The pure focus contract: the extension fields sit before the contact fields,
+ * so the first extension error wins; otherwise the first common error in
+ * `REQUEST_FIELD_ORDER` wins. The "other" description is a shared-field error,
+ * so it resolves to the `customerNote` element. The result is a plain DOM id;
+ * the component only commits it and focuses it after the commit.
+ */
 export function resolvePendingFocusId(
   validation: FocusableValidation,
   extensionFieldId: (key: string) => string,
@@ -119,6 +146,7 @@ export function resolvePendingFocusId(
   return key === null ? null : fieldId(key);
 }
 
+/** The server validation-error focus target, resolved through the same contract. */
 export function serverFocusDomId(errors: RequestFieldErrors): string | null {
   const key = firstMappedFieldError(errors);
   return key === null ? null : fieldId(key);
@@ -155,6 +183,9 @@ export function RequestForm({
   const inFlight = useRef(false);
   const turnstileRef = useRef<TurnstileFieldHandle | null>(null);
 
+  // A binding is only active when the outer kind and the bound contract kind
+  // both match the source kind. A building source without a fully compatible
+  // binding never builds a payload and never reaches the transport.
   const binding =
     extension != null && extension.kind === source.kind && extension.contract?.kind === source.kind
       ? extension
@@ -163,13 +194,20 @@ export function RequestForm({
   const extensionFieldId = binding?.fieldId ?? ((key: string) => buildingStoneFieldId(key));
 
   const identity = sourceIdentity(source);
+
+  // The attempt token of the running request; a response from an older
+  // identity is discarded before any result state is applied.
   const attemptIdentity = useRef(identity);
   attemptIdentity.current = identity;
 
+  // The monotonic epoch: it separates A -> B -> A, which the identity string
+  // alone cannot, and it is updated during render so a source change is
+  // detectable immediately instead of only after the effect has run.
   const generationTracker = useRef<GenerationTracker | null>(null);
   generationTracker.current ??= createGenerationTracker(identity);
   const generation = generationTracker.current.observe(identity);
 
+  // Only a real semantic selection change resets the source-coupled state.
   useEffect(() => {
     submissionId.current = null;
     inFlight.current = false;
@@ -181,6 +219,7 @@ export function RequestForm({
     setTrackingCode(null);
     setPendingFocusId(null);
     setFreshAttemptRequired(false);
+
     setPhase("editing");
   }, [identity]);
 
@@ -188,9 +227,12 @@ export function RequestForm({
     setTerms(termsDocument);
   }, [termsDocument]);
 
+  // Focus runs only after React has committed the error state and the pending
+  // focus target. No validation path focuses an element directly.
   useEffect(() => {
     if (pendingFocusId === null || typeof document === "undefined") return;
     const element = document.getElementById(pendingFocusId);
+    // A missing element is simply nothing to focus: no error, no retry.
     if (element instanceof HTMLElement) element.focus();
     setPendingFocusId(null);
   }, [pendingFocusId]);
@@ -207,12 +249,15 @@ export function RequestForm({
       const allowFreshAttempt = options?.allowFreshAttempt === true;
       if (inFlight.current) return;
       if (!termsReady || selectionBlocked) return;
+      // After an idempotency outcome only the dedicated action may submit again;
+      // the main submit button and the Enter key stay inert.
       if (freshAttemptRequired && !allowFreshAttempt) return;
 
       const validation = validateRequestForm({ values, source, extension: contract });
       setErrors(validation.errors);
       setExtensionErrors(validation.extensionErrors);
       if (!validation.valid) {
+        // Committed, never focused inline: the effect focuses after the commit.
         setPendingFocusId(resolvePendingFocusId(validation, extensionFieldId));
         return;
       }
@@ -252,7 +297,9 @@ export function RequestForm({
       );
       resetTurnstile();
 
+      // A stale response from an obsolete source attempt is ignored completely.
       if (attempt !== attemptIdentity.current) return;
+      // An A -> B -> A cycle restores the identity string but never the epoch.
       if (isStaleAttempt(attemptGeneration, generationTracker.current?.current() ?? generation)) {
         return;
       }
@@ -282,6 +329,8 @@ export function RequestForm({
           break;
         case "idempotency_conflict":
         case "idempotency_expired":
+          // No automatic retry and no eager id reset: only the dedicated action
+          // releases the block and generates a fresh submission id.
           setFreshAttemptRequired(true);
           break;
         case "validation_error":
@@ -358,6 +407,8 @@ export function RequestForm({
           onRetry={() => void run(priceRevision)}
           onConfirmPrice={() => void run(priceRevision)}
           onNewAttempt={() => {
+            // A second click while the fresh attempt is running must not touch
+            // the submission id, the outcome or the fresh-attempt block.
             if (inFlight.current) return;
             submissionId.current = null;
             setOutcome(null);
