@@ -63,9 +63,7 @@ function isH3SwallowedErrorBody(body: string): boolean {
 function executionContext(value: unknown): WorkerExecutionContext | null {
   if (value === null || typeof value !== "object") return null;
   const candidate = value as { waitUntil?: unknown };
-  return typeof candidate.waitUntil === "function"
-    ? (candidate as WorkerExecutionContext)
-    : null;
+  return typeof candidate.waitUntil === "function" ? (candidate as WorkerExecutionContext) : null;
 }
 
 function scheduleImmediateTelegramDelivery(
