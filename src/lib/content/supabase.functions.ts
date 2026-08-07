@@ -1,6 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 
-import type { PortfolioQuery, ProductQuery } from "./types";
+import type {
+  GraveStoneSizeCode,
+  PortfolioQuery,
+  ProductQuery,
+  ProductType,
+} from "./types";
 import {
   loadCatalogVersion,
   loadPortfolioItems,
@@ -9,8 +14,23 @@ import {
   loadSite,
 } from "./supabase.server";
 
-const PRODUCT_TYPES = new Set(["simple", "cnc_box"]);
-const SIZE_CODES = new Set(["120x60", "160x60", "180x60", "custom"]);
+const PRODUCT_TYPES = new Set<ProductType>(["simple", "cnc_box"]);
+const SIZE_CODES = new Set<GraveStoneSizeCode>(["120x60", "160x60", "180x60", "custom"]);
+
+type RawProductQuery = {
+  type?: unknown;
+  featuredOnly?: unknown;
+  sizeCode?: unknown;
+  limit?: unknown;
+};
+
+type RawPortfolioQuery = {
+  limit?: unknown;
+};
+
+type RawSlug = {
+  slug?: unknown;
+};
 
 function validateLimit(value: unknown): number | undefined {
   if (value == null) return undefined;
@@ -24,14 +44,14 @@ function validateProductQuery(input: unknown): ProductQuery {
   if (input == null) return {};
   if (typeof input !== "object" || Array.isArray(input)) throw new Error("Invalid product query");
 
-  const raw = input as Record<string, unknown>;
+  const raw = input as RawProductQuery;
   const query: ProductQuery = {};
 
   if (raw.type != null) {
-    if (typeof raw.type !== "string" || !PRODUCT_TYPES.has(raw.type)) {
+    if (typeof raw.type !== "string" || !PRODUCT_TYPES.has(raw.type as ProductType)) {
       throw new Error("Invalid product type");
     }
-    query.type = raw.type as ProductQuery["type"];
+    query.type = raw.type as ProductType;
   }
 
   if (raw.featuredOnly != null) {
@@ -40,10 +60,10 @@ function validateProductQuery(input: unknown): ProductQuery {
   }
 
   if (raw.sizeCode != null) {
-    if (typeof raw.sizeCode !== "string" || !SIZE_CODES.has(raw.sizeCode)) {
+    if (typeof raw.sizeCode !== "string" || !SIZE_CODES.has(raw.sizeCode as GraveStoneSizeCode)) {
       throw new Error("Invalid size code");
     }
-    query.sizeCode = raw.sizeCode as ProductQuery["sizeCode"];
+    query.sizeCode = raw.sizeCode as GraveStoneSizeCode;
   }
 
   const limit = validateLimit(raw.limit);
@@ -54,7 +74,7 @@ function validateProductQuery(input: unknown): ProductQuery {
 function validatePortfolioQuery(input: unknown): PortfolioQuery {
   if (input == null) return {};
   if (typeof input !== "object" || Array.isArray(input)) throw new Error("Invalid portfolio query");
-  const raw = input as Record<string, unknown>;
+  const raw = input as RawPortfolioQuery;
   const query: PortfolioQuery = {};
   const limit = validateLimit(raw.limit);
   if (limit != null) query.limit = limit;
@@ -65,7 +85,7 @@ function validateSlug(input: unknown): { slug: string } {
   if (typeof input !== "object" || input == null || Array.isArray(input)) {
     throw new Error("Invalid product lookup");
   }
-  const slug = (input as Record<string, unknown>).slug;
+  const { slug } = input as RawSlug;
   if (typeof slug !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
     throw new Error("Invalid product slug");
   }
