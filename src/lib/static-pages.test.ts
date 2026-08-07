@@ -302,7 +302,10 @@ test("no public /404 route and no unexpected public UI route files exist", () =>
     "quote.tsx",
     "terms.tsx",
   ]);
-  assert.equal(publicRouteFiles.some((file) => /(^|\/)404\.tsx?$/.test(file)), false);
+  assert.equal(
+    publicRouteFiles.some((file) => /(^|\/)404\.tsx?$/.test(file)),
+    false,
+  );
 });
 
 test("static page sources add no backend, supabase or unsafe html", () => {
