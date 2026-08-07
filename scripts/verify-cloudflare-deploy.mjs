@@ -21,6 +21,22 @@ if (
 ) {
   throw new Error("Cloudflare assets must route API requests through the Worker first");
 }
+
+const submitFloodLimiters = Array.isArray(config.ratelimits)
+  ? config.ratelimits.filter((value) => value?.name === "SUBMIT_FLOOD_LIMITER")
+  : [];
+if (submitFloodLimiters.length !== 1) {
+  throw new Error("Cloudflare deploy config must expose exactly one submit flood limiter");
+}
+const submitFloodLimiter = submitFloodLimiters[0];
+if (
+  submitFloodLimiter.namespace_id !== "1322772730" ||
+  submitFloodLimiter.simple?.limit !== 300 ||
+  submitFloodLimiter.simple?.period !== 60
+) {
+  throw new Error("Cloudflare submit flood limiter must be 300 attempts per IP per minute");
+}
+
 if (typeof config.main !== "string" || !config.main.endsWith("index.mjs")) {
   throw new Error("Cloudflare generated worker entry is unexpected");
 }
