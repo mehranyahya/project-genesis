@@ -2,6 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
+import type { RequestPayload } from "./request-form";
+import type { RequestSubmitTransport } from "./request-submit";
+import { submitRequestWithTurnstile } from "./request-submit-turnstile";
 import { readTurnstileToken, verifyTurnstileRequest } from "./turnstile.server";
 import type { TurnstileDependencies } from "./turnstile.server";
 
@@ -42,6 +45,30 @@ test("Turnstile token header is bounded and rejects controls", () => {
     headers: { get: () => "bad\u0001value" },
   } as unknown as Request;
   assert.equal(readTurnstileToken(controlHeaderRequest), null);
+});
+
+test("missing proof is soft no_token and never calls Siteverify", async () => {
+  let calls = 0;
+  const fetcher: typeof fetch = async () => {
+    calls += 1;
+    return result({ success: true, hostname: "mehrara.example", action: "submit_request" });
+  };
+
+  assert.deepEqual(await verifyTurnstileRequest(request(null), deps(fetcher)), { kind: "no_token" });
+  assert.equal(calls, 0);
+});
+
+test("malformed present proof is invalid and never calls Siteverify", async () => {
+  let calls = 0;
+  const fetcher: typeof fetch = async () => {
+    calls += 1;
+    return result({ success: true, hostname: "mehrara.example", action: "submit_request" });
+  };
+
+  assert.deepEqual(await verifyTurnstileRequest(request("x".repeat(2049)), deps(fetcher)), {
+    kind: "invalid",
+  });
+  assert.equal(calls, 0);
 });
 
 test("successful Siteverify requires exact action and allowlisted hostname", async () => {
@@ -91,7 +118,7 @@ test("internal Siteverify errors retry once with the same idempotency key", asyn
   assert.deepEqual(ids, [UUID, UUID]);
 });
 
-test("configuration or repeated transport failure fails closed", async () => {
+test("configuration or repeated transport failure becomes service_error", async () => {
   const missingConfig: TurnstileDependencies = {
     getConfig: () => {
       throw new Error("missing");
@@ -114,7 +141,24 @@ test("configuration or repeated transport failure fails closed", async () => {
   assert.equal(calls, 2);
 });
 
-test("client integration keeps token outside payload and server secret outside browser code", () => {
+test("client transport omits the proof header when Turnstile is unavailable", async () => {
+  let headers: Readonly<Record<string, string>> | null = null;
+  const transport: RequestSubmitTransport = async (input) => {
+    headers = input.headers;
+    return { status: 503, body: JSON.stringify({ code: "TEMPORARILY_UNAVAILABLE" }) };
+  };
+
+  await submitRequestWithTurnstile({
+    payload: {} as RequestPayload,
+    turnstileToken: null,
+    transport,
+  });
+
+  assert.ok(headers);
+  assert.equal(Object.hasOwn(headers, "X-Turnstile-Token"), false);
+});
+
+test("client integration keeps proof outside payload and missing proof outside the submit gate", () => {
   const field = readFileSync(
     new URL("../components/request-form/turnstile-field.tsx", import.meta.url),
     "utf8",
@@ -137,18 +181,23 @@ test("client integration keeps token outside payload and server secret outside b
   assert.match(field, /VITE_TURNSTILE_SITE_KEY/);
   assert.equal(/TURNSTILE_SECRET_KEY/.test(field), false);
 
+  assert.match(transport, /turnstileToken: string \| null/);
   assert.match(transport, /"X-Turnstile-Token"/);
   assert.match(transport, /baseTransport\(\{/);
   assert.match(transport, /\.\.\.request\.headers/);
   assert.equal(/JSON\.stringify/.test(transport), false);
 
-  assert.match(form, /turnstileProof === null/);
+  assert.match(form, /const selectionBlocked = selectionBlockedByCatalog;/);
+  assert.match(form, /if \(!termsReady \|\| selectionBlocked\) return;/);
+  assert.equal(/selectionBlockedByCatalog \|\| turnstileProof === null/.test(form), false);
   assert.match(form, /turnstileToken: turnstileProof/);
   assert.match(form, /resetTurnstile\(\)/);
   assert.match(form, /submitRequestWithTurnstile/);
 
   assert.match(route, /handleProtectedSubmitRequest/);
-  assert.match(routeServer, /botVerification: "verified"/);
-  assert.match(routeServer, /riskFlags: \[\]/);
+  assert.match(routeServer, /unverified_no_token/);
+  assert.match(routeServer, /unverified_service_error/);
+  assert.match(routeServer, /turnstile_no_token/);
+  assert.match(routeServer, /turnstile_unavailable/);
   assert.equal(/TURNSTILE_SECRET_KEY|process\.env/.test(route), false);
 });
