@@ -26,12 +26,13 @@ export async function submitRequestWithTurnstile(input: {
   readonly turnstileToken: string | null;
   readonly transport?: RequestSubmitTransport;
 }): Promise<SubmitOutcome> {
-  if (input.turnstileToken !== null && !isTurnstileToken(input.turnstileToken)) {
+  const token = input.turnstileToken;
+  if (token !== null && !isTurnstileToken(token)) {
     return { kind: "bot_verification_invalid" };
   }
 
   const baseTransport = input.transport ?? sameOriginTransport;
-  if (input.turnstileToken === null) {
+  if (token === null) {
     return submitRequest({ payload: input.payload, transport: baseTransport });
   }
 
@@ -40,7 +41,7 @@ export async function submitRequestWithTurnstile(input: {
       ...request,
       headers: {
         ...request.headers,
-        "X-Turnstile-Token": input.turnstileToken,
+        "X-Turnstile-Token": token,
       },
     });
 
