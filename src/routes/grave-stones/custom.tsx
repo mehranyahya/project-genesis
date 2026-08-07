@@ -5,16 +5,23 @@ import {
   CustomFunnelError,
   CustomFunnelLoading,
 } from "@/components/custom-funnel/custom-funnel-states";
-import { getCatalogVersion, getProducts, getSite } from "@/lib/content/adapters";
+import { getCatalogVersion, getPage, getProducts, getSite } from "@/lib/content/adapters";
+import { requestTermsDocumentFromPage } from "@/lib/request-terms";
 
 export const Route = createFileRoute("/grave-stones/custom")({
   loader: async () => {
-    const [products, catalogVersion, site] = await Promise.all([
+    const [products, catalogVersion, site, termsPage] = await Promise.all([
       getProducts({ type: "simple" }),
       getCatalogVersion(),
       getSite(),
+      getPage("terms"),
     ]);
-    return { products, catalogVersion: catalogVersion ?? null, site: site ?? null };
+    return {
+      products,
+      catalogVersion: catalogVersion ?? null,
+      site: site ?? null,
+      termsDocument: requestTermsDocumentFromPage(termsPage),
+    };
   },
   head: () => ({
     meta: [
@@ -31,6 +38,13 @@ export const Route = createFileRoute("/grave-stones/custom")({
 });
 
 function CustomGraveStoneRoute() {
-  const { products, catalogVersion, site } = Route.useLoaderData();
-  return <CustomFunnelPage products={products} catalogVersion={catalogVersion} site={site} />;
+  const { products, catalogVersion, site, termsDocument } = Route.useLoaderData();
+  return (
+    <CustomFunnelPage
+      products={products}
+      catalogVersion={catalogVersion}
+      site={site}
+      termsDocument={termsDocument}
+    />
+  );
 }
