@@ -1,3 +1,4 @@
+import { getPage } from "./content/adapters";
 import type { Page } from "./content/types";
 import type { RequestTermsDocument } from "./request-form";
 import { isRequestTermsDocument } from "./request-form";
@@ -14,4 +15,13 @@ export function requestTermsDocumentFromPage(page: Page | null): RequestTermsDoc
     contentHash: page.contentHash,
   };
   return isRequestTermsDocument(candidate) ? candidate : null;
+}
+
+/**
+ * Single authoritative Terms accessor for request flows. Both UI loaders and
+ * the request backend use this function, which in turn reads only the official
+ * Git-backed page adapter.
+ */
+export async function getRequestTermsDocument(): Promise<RequestTermsDocument | null> {
+  return requestTermsDocumentFromPage(await getPage("terms"));
 }
