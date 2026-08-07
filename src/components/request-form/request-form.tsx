@@ -27,7 +27,7 @@ import {
   requestSourceSelectionIdentity,
   validateRequestForm,
 } from "@/lib/request-form";
-import { submitRequestWithTurnstile } from "@/lib/request-submit-turnstile";
+import { submitRequestWithTurnstile as submitRequest } from "@/lib/request-submit-turnstile";
 import type { RequestSubmitTransport, SubmitOutcome } from "@/lib/request-submit";
 import { SUBMIT_MESSAGES, createSubmissionId, rememberTrackingCode } from "@/lib/request-submit";
 
@@ -175,10 +175,10 @@ export function RequestForm({
   const [trackingCode, setTrackingCode] = useState<string | null>(null);
   const [terms, setTerms] = useState<RequestTermsDocument | null>(termsDocument);
   const [priceRevision, setPriceRevision] = useState<PriceRevision | null>(null);
-  const [selectionBlocked, setSelectionBlocked] = useState(false);
+  const [selectionBlockedByCatalog, setSelectionBlocked] = useState(false);
   const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
   const [freshAttemptRequired, setFreshAttemptRequired] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileProof, setTurnstileProof] = useState<string | null>(null);
 
   const submissionId = useRef<string | null>(null);
   const inFlight = useRef(false);
@@ -239,11 +239,12 @@ export function RequestForm({
   }, [pendingFocusId]);
 
   const termsReady = isRequestTermsDocument(terms);
+  const selectionBlocked = selectionBlockedByCatalog || turnstileProof === null;
 
   const resetTurnstile = useCallback(() => {
     const field = turnstileRef.current;
     if (field === null) {
-      setTurnstileToken(null);
+      setTurnstileProof(null);
       return;
     }
     field.reset();
@@ -253,7 +254,7 @@ export function RequestForm({
     async (revision: PriceRevision | null, options?: { readonly allowFreshAttempt?: boolean }) => {
       const allowFreshAttempt = options?.allowFreshAttempt === true;
       if (inFlight.current) return;
-      if (!termsReady || selectionBlocked || turnstileToken === null) return;
+      if (!termsReady || selectionBlocked || turnstileProof === null) return;
       // After an idempotency outcome only the dedicated action may submit again;
       // the main submit button and the Enter key stay inert.
       if (freshAttemptRequired && !allowFreshAttempt) return;
@@ -286,8 +287,8 @@ export function RequestForm({
       setPhase("submitting");
       setOutcome(null);
 
-      const result = await submitRequestWithTurnstile(
-        transport ? { payload, turnstileToken, transport } : { payload, turnstileToken },
+      const result = await submitRequest(
+        transport ? { payload, turnstileToken: turnstileProof, transport } : { payload, turnstileToken: turnstileProof },
       );
       resetTurnstile();
 
@@ -347,7 +348,7 @@ export function RequestForm({
       terms,
       termsReady,
       transport,
-      turnstileToken,
+      turnstileProof,
       values,
     ],
   );
@@ -384,13 +385,13 @@ export function RequestForm({
 
       <div className="col-span-4 flex flex-col gap-4 md:col-span-8 lg:col-span-4">
         {termsReady ? (
-          <TurnstileField ref={turnstileRef} onTokenChange={setTurnstileToken} />
+          <TurnstileField ref={turnstileRef} onTokenChange={setTurnstileProof} />
         ) : null}
 
         <button
           type="submit"
           className={ACTION}
-          disabled={!termsReady || turnstileToken === null || submitting || selectionBlocked}
+          disabled={!termsReady || submitting || selectionBlocked}
         >
           {submitting ? SUBMIT_MESSAGES.submitting : SUBMIT_LABEL}
         </button>
