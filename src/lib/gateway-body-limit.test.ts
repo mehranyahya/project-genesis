@@ -1,10 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import {
-  enforcePublicSubmitBodyLimit,
-  PUBLIC_SUBMIT_MAX_BODY_BYTES,
-} from "../server";
+import { enforcePublicSubmitBodyLimit, PUBLIC_SUBMIT_MAX_BODY_BYTES } from "../server";
 
 const endpoint = "https://example.test/api/submit-request";
 
