@@ -1,4 +1,5 @@
 import { handleSubmitRequest, jsonResponse } from "./request-api.server";
+import { attachTelegramDeliverySignal } from "./telegram-delivery.signal";
 import { verifyTurnstileRequest } from "./turnstile.server";
 
 export async function handleProtectedSubmitRequest(request: Request): Promise<Response> {
@@ -11,8 +12,9 @@ export async function handleProtectedSubmitRequest(request: Request): Promise<Re
     return jsonResponse({ code: "TEMPORARILY_UNAVAILABLE" }, 503);
   }
 
-  return handleSubmitRequest(request, undefined, {
+  const response = await handleSubmitRequest(request, undefined, {
     botVerification: "verified",
     riskFlags: [],
   });
+  return attachTelegramDeliverySignal(response);
 }
