@@ -99,14 +99,18 @@ test("configuration or repeated transport failure fails closed", async () => {
     fetchSiteverify: fetch,
     randomUuid: () => UUID,
   };
-  assert.deepEqual(await verifyTurnstileRequest(request(), missingConfig), { kind: "service_error" });
+  assert.deepEqual(await verifyTurnstileRequest(request(), missingConfig), {
+    kind: "service_error",
+  });
 
   let calls = 0;
   const broken: typeof fetch = async () => {
     calls += 1;
     throw new Error("network");
   };
-  assert.deepEqual(await verifyTurnstileRequest(request(), deps(broken)), { kind: "service_error" });
+  assert.deepEqual(await verifyTurnstileRequest(request(), deps(broken)), {
+    kind: "service_error",
+  });
   assert.equal(calls, 2);
 });
 
@@ -115,7 +119,10 @@ test("client integration keeps token outside payload and server secret outside b
     new URL("../components/request-form/turnstile-field.tsx", import.meta.url),
     "utf8",
   );
-  const transport = readFileSync(new URL("./request-submit-turnstile.ts", import.meta.url), "utf8");
+  const transport = readFileSync(
+    new URL("./request-submit-turnstile.ts", import.meta.url),
+    "utf8",
+  );
   const form = readFileSync(
     new URL("../components/request-form/request-form.tsx", import.meta.url),
     "utf8",
