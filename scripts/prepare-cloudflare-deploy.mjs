@@ -1,0 +1,43 @@
+import { readFile, writeFile } from "node:fs/promises";
+
+const CONFIG_PATH = new URL("../.output/server/wrangler.json", import.meta.url);
+const TELEGRAM_RECOVERY_CRON = "0 * * * *";
+
+const raw = await readFile(CONFIG_PATH, "utf8");
+const config = JSON.parse(raw);
+
+if (typeof config !== "object" || config === null || Array.isArray(config)) {
+  throw new Error("Generated Wrangler config must be a JSON object");
+}
+if (typeof config.name !== "string" || config.name.trim() === "") {
+  throw new Error("Generated Wrangler config has no worker name");
+}
+if (typeof config.main !== "string" || config.main.trim() === "") {
+  throw new Error("Generated Wrangler config has no worker entry");
+}
+if (
+  typeof config.compatibility_date !== "string" ||
+  !/^\d{4}-\d{2}-\d{2}$/.test(config.compatibility_date)
+) {
+  throw new Error("Generated Wrangler config has no valid compatibility date");
+}
+
+const flags = Array.isArray(config.compatibility_flags)
+  ? config.compatibility_flags.filter((value) => typeof value === "string")
+  : [];
+if (!flags.includes("nodejs_compat")) flags.push("nodejs_compat");
+config.compatibility_flags = [...new Set(flags)].sort();
+
+config.triggers = {
+  ...(typeof config.triggers === "object" && config.triggers !== null ? config.triggers : {}),
+  crons: [TELEGRAM_RECOVERY_CRON],
+};
+
+if (typeof config.assets === "object" && config.assets !== null && !Array.isArray(config.assets)) {
+  config.assets = {
+    ...config.assets,
+    run_worker_first: ["/api/*"],
+  };
+}
+
+await writeFile(CONFIG_PATH, `${JSON.stringify(config, null, 2)}\n`, "utf8");
