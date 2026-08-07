@@ -216,16 +216,10 @@ async function completeNotification(
     p_request_id: item.request_id,
     p_attempt: item.attempt,
     p_outcome: outcome.kind,
-    p_retry_after_seconds:
-      outcome.kind === "retryable" ? outcome.retryAfterSeconds : null,
+    p_retry_after_seconds: outcome.kind === "retryable" ? outcome.retryAfterSeconds : null,
   };
 
-  const raw = await callSupabaseRpc(
-    config,
-    "complete_telegram_notification",
-    body,
-    dependencies,
-  );
+  const raw = await callSupabaseRpc(config, "complete_telegram_notification", body, dependencies);
   const parsed = completeResultSchema.safeParse(raw);
   if (!parsed.success) throw new Error("Telegram delivery completion was malformed");
   if (parsed.data.code === "VALIDATION_ERROR" || parsed.data.code === "NOT_FOUND") {
@@ -272,7 +266,11 @@ export function formatTelegramAdminMessage(item: ClaimItem): string {
   const lines: string[] = ["درخواست جدید مهرآرا"];
   appendLine(lines, "کد پیگیری", item.tracking_code);
   appendLine(lines, "نوع درخواست", item.request_type);
-  appendLine(lines, "نام", item.customer_name === null ? null : sanitizePlainText(item.customer_name));
+  appendLine(
+    lines,
+    "نام",
+    item.customer_name === null ? null : sanitizePlainText(item.customer_name),
+  );
   appendLine(lines, "موبایل", item.phone === null ? null : sanitizePlainText(item.phone));
   if (item.phone?.startsWith("+98")) {
     appendLine(lines, "واتساپ", `https://wa.me/${item.phone.slice(1)}`);
