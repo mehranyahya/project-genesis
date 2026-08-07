@@ -11,6 +11,7 @@ const RATE_LIMIT_RETRY_SECONDS = 600;
 
 const HASH_PATTERN = /^[0-9a-f]{64}$/;
 const PHONE_PATTERN = /^\+989[0-9]{9}$/;
+const TRACKING_PATTERN = /^MA-[1-9][0-9]{3,}$/;
 const PORTFOLIO_REFERENCE_PATTERN = /^pf-[0-9]{4,}$/;
 const SAFE_TEXT_ID = /^[^\s]{1,160}$/;
 
@@ -110,18 +111,14 @@ const contactSchema = commonSchema
     }
   });
 
-const requestPayloadSchema = z.discriminatedUnion("request_type", [
-  graveStoneSchema,
-  buildingStoneSchema,
-  contactSchema,
-]);
+const requestPayloadSchema = z.union([graveStoneSchema, buildingStoneSchema, contactSchema]);
 
 export type ServerRequestPayload = z.infer<typeof requestPayloadSchema>;
 
 type RiskFlag = "turnstile_no_token";
 type BotVerification = "unverified_no_token";
 
-interface RequestApiConfig {
+export interface RequestApiConfig {
   readonly supabaseUrl: string;
   readonly serviceRoleKey: string;
   readonly fingerprintKey: string;
@@ -129,7 +126,7 @@ interface RequestApiConfig {
   readonly ipHashKey: string;
 }
 
-interface RpcInput {
+export interface RpcInput {
   readonly p_payload: ServerRequestPayload;
   readonly p_request_fingerprint: string;
   readonly p_request_fingerprint_key_id: string;
@@ -140,38 +137,50 @@ interface RpcInput {
   readonly p_ip_hash: string | null;
 }
 
-const responseCodeSchema = z.enum([
-  "REQUEST_CREATED",
-  "REQUEST_REPLAYED",
-  "PRICE_CHANGED",
-  "SELECTION_UNAVAILABLE",
-  "TERMS_UPDATED",
-  "IDEMPOTENCY_CONFLICT",
-  "IDEMPOTENCY_EXPIRED",
-  "VALIDATION_ERROR",
-  "RATE_LIMITED",
-  "TEMPORARILY_UNAVAILABLE",
+const rpcPriceSchema = z.union([
+  z.object({ price_type: z.literal("review"), amount_toman: z.null() }).strict(),
+  z
+    .object({
+      price_type: z.enum(["fixed", "estimate"]),
+      amount_toman: numericPriceSchema,
+    })
+    .strict(),
 ]);
 
-const rpcResultSchema = z
+const rpcTermsSchema = z
   .object({
-    code: responseCodeSchema,
-    tracking_code: z.string().optional(),
-    price: z
-      .object({
-        price_type: priceTypeSchema,
-        amount_toman: numericPriceSchema.nullable(),
-      })
-      .optional(),
-    terms: z
-      .object({
-        version: z.string().trim().min(1).max(80),
-        content_hash: z.string().regex(HASH_PATTERN),
-      })
-      .optional(),
-    field_errors: z.record(z.string(), z.unknown()).optional(),
+    version: z.string().trim().min(1).max(80),
+    content_hash: z.string().regex(HASH_PATTERN),
   })
-  .passthrough();
+  .strict();
+
+const rpcResultSchema = z.union([
+  z
+    .object({
+      code: z.enum(["REQUEST_CREATED", "REQUEST_REPLAYED"]),
+      tracking_code: z.string().regex(TRACKING_PATTERN),
+    })
+    .strict(),
+  z.object({ code: z.literal("PRICE_CHANGED"), price: rpcPriceSchema }).strict(),
+  z.object({ code: z.literal("TERMS_UPDATED"), terms: rpcTermsSchema }).strict(),
+  z
+    .object({
+      code: z.literal("VALIDATION_ERROR"),
+      field_errors: z.record(z.unknown()),
+    })
+    .strict(),
+  z
+    .object({
+      code: z.enum([
+        "SELECTION_UNAVAILABLE",
+        "IDEMPOTENCY_CONFLICT",
+        "IDEMPOTENCY_EXPIRED",
+        "RATE_LIMITED",
+        "TEMPORARILY_UNAVAILABLE",
+      ]),
+    })
+    .strict(),
+]);
 
 export type RequestRpcResult = z.infer<typeof rpcResultSchema>;
 
@@ -278,6 +287,44 @@ function validationFieldErrors(error: z.ZodError): Record<string, true> {
   return fieldErrors;
 }
 
+async function readBoundedUtf8Body(request: Request): Promise<string | null> {
+  if (request.body === null) return null;
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  try {
+    while (true) {
+      const next = await reader.read();
+      if (next.done) break;
+      total += next.value.byteLength;
+      if (total > MAX_BODY_BYTES) {
+        await reader.cancel();
+        return null;
+      }
+      chunks.push(next.value);
+    }
+  } catch {
+    return null;
+  } finally {
+    reader.releaseLock();
+  }
+
+  const body = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(body);
+  } catch {
+    return null;
+  }
+}
+
 async function readPayload(request: Request): Promise<
   | { readonly ok: true; readonly payload: ServerRequestPayload }
   | { readonly ok: false; readonly response: Response }
@@ -301,17 +348,8 @@ async function readPayload(request: Request): Promise<
     }
   }
 
-  let text: string;
-  try {
-    text = await request.text();
-  } catch {
-    return {
-      ok: false,
-      response: jsonResponse({ code: "VALIDATION_ERROR", field_errors: {} }, 422),
-    };
-  }
-
-  if (new TextEncoder().encode(text).byteLength > MAX_BODY_BYTES) {
+  const text = await readBoundedUtf8Body(request);
+  if (text === null) {
     return {
       ok: false,
       response: jsonResponse({ code: "VALIDATION_ERROR", field_errors: {} }, 422),
@@ -360,7 +398,7 @@ function publicRpcResult(result: RequestRpcResult): Record<string, unknown> {
       return {
         code: result.code,
         field_errors: Object.fromEntries(
-          Object.keys(result.field_errors ?? {})
+          Object.keys(result.field_errors)
             .filter((key) => SERVER_FIELD_NAMES.has(key))
             .map((key) => [key, true]),
         ),
@@ -393,7 +431,10 @@ function responseForRpcResult(result: RequestRpcResult): Response {
   }
 }
 
-async function callRequestRpc(config: RequestApiConfig, input: RpcInput): Promise<RequestRpcResult | null> {
+async function callRequestRpc(
+  config: RequestApiConfig,
+  input: RpcInput,
+): Promise<RequestRpcResult | null> {
   let response: Response;
   try {
     response = await fetch(`${config.supabaseUrl}/rest/v1/rpc/create_request_atomic`, {
