@@ -22,6 +22,9 @@ type WorkerScheduledController = {
 };
 
 export const TELEGRAM_RECOVERY_CRON = "0 * * * *";
+export const PUBLIC_SUBMIT_MAX_BODY_BYTES = 16 * 1024;
+
+const PUBLIC_SUBMIT_PATH = "/api/submit-request";
 
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
@@ -60,6 +63,68 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+function gatewayValidationResponse(): Response {
+  return new Response(JSON.stringify({ code: "VALIDATION_ERROR", field_errors: {} }), {
+    status: 422,
+    headers: {
+      "cache-control": "no-store, max-age=0",
+      "content-type": "application/json; charset=utf-8",
+      "referrer-policy": "no-referrer",
+      "x-content-type-options": "nosniff",
+    },
+  });
+}
+
+function isPublicSubmitRequest(request: Request): boolean {
+  if (request.method !== "POST") return false;
+  try {
+    return new URL(request.url).pathname === PUBLIC_SUBMIT_PATH;
+  } catch {
+    return false;
+  }
+}
+
+export async function enforcePublicSubmitBodyLimit(request: Request): Promise<Response | null> {
+  if (!isPublicSubmitRequest(request)) return null;
+
+  const contentLength = request.headers.get("content-length");
+  if (contentLength !== null) {
+    const declared = Number(contentLength);
+    if (Number.isFinite(declared) && declared > PUBLIC_SUBMIT_MAX_BODY_BYTES) {
+      return gatewayValidationResponse();
+    }
+  }
+
+  if (request.body === null) return null;
+
+  let clone: Request;
+  try {
+    clone = request.clone();
+  } catch {
+    return gatewayValidationResponse();
+  }
+
+  if (clone.body === null) return null;
+  const reader = clone.body.getReader();
+  let total = 0;
+
+  try {
+    while (true) {
+      const next = await reader.read();
+      if (next.done) return null;
+      total += next.value.byteLength;
+      if (total > PUBLIC_SUBMIT_MAX_BODY_BYTES) {
+        await reader.cancel();
+        return gatewayValidationResponse();
+      }
+    }
+  } catch {
+    return gatewayValidationResponse();
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 function executionContext(value: unknown): WorkerExecutionContext | null {
   if (value === null || typeof value !== "object") return null;
   const candidate = value as { waitUntil?: unknown };
@@ -85,6 +150,9 @@ function scheduleImmediateTelegramDelivery(
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const bodyLimitResponse = await enforcePublicSubmitBodyLimit(request);
+      if (bodyLimitResponse !== null) return bodyLimitResponse;
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       const normalized = await normalizeCatastrophicSsrResponse(response);
