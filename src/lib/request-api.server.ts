@@ -114,7 +114,7 @@ const contactSchema = commonSchema
     }
   });
 
-const requestPayloadSchema = z.union([graveStoneSchema, buildingStoneSchema, contactSchema]);
+export const requestPayloadSchema = z.union([graveStoneSchema, buildingStoneSchema, contactSchema]);
 
 export type ServerRequestPayload = z.infer<typeof requestPayloadSchema>;
 
@@ -213,7 +213,7 @@ const SERVER_FIELD_NAMES = new Set([
   "terms",
 ]);
 
-function readConfig(): RequestApiConfig {
+export function readRequestApiConfig(): RequestApiConfig {
   const env = process.env as Record<string, string | undefined>;
   const rawUrl = env["SUPABASE_URL"]?.trim();
   const serviceRoleKey = env["SUPABASE_SERVICE_ROLE_KEY"]?.trim();
@@ -264,7 +264,7 @@ export function hmacSha256Hex(key: string, value: string): string {
   return createHmac("sha256", key).update(value, "utf8").digest("hex");
 }
 
-function requestFingerprint(payload: ServerRequestPayload, config: RequestApiConfig): string {
+export function requestFingerprint(payload: ServerRequestPayload, config: RequestApiConfig): string {
   return hmacSha256Hex(config.fingerprintKey, stableJson(payload));
 }
 
@@ -492,7 +492,7 @@ export interface RequestApiDependencies {
 
 const defaultDependencies: RequestApiDependencies = {
   getTerms: getRequestTermsDocument,
-  getConfig: readConfig,
+  getConfig: readRequestApiConfig,
   callRpc: callRequestRpc,
 };
 
