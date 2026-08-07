@@ -198,7 +198,10 @@ test("operational adapters cross only the approved TanStack server-function boun
   assert.match(source, /getSiteFromServer/);
   assert.match(source, /getCatalogVersionFromServer/);
 
-  assert.equal(/supabase\.server|@supabase|\.from\(|\/rest\/v1|service.role|service_role/i.test(source), false);
+  assert.equal(
+    /supabase\.server|@supabase|\.from\(|\/rest\/v1|service.role|service_role/i.test(source),
+    false,
+  );
   assert.equal(/\.json|fixture|content\//i.test(source), false);
 });
 
@@ -223,7 +226,7 @@ test("catalog version predicate accepts only 64 lowercase hex characters", () =>
   assert.equal(isCatalogVersion("a".repeat(65)), false);
   assert.equal(isCatalogVersion("A".repeat(64)), false);
   assert.equal(isCatalogVersion(`${"a".repeat(63)}g`), false);
-  assert.equal(isCatalogVersion("sha256:${valid}"), false);
+  assert.equal(isCatalogVersion(`sha256:${valid}`), false);
   assert.equal(isCatalogVersion(""), false);
   assert.equal(isCatalogVersion(` ${valid} `), false);
 });
