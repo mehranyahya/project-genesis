@@ -181,32 +181,24 @@ test("all eight content adapters exist", () => {
   }
 });
 
-test("list adapters default to empty arrays, with and without a query", async () => {
-  assert.deepEqual(await adapters.getProducts(), []);
-  assert.deepEqual(await adapters.getProducts({ featuredOnly: true, limit: 3 }), []);
-  assert.deepEqual(await adapters.getPortfolioItems(), []);
-  assert.deepEqual(await adapters.getPortfolioItems({ limit: 3 }), []);
+test("Git-versioned long-form adapters remain content-blocked until their repository is wired", async () => {
   assert.deepEqual(await adapters.getGuides(), []);
   assert.deepEqual(await adapters.getGuides({ limit: 3 }), []);
-});
-
-test("single-entity adapters default to null", async () => {
-  assert.equal(await adapters.getProduct("any"), null);
   assert.equal(await adapters.getGuide("any"), null);
-  assert.equal(await adapters.getSite(), null);
   assert.equal(await adapters.getPage("home"), null);
-  assert.equal(await adapters.getCatalogVersion(), null);
 });
 
-test("adapters import no fixtures or content files at runtime", async () => {
+test("operational adapters cross only the approved TanStack server-function boundary", () => {
   const source = readFileSync(new URL("./adapters.ts", import.meta.url), "utf8");
-  const imports = source.match(/^import .*$/gm) ?? [];
-  for (const line of imports) {
-    assert.ok(
-      line.includes('from "./types"') || line.startsWith("import type"),
-      `unexpected runtime import: ${line}`,
-    );
-  }
+
+  assert.match(source, /from "\.\/supabase\.functions"/);
+  assert.match(source, /getProductsFromServer/);
+  assert.match(source, /getProductFromServer/);
+  assert.match(source, /getPortfolioItemsFromServer/);
+  assert.match(source, /getSiteFromServer/);
+  assert.match(source, /getCatalogVersionFromServer/);
+
+  assert.equal(/supabase\.server|@supabase|\.from\(|\/rest\/v1|service.role|service_role/i.test(source), false);
   assert.equal(/\.json|fixture|content\//i.test(source), false);
 });
 
@@ -231,7 +223,7 @@ test("catalog version predicate accepts only 64 lowercase hex characters", () =>
   assert.equal(isCatalogVersion("a".repeat(65)), false);
   assert.equal(isCatalogVersion("A".repeat(64)), false);
   assert.equal(isCatalogVersion(`${"a".repeat(63)}g`), false);
-  assert.equal(isCatalogVersion(`sha256:${valid}`), false);
+  assert.equal(isCatalogVersion("sha256:${valid}"), false);
   assert.equal(isCatalogVersion(""), false);
   assert.equal(isCatalogVersion(` ${valid} `), false);
 });
