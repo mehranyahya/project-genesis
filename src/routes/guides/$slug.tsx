@@ -31,5 +31,6 @@ export const Route = createFileRoute("/guides/$slug")({
 
 function GuideDetailRoute() {
   const guide = Route.useLoaderData();
+  if (!guide) return null;
   return <GuideDetailPage guide={guide} />;
 }
