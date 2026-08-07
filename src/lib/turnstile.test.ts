@@ -160,7 +160,7 @@ test("client transport omits the proof header when Turnstile is unavailable", as
   assert.equal(Object.hasOwn(headers, "X-Turnstile-Token"), false);
 });
 
-test("client integration keeps proof outside payload and missing proof outside the submit gate", () => {
+test("client executes a fresh Turnstile challenge only after validation and immediately before transport", () => {
   const field = readFileSync(
     new URL("../components/request-form/turnstile-field.tsx", import.meta.url),
     "utf8",
@@ -178,8 +178,12 @@ test("client integration keeps proof outside payload and missing proof outside t
 
   assert.match(field, /challenges\.cloudflare\.com\/turnstile\/v0\/api\.js\?render=explicit/);
   assert.match(field, /action: ACTION/);
+  assert.match(field, /execution: "execute"/);
+  assert.match(field, /"refresh-expired": "auto"/);
   assert.match(field, /appearance: "interaction-only"/);
   assert.match(field, /size: "flexible"/);
+  assert.match(field, /api\.execute\(container\)/);
+  assert.match(field, /readonly execute: \(\) => Promise<string \| null>/);
   assert.match(field, /VITE_TURNSTILE_SITE_KEY/);
   assert.equal(/TURNSTILE_SECRET_KEY/.test(field), false);
 
@@ -191,10 +195,17 @@ test("client integration keeps proof outside payload and missing proof outside t
 
   assert.match(form, /const selectionBlocked = selectionBlockedByCatalog;/);
   assert.match(form, /if \(!termsReady \|\| selectionBlocked\) return;/);
-  assert.equal(/selectionBlockedByCatalog \|\| turnstileProof === null/.test(form), false);
-  assert.match(form, /turnstileToken: turnstileProof/);
+  assert.equal(/useState<string \| null>\(null\).*turnstile/i.test(form), false);
+  assert.match(form, /await turnstileRef\.current\?\.execute\(\)/);
+  assert.match(form, /\{ payload, turnstileToken, transport \}/);
   assert.match(form, /resetTurnstile\(\)/);
   assert.match(form, /submitRequestWithTurnstile/);
+
+  const validationPosition = form.indexOf("validateRequestForm");
+  const executePosition = form.indexOf("await turnstileRef.current?.execute()");
+  const transportPosition = form.indexOf("const result = await submitRequest");
+  assert.ok(validationPosition >= 0 && executePosition > validationPosition);
+  assert.ok(transportPosition > executePosition);
 
   assert.match(route, /handleProtectedSubmitRequest/);
   assert.match(routeServer, /unverified_no_token/);
