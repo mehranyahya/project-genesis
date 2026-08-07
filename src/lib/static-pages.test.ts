@@ -276,10 +276,17 @@ test('root reads getSite() and getPage("not-found") and hard-codes no 404 copy',
   assert.equal(root.includes("Page not found"), false);
 });
 
-test("no public /404 route and no new route files exist", () => {
+test("no public /404 route and no unexpected public UI route files exist", () => {
   const files = readdirSync(join(ROOT, "src/routes"), { recursive: true }) as string[];
-  const routeFiles = files.filter((file) => /\.tsx?$/.test(file)).sort();
-  assert.deepEqual(routeFiles, [
+  const routeFiles = files
+    .filter((file) => /\.tsx?$/.test(file))
+    .map((file) => file.replaceAll("\\", "/"))
+    .sort();
+  const serverApiFiles = routeFiles.filter((file) => file.startsWith("api/"));
+  const publicRouteFiles = routeFiles.filter((file) => !file.startsWith("api/"));
+
+  assert.deepEqual(serverApiFiles, ["api/submit-request.ts"]);
+  assert.deepEqual(publicRouteFiles, [
     "__root.tsx",
     "about.tsx",
     "building-stone.tsx",
@@ -295,6 +302,7 @@ test("no public /404 route and no new route files exist", () => {
     "quote.tsx",
     "terms.tsx",
   ]);
+  assert.equal(publicRouteFiles.some((file) => /(^|\/)404\.tsx?$/.test(file)), false);
 });
 
 test("static page sources add no backend, supabase or unsafe html", () => {
