@@ -25,9 +25,7 @@ export interface TurnstileConfig {
 }
 
 export type TurnstileVerification =
-  | { readonly kind: "verified" }
-  | { readonly kind: "invalid" }
-  | { readonly kind: "service_error" };
+  { readonly kind: "verified" } | { readonly kind: "invalid" } | { readonly kind: "service_error" };
 
 export interface TurnstileDependencies {
   readonly getConfig: () => TurnstileConfig;
@@ -42,6 +40,14 @@ function normalizeHostname(value: string): string | null {
   if (!/^[a-z0-9.-]+$/.test(hostname)) return null;
   if (hostname.startsWith(".") || hostname.endsWith(".") || hostname.includes("..")) return null;
   return hostname;
+}
+
+function hasControlCharacters(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code <= 31 || code === 127) return true;
+  }
+  return false;
 }
 
 function readConfig(): TurnstileConfig {
@@ -71,7 +77,7 @@ const defaultDependencies: TurnstileDependencies = {
 export function readTurnstileToken(request: Request): string | null {
   const token = request.headers.get("x-turnstile-token") ?? "";
   if (token.length === 0 || token.length > TOKEN_MAX_LENGTH) return null;
-  if (/[\u0000-\u001f\u007f]/.test(token)) return null;
+  if (hasControlCharacters(token)) return null;
   return token;
 }
 
