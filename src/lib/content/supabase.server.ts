@@ -270,7 +270,9 @@ export async function loadProducts(query: ProductQuery = {}): Promise<Product[]>
 
   if (query.sizeCode) {
     result = result.filter((product) =>
-      product.variants.some((variant) => variant.sizeCode === query.sizeCode && variant.isAvailable),
+      product.variants.some(
+        (variant) => variant.sizeCode === query.sizeCode && variant.isAvailable,
+      ),
     );
   }
 
