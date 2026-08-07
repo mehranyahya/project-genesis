@@ -2,10 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-import {
-  readTurnstileToken,
-  verifyTurnstileRequest,
-} from "./turnstile.server";
+import { readTurnstileToken, verifyTurnstileRequest } from "./turnstile.server";
 import type { TurnstileDependencies } from "./turnstile.server";
 
 const SECRET = "turnstile-secret-value";
@@ -40,7 +37,11 @@ test("Turnstile token header is bounded and rejects controls", () => {
   assert.equal(readTurnstileToken(request()), TOKEN);
   assert.equal(readTurnstileToken(request(null)), null);
   assert.equal(readTurnstileToken(request("x".repeat(2049))), null);
-  assert.equal(readTurnstileToken(request("bad\nvalue")), null);
+
+  const controlHeaderRequest = {
+    headers: { get: () => "bad\u0001value" },
+  } as unknown as Request;
+  assert.equal(readTurnstileToken(controlHeaderRequest), null);
 });
 
 test("successful Siteverify requires exact action and allowlisted hostname", async () => {
@@ -130,8 +131,9 @@ test("client integration keeps token outside payload and server secret outside b
   assert.equal(/TURNSTILE_SECRET_KEY/.test(field), false);
 
   assert.match(transport, /"X-Turnstile-Token"/);
-  assert.match(transport, /body: JSON\.stringify\(input\.payload\)/);
-  assert.equal(/turnstileToken[^\n]*payload/.test(transport), false);
+  assert.match(transport, /baseTransport\(\{/);
+  assert.match(transport, /\.\.\.request\.headers/);
+  assert.equal(/JSON\.stringify/.test(transport), false);
 
   assert.match(form, /turnstileToken === null/);
   assert.match(form, /resetTurnstile\(\)/);
