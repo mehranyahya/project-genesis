@@ -11,6 +11,7 @@ import type { ProductDetailModel } from "@/lib/product-detail";
 import { resolveSelectionPrice } from "@/lib/product-detail";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
 import { buildGraveStoneRequestDraft } from "@/lib/request-draft";
+import type { RequestTermsDocument } from "@/lib/request-form";
 
 export const REVIEW_BUTTON_LABEL = "بازبینی انتخاب";
 export const DRAFT_BLOCKED_TEXT = "امکان آماده‌سازی خلاصه سفارش در حال حاضر وجود ندارد.";
@@ -22,10 +23,12 @@ export function ProductDetailPage({
   model,
   catalogVersion,
   site,
+  termsDocument,
 }: {
   model: ProductDetailModel;
   catalogVersion: string | null;
   site?: Site | null;
+  termsDocument: RequestTermsDocument | null;
 }) {
   const [variantId, setVariantId] = useState(model.variants[0]!.id);
   const [optionIds, setOptionIds] = useState<readonly string[]>([]);
@@ -108,7 +111,7 @@ export function ProductDetailPage({
             <RequestForm
               source={{ kind: "grave_stone", draft }}
               site={site ?? null}
-              termsDocument={null}
+              termsDocument={termsDocument}
             />
           </>
         ) : null}
