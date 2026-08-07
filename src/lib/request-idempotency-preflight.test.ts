@@ -95,8 +95,10 @@ test("preflight maps replay, conflict and expiry without exposing stored data", 
     assert.equal(result.response.status, outcome.status);
     const body = (await result.response.json()) as Record<string, unknown>;
     assert.equal(body["code"], outcome.input.code);
-    assert.deepEqual(Object.keys(body).sort(),
-      outcome.input.code === "REQUEST_REPLAYED" ? ["code", "tracking_code"] : ["code"]);
+    assert.deepEqual(
+      Object.keys(body).sort(),
+      outcome.input.code === "REQUEST_REPLAYED" ? ["code", "tracking_code"] : ["code"],
+    );
   }
 });
 
@@ -151,7 +153,10 @@ test("existing replay returns before Turnstile verification and before create RP
 
   const response = await handleProtectedSubmitRequest(request(), dependencies);
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { code: "REQUEST_REPLAYED", tracking_code: "MA-1001" });
+  assert.deepEqual(await response.json(), {
+    code: "REQUEST_REPLAYED",
+    tracking_code: "MA-1001",
+  });
   assert.equal(verifyCalls, 0);
   assert.equal(submitCalls, 0);
 });
