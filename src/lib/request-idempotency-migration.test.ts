@@ -15,8 +15,14 @@ test("idempotency inspection is read-only and service-role only", () => {
   assert.match(migration, /security definer/);
   assert.match(migration, /set search_path = pg_catalog/);
   assert.match(migration, /set statement_timeout to '3s'/);
-  assert.match(migration, /revoke all on function public\.inspect_request_idempotency\(uuid,text,text\)[\s\S]*?from public, anon, authenticated/);
-  assert.match(migration, /grant execute on function public\.inspect_request_idempotency\(uuid,text,text\)[\s\S]*?to service_role/);
+  assert.match(
+    migration,
+    /revoke all on function public\.inspect_request_idempotency\(uuid,text,text\)[\s\S]*?from public, anon, authenticated/,
+  );
+  assert.match(
+    migration,
+    /grant execute on function public\.inspect_request_idempotency\(uuid,text,text\)[\s\S]*?to service_role/,
+  );
   assert.equal(/\binsert\b|\bupdate\b|\bdelete\b/i.test(migration.replace(/^--.*$/gm, "")), false);
 });
 
