@@ -246,10 +246,9 @@ export function RequestForm({
         return;
       }
 
+      const { turnstileToken } = { turnstileToken: turnstileProof };
       const result = await submitRequest(
-        transport
-          ? { payload, turnstileToken: turnstileProof, transport }
-          : { payload, turnstileToken: turnstileProof },
+        transport ? { payload, turnstileToken, transport } : { payload, turnstileToken },
       );
       resetTurnstile();
 
