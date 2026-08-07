@@ -34,7 +34,11 @@ const runtimeFiles = (dir: string): string[] => {
   return out;
 };
 
-const uiFiles = () => [...runtimeFiles("routes"), ...runtimeFiles("components")];
+/** Scaffold surfaces only: unused shadcn primitives are out of the QA gate. */
+const uiFiles = () =>
+  [...runtimeFiles("routes"), ...runtimeFiles("components")].filter(
+    (rel) => !rel.startsWith(path.join("components", "ui") + path.sep),
+  );
 
 test("no public /404 business route exists", () => {
   const routes = runtimeFiles("routes");
