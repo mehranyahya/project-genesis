@@ -54,7 +54,9 @@ test("missing proof is soft no_token and never calls Siteverify", async () => {
     return result({ success: true, hostname: "mehrara.example", action: "submit_request" });
   };
 
-  assert.deepEqual(await verifyTurnstileRequest(request(null), deps(fetcher)), { kind: "no_token" });
+  assert.deepEqual(await verifyTurnstileRequest(request(null), deps(fetcher)), {
+    kind: "no_token",
+  });
   assert.equal(calls, 0);
 });
 
