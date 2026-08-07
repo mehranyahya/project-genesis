@@ -5,23 +5,30 @@ import {
   ProductDetailError,
   ProductDetailLoading,
 } from "@/components/product/product-detail-states";
-import { getCatalogVersion, getProduct, getSite } from "@/lib/content/adapters";
+import { getCatalogVersion, getPage, getProduct, getSite } from "@/lib/content/adapters";
 import { buildProductDetailModel } from "@/lib/product-detail";
+import { requestTermsDocumentFromPage } from "@/lib/request-terms";
 
 const GENERIC_DESCRIPTION = "صفحهٔ جزئیات سنگ مزار مهرآرا";
 
 export const Route = createFileRoute("/grave-stones/$slug")({
   loader: async ({ params }) => {
-    const [product, catalogVersion, site] = await Promise.all([
+    const [product, catalogVersion, site, termsPage] = await Promise.all([
       getProduct(params.slug),
       getCatalogVersion(),
       getSite(),
+      getPage("terms"),
     ]);
 
     const model = buildProductDetailModel(product, params.slug);
     if (model === null) throw notFound();
 
-    return { model, catalogVersion: catalogVersion ?? null, site: site ?? null };
+    return {
+      model,
+      catalogVersion: catalogVersion ?? null,
+      site: site ?? null,
+      termsDocument: requestTermsDocumentFromPage(termsPage),
+    };
   },
   head: ({ loaderData, params }) => {
     const title = loaderData ? `${loaderData.model.title} — مهرآرا` : "جزئیات سنگ مزار — مهرآرا";
@@ -42,6 +49,13 @@ export const Route = createFileRoute("/grave-stones/$slug")({
 });
 
 function GraveStoneDetailRoute() {
-  const { model, catalogVersion, site } = Route.useLoaderData();
-  return <ProductDetailPage model={model} catalogVersion={catalogVersion} site={site} />;
+  const { model, catalogVersion, site, termsDocument } = Route.useLoaderData();
+  return (
+    <ProductDetailPage
+      model={model}
+      catalogVersion={catalogVersion}
+      site={site}
+      termsDocument={termsDocument}
+    />
+  );
 }
