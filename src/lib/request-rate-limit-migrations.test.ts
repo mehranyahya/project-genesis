@@ -30,10 +30,7 @@ test("rate-limit policy starts fail-closed without invented request ceilings", (
   assert.match(policy, /max_requests_per_phone integer null/);
   assert.equal(/max_requests_per_ip\s+integer[^\n]*default\s+\d/i.test(policy), false);
   assert.equal(/max_requests_per_phone\s+integer[^\n]*default\s+\d/i.test(policy), false);
-  assert.match(
-    policy,
-    /values\s*\(\s*'primary',\s*false,\s*null,\s*null,\s*null\s*\)/s,
-  );
+  assert.match(policy, /values\s*\(\s*'primary',\s*false,\s*null,\s*null,\s*null\s*\)/s);
   assert.match(policy, /'code', 'TEMPORARILY_UNAVAILABLE'/);
 });
 
