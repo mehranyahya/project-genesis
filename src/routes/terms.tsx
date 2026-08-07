@@ -1,20 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { RouteSkeleton } from "@/components/layout/route-skeleton";
+import { ContentBlockedState, StaticPageView } from "@/components/static-pages/static-pages";
+import { getPage } from "@/lib/content/adapters";
+import { buildStaticPageModel, contentBlockedMeta } from "@/lib/static-pages";
+import type { StaticPageModel } from "@/lib/static-pages";
 
 export const Route = createFileRoute("/terms")({
-  head: () => ({
-    meta: [
-      { title: "شرایط استفاده — مهرآرا" },
-      { name: "description", content: "شرایط استفاده از مهرآرا" },
-      { property: "og:title", content: "شرایط استفاده — مهرآرا" },
-      { property: "og:description", content: "شرایط استفاده از مهرآرا" },
-    ],
-    links: [{ rel: "canonical", href: "/terms" }],
-  }),
+  head: (ctx) => {
+    const page = (ctx.loaderData ?? null) as StaticPageModel | null;
+    if (!page) return { meta: contentBlockedMeta() };
+    return {
+      meta: [
+        { title: page.metaTitle },
+        ...(page.metaDescription ? [{ name: "description", content: page.metaDescription }] : []),
+        ...(page.robots ? [{ name: "robots", content: page.robots }] : []),
+      ],
+      links: page.canonicalPath ? [{ rel: "canonical", href: page.canonicalPath }] : [],
+    };
+  },
+  loader: async () => buildStaticPageModel(await getPage("terms"), "terms"),
   component: TermsRoute,
 });
 
 function TermsRoute() {
-  return <RouteSkeleton title="شرایط استفاده" />;
+  const page = Route.useLoaderData() ?? null;
+  return page ? <StaticPageView page={page} /> : <ContentBlockedState />;
 }
