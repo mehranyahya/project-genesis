@@ -118,8 +118,18 @@ const requestPayloadSchema = z.union([graveStoneSchema, buildingStoneSchema, con
 
 export type ServerRequestPayload = z.infer<typeof requestPayloadSchema>;
 
-type RiskFlag = "turnstile_no_token";
-type BotVerification = "unverified_no_token";
+export type RiskFlag = "turnstile_no_token";
+export type BotVerification = "verified" | "unverified_no_token";
+
+export interface RequestSecurityContext {
+  readonly botVerification: BotVerification;
+  readonly riskFlags: readonly RiskFlag[];
+}
+
+const DEFAULT_SECURITY_CONTEXT: RequestSecurityContext = {
+  botVerification: "unverified_no_token",
+  riskFlags: ["turnstile_no_token"],
+};
 
 export interface RequestApiConfig {
   readonly supabaseUrl: string;
@@ -484,6 +494,7 @@ const defaultDependencies: RequestApiDependencies = {
 export async function handleSubmitRequest(
   request: Request,
   dependencies: RequestApiDependencies = defaultDependencies,
+  securityContext: RequestSecurityContext = DEFAULT_SECURITY_CONTEXT,
 ): Promise<Response> {
   const parsed = await readPayload(request);
   if (!parsed.ok) return parsed.response;
@@ -508,8 +519,8 @@ export async function handleSubmitRequest(
     p_request_fingerprint_key_id: config.fingerprintKeyId,
     p_current_terms_version: terms?.version ?? null,
     p_current_terms_hash: terms?.contentHash ?? null,
-    p_bot_verification: "unverified_no_token",
-    p_risk_flags: ["turnstile_no_token"],
+    p_bot_verification: securityContext.botVerification,
+    p_risk_flags: securityContext.riskFlags,
     p_ip_hash: ipHash(request, config),
   };
 
