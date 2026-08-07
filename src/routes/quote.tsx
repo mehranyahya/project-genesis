@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { QuotePage } from "@/components/request-form/quote-page";
 import { getPortfolioItems, getSite } from "@/lib/content/adapters";
 import { findPortfolioReference, normalizePortfolioReference } from "@/lib/portfolio-reference";
+import { getRequestTermsDocument } from "@/lib/request-terms";
 
 interface QuoteSearch {
   readonly source?: "portfolio";
@@ -17,10 +18,15 @@ export const Route = createFileRoute("/quote")({
   },
   loaderDeps: ({ search }) => ({ reference: search.reference ?? null }),
   loader: async ({ deps }) => {
-    const [portfolioItems, site] = await Promise.all([getPortfolioItems(), getSite()]);
+    const [portfolioItems, site, termsDocument] = await Promise.all([
+      getPortfolioItems(),
+      getSite(),
+      getRequestTermsDocument(),
+    ]);
     return {
       portfolioReferenceId: findPortfolioReference(portfolioItems, deps.reference),
       site: site ?? null,
+      termsDocument,
     };
   },
   head: () => ({
@@ -36,6 +42,12 @@ export const Route = createFileRoute("/quote")({
 });
 
 function QuoteRoute() {
-  const { portfolioReferenceId, site } = Route.useLoaderData();
-  return <QuotePage portfolioReferenceId={portfolioReferenceId} site={site} />;
+  const { portfolioReferenceId, site, termsDocument } = Route.useLoaderData();
+  return (
+    <QuotePage
+      portfolioReferenceId={portfolioReferenceId}
+      site={site}
+      termsDocument={termsDocument}
+    />
+  );
 }

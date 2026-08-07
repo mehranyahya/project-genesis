@@ -132,6 +132,10 @@ export interface Page {
   title: string;
   body: string;
   seo: SeoMeta | null;
+  /** Present only when the source page is explicitly versioned. */
+  version?: string;
+  /** SHA-256 acceptance hash; currently emitted only for the Terms page. */
+  contentHash?: string;
 }
 
 export interface ProductQuery {

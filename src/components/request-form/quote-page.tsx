@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { RequestForm } from "@/components/request-form/request-form";
 import type { Site } from "@/lib/content/types";
+import type { RequestTermsDocument } from "@/lib/request-form";
 
 export const QUOTE_HEADING = "ثبت درخواست بررسی";
 export const QUOTE_INTRO =
@@ -15,9 +16,11 @@ const SECONDARY =
 export function QuotePage({
   portfolioReferenceId,
   site,
+  termsDocument,
 }: {
   portfolioReferenceId: string | null;
   site: Site | null;
+  termsDocument: RequestTermsDocument | null;
 }) {
   const navigate = useNavigate({ from: "/quote" });
 
@@ -47,7 +50,7 @@ export function QuotePage({
         <RequestForm
           source={{ kind: "contact", portfolioReferenceId }}
           site={site}
-          termsDocument={null}
+          termsDocument={termsDocument}
           onSuccess={clearReference}
         />
       </div>

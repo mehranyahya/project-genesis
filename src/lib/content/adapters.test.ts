@@ -181,28 +181,31 @@ test("all eight content adapters exist", () => {
   }
 });
 
-test("Git-versioned long-form adapters remain content-blocked until their repository is wired", async () => {
+test("guide adapters remain content-blocked until their Git repository is wired", async () => {
   assert.deepEqual(await adapters.getGuides(), []);
   assert.deepEqual(await adapters.getGuides({ limit: 3 }), []);
   assert.equal(await adapters.getGuide("any"), null);
-  assert.equal(await adapters.getPage("home"), null);
 });
 
-test("operational adapters cross only the approved TanStack server-function boundary", () => {
+test("content adapters cross only approved TanStack server-function boundaries", () => {
   const source = readFileSync(new URL("./adapters.ts", import.meta.url), "utf8");
 
   assert.match(source, /from "\.\/supabase\.functions"/);
+  assert.match(source, /from "\.\/git\.functions"/);
   assert.match(source, /getProductsFromServer/);
   assert.match(source, /getProductFromServer/);
   assert.match(source, /getPortfolioItemsFromServer/);
   assert.match(source, /getSiteFromServer/);
   assert.match(source, /getCatalogVersionFromServer/);
+  assert.match(source, /getPageFromGitServer/);
 
   assert.equal(
-    /supabase\.server|@supabase|\.from\(|\/rest\/v1|service.role|service_role/i.test(source),
+    /supabase\.server|git\.server|@supabase|\.from\(|\/rest\/v1|service.role|service_role|node:fs|content\//i.test(
+      source,
+    ),
     false,
   );
-  assert.equal(/\.json|fixture|content\//i.test(source), false);
+  assert.equal(/\.json|fixture/i.test(source), false);
 });
 
 test("page slug allowlist is exactly the contract", () => {

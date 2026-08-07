@@ -2,9 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { BuildingStonePage } from "@/components/building-stone/building-stone-page";
 import { getSite } from "@/lib/content/adapters";
+import { getRequestTermsDocument } from "@/lib/request-terms";
 
 export const Route = createFileRoute("/building-stone")({
-  loader: async () => ({ site: (await getSite()) ?? null }),
+  loader: async () => {
+    const [site, termsDocument] = await Promise.all([getSite(), getRequestTermsDocument()]);
+    return {
+      site: site ?? null,
+      termsDocument,
+    };
+  },
   head: () => ({
     meta: [
       { title: "سنگ ساختمانی — مهرآرا" },
@@ -18,6 +25,6 @@ export const Route = createFileRoute("/building-stone")({
 });
 
 function BuildingStoneRoute() {
-  const { site } = Route.useLoaderData();
-  return <BuildingStonePage site={site} />;
+  const { site, termsDocument } = Route.useLoaderData();
+  return <BuildingStonePage site={site} termsDocument={termsDocument} />;
 }

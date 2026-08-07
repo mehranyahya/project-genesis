@@ -6,6 +6,7 @@ import { RequestForm } from "@/components/request-form/request-form";
 import type { Product, Site } from "@/lib/content/types";
 import { CUSTOM_FUNNEL_OPTION_ROLES, buildCustomFunnelModel } from "@/lib/custom-funnel";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
+import type { RequestTermsDocument } from "@/lib/request-form";
 
 export const CUSTOM_FUNNEL_HEADING = "ساخت مرحله‌ای سنگ مزار";
 export const CUSTOM_FUNNEL_INTRO =
@@ -19,10 +20,12 @@ export function CustomFunnelPage({
   products,
   catalogVersion,
   site,
+  termsDocument,
 }: {
   products: readonly Product[];
   catalogVersion: string | null;
   site?: Site | null;
+  termsDocument: RequestTermsDocument | null;
 }) {
   // Draft stays in React memory only: no storage, no URL, no network.
   const [draft, setDraft] = useState<GraveStoneRequestDraft | null>(null);
@@ -73,7 +76,7 @@ export function CustomFunnelPage({
           <RequestForm
             source={{ kind: "grave_stone", draft }}
             site={site ?? null}
-            termsDocument={null}
+            termsDocument={termsDocument}
           />
         </div>
       ) : null}
