@@ -85,7 +85,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
-  loader: async () => ({ site: await getSite() }),
+  loader: async () => {
+    const [site, notFoundPage] = await Promise.all([getSite(), getPage("not-found")]);
+    return { site, notFound: buildNotFoundModel(notFoundPage) };
+  },
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
