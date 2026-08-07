@@ -25,7 +25,10 @@ export interface TurnstileConfig {
 }
 
 export type TurnstileVerification =
-  { readonly kind: "verified" } | { readonly kind: "invalid" } | { readonly kind: "service_error" };
+  | { readonly kind: "verified" }
+  | { readonly kind: "no_token" }
+  | { readonly kind: "invalid" }
+  | { readonly kind: "service_error" };
 
 export interface TurnstileDependencies {
   readonly getConfig: () => TurnstileConfig;
@@ -144,6 +147,9 @@ export async function verifyTurnstileRequest(
   request: Request,
   dependencies: TurnstileDependencies = defaultDependencies,
 ): Promise<TurnstileVerification> {
+  const rawToken = request.headers.get("x-turnstile-token");
+  if (rawToken === null || rawToken.length === 0) return { kind: "no_token" };
+
   const token = readTurnstileToken(request);
   if (token === null) return { kind: "invalid" };
 
