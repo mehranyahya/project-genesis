@@ -2,6 +2,14 @@ import { readFile, writeFile } from "node:fs/promises";
 
 const CONFIG_PATH = new URL("../.output/server/wrangler.json", import.meta.url);
 const TELEGRAM_RECOVERY_CRON = "0 * * * *";
+const SUBMIT_FLOOD_LIMITER = {
+  name: "SUBMIT_FLOOD_LIMITER",
+  namespace_id: "1322772730",
+  simple: {
+    limit: 300,
+    period: 60,
+  },
+};
 
 const raw = await readFile(CONFIG_PATH, "utf8");
 const config = JSON.parse(raw);
@@ -32,6 +40,16 @@ config.triggers = {
   ...(typeof config.triggers === "object" && config.triggers !== null ? config.triggers : {}),
   crons: [TELEGRAM_RECOVERY_CRON],
 };
+
+const rateLimits = Array.isArray(config.ratelimits)
+  ? config.ratelimits.filter(
+      (value) =>
+        typeof value !== "object" ||
+        value === null ||
+        value.name !== SUBMIT_FLOOD_LIMITER.name,
+    )
+  : [];
+config.ratelimits = [...rateLimits, SUBMIT_FLOOD_LIMITER];
 
 if (typeof config.assets === "object" && config.assets !== null && !Array.isArray(config.assets)) {
   config.assets = {
