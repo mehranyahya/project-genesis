@@ -1,20 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { RouteSkeleton } from "@/components/layout/route-skeleton";
+import { GuidesError, GuidesListPage, GuidesLoading } from "@/components/guides/guides";
+import { getGuides } from "@/lib/content/adapters";
+import { buildGuideListModel } from "@/lib/guides";
 
 export const Route = createFileRoute("/guides/")({
-  head: () => ({
-    meta: [
-      { title: "راهنماها — مهرآرا" },
-      { name: "description", content: "راهنماهای انتخاب و سفارش سنگ در مهرآرا" },
-      { property: "og:title", content: "راهنماها — مهرآرا" },
-      { property: "og:description", content: "راهنماهای انتخاب و سفارش سنگ در مهرآرا" },
-    ],
-    links: [{ rel: "canonical", href: "/guides" }],
-  }),
+  head: ({ loaderData }) => {
+    const hasContent = (loaderData?.length ?? 0) > 0;
+    return {
+      meta: [
+        { title: "راهنماها — مهرآرا" },
+        ...(hasContent ? [] : [{ name: "robots", content: "noindex" }]),
+      ],
+      links: [{ rel: "canonical", href: "/guides" }],
+    };
+  },
+  loader: async () => buildGuideListModel(await getGuides()),
+  pendingComponent: GuidesLoading,
+  errorComponent: GuidesError,
   component: GuidesRoute,
 });
 
 function GuidesRoute() {
-  return <RouteSkeleton title="راهنماها" />;
+  const items = Route.useLoaderData();
+  return <GuidesListPage items={items} />;
 }
