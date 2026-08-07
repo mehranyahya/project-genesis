@@ -142,7 +142,8 @@ test("client integration keeps token outside payload and server secret outside b
   assert.match(transport, /\.\.\.request\.headers/);
   assert.equal(/JSON\.stringify/.test(transport), false);
 
-  assert.match(form, /turnstileToken === null/);
+  assert.match(form, /turnstileProof === null/);
+  assert.match(form, /turnstileToken: turnstileProof/);
   assert.match(form, /resetTurnstile\(\)/);
   assert.match(form, /submitRequestWithTurnstile/);
 
