@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { BuildingStonePage } from "@/components/building-stone/building-stone-page";
-import { getPage, getSite } from "@/lib/content/adapters";
-import { requestTermsDocumentFromPage } from "@/lib/request-terms";
+import { getSite } from "@/lib/content/adapters";
+import { getRequestTermsDocument } from "@/lib/request-terms";
 
 export const Route = createFileRoute("/building-stone")({
   loader: async () => {
-    const [site, termsPage] = await Promise.all([getSite(), getPage("terms")]);
+    const [site, termsDocument] = await Promise.all([getSite(), getRequestTermsDocument()]);
     return {
       site: site ?? null,
-      termsDocument: requestTermsDocumentFromPage(termsPage),
+      termsDocument,
     };
   },
   head: () => ({
