@@ -43,10 +43,7 @@ config.triggers = {
 
 const rateLimits = Array.isArray(config.ratelimits)
   ? config.ratelimits.filter(
-      (value) =>
-        typeof value !== "object" ||
-        value === null ||
-        value.name !== SUBMIT_FLOOD_LIMITER.name,
+      (value) => typeof value !== "object" || value === null || value.name !== SUBMIT_FLOOD_LIMITER.name,
     )
   : [];
 config.ratelimits = [...rateLimits, SUBMIT_FLOOD_LIMITER];
