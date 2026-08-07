@@ -15,7 +15,10 @@ if (typeof config.name !== "string" || config.name.trim() === "") {
 if (typeof config.main !== "string" || config.main.trim() === "") {
   throw new Error("Generated Wrangler config has no worker entry");
 }
-if (typeof config.compatibility_date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(config.compatibility_date)) {
+if (
+  typeof config.compatibility_date !== "string" ||
+  !/^\d{4}-\d{2}-\d{2}$/.test(config.compatibility_date)
+) {
   throw new Error("Generated Wrangler config has no valid compatibility date");
 }
 
