@@ -95,9 +95,7 @@ export const TurnstileField = forwardRef<TurnstileFieldHandle>(function Turnstil
   const apiRef = useRef<TurnstileApi | null>(null);
   const widgetIdRef = useRef<string | null>(null);
   const pendingRef = useRef<PendingExecution | null>(null);
-  const [state, setState] = useState<"loading" | "ready" | "verifying" | "unavailable">(
-    "loading",
-  );
+  const [state, setState] = useState<"loading" | "ready" | "verifying" | "unavailable">("loading");
 
   const settlePending = (token: string | null) => {
     const pending = pendingRef.current;
