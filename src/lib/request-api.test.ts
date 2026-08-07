@@ -2,12 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-import {
-  cloudflareIp,
-  handleSubmitRequest,
-  hmacSha256Hex,
-  stableJson,
-} from "./request-api.server";
+import { cloudflareIp, handleSubmitRequest, hmacSha256Hex, stableJson } from "./request-api.server";
 import type {
   RequestApiConfig,
   RequestApiDependencies,
