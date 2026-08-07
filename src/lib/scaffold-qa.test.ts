@@ -98,7 +98,7 @@ test("app shell keeps skip link, single main and mobile-bar clearance", () => {
 });
 
 test("reduced motion is honoured globally and no decorative animation is declared", () => {
-  const styles = read("styles.css\");
+  const styles = read("styles.css");
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(styles, /animation-duration: 0\.01ms !important/);
   assert.match(styles, /transition-duration: 0\.01ms !important/);
