@@ -11,13 +11,20 @@ import {
   buildingStoneFieldId,
 } from "@/lib/building-stone";
 import type { Site } from "@/lib/content/types";
+import type { RequestTermsDocument } from "@/lib/request-form";
 
 export const BUILDING_STONE_HEADING = "درخواست بررسی سنگ ساختمانی";
 export const BUILDING_STONE_INTRO =
   "نوع سنگ و کاربرد موردنظر را انتخاب کنید و در صورت مشخص‌بودن، مساحت را به متر مربع وارد کنید. پس از بررسی امکان تأمین و اجرا، برای هماهنگی با شما تماس می‌گیریم.";
 export const BUILDING_STONE_SECTION_HEADING = "مشخصات درخواست";
 
-export function BuildingStonePage({ site }: { site: Site | null }) {
+export function BuildingStonePage({
+  site,
+  termsDocument,
+}: {
+  site: Site | null;
+  termsDocument: RequestTermsDocument | null;
+}) {
   const [selection, setSelection] = useState<BuildingStoneValues>(
     buildingStoneExtension.initialValues ?? EMPTY_BUILDING_STONE_VALUES,
   );
@@ -57,7 +64,7 @@ export function BuildingStonePage({ site }: { site: Site | null }) {
         <RequestForm
           source={{ kind: "building_stone", selection }}
           site={site}
-          termsDocument={null}
+          termsDocument={termsDocument}
           extension={binding}
         />
       </div>
