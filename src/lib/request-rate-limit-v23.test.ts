@@ -33,8 +33,14 @@ test("v23.2 launch ceilings are explicit and migration leaves policy disabled", 
 
 test("same phone and request type is patched from a hard block into a review flag", () => {
   assert.match(migration, /create_request_atomic_core duplicate block drifted/);
-  assert.match(migration, /p_risk_flags := p_risk_flags \|\| '\["repeat_phone_short_window"\]'::jsonb/);
-  assert.match(migration, /v_risk_flags := v_risk_flags \|\| '\["repeat_phone_short_window"\]'::jsonb/);
+  assert.match(
+    migration,
+    /p_risk_flags := p_risk_flags \|\| '\["repeat_phone_short_window"\]'::jsonb/,
+  );
+  assert.match(
+    migration,
+    /v_risk_flags := v_risk_flags \|\| '\["repeat_phone_short_window"\]'::jsonb/,
+  );
 });
 
 test("general and missing-token phone ceilings are independent of IP", () => {
@@ -73,8 +79,14 @@ test("shared IP is soft at 20 and hard at 200 only for unverified traffic", () =
 test("request RPC functions carry bounded database timeouts", () => {
   assert.match(migration, /create_request_atomic_core[\s\S]*?set statement_timeout to '5s'/);
   assert.match(migration, /create_request_atomic_core[\s\S]*?set lock_timeout to '3s'/);
-  assert.match(migration, /create or replace function public\.create_request_atomic[\s\S]*?set statement_timeout to '5s'/);
-  assert.match(migration, /create or replace function public\.create_request_atomic[\s\S]*?set lock_timeout to '3s'/);
+  assert.match(
+    migration,
+    /create or replace function public\.create_request_atomic[\s\S]*?set statement_timeout to '5s'/,
+  );
+  assert.match(
+    migration,
+    /create or replace function public\.create_request_atomic[\s\S]*?set lock_timeout to '3s'/,
+  );
 });
 
 test("v23.2 rate-limit queries have dedicated service-error indexes", () => {
