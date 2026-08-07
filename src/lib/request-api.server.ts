@@ -52,7 +52,8 @@ const graveStoneSchema = commonSchema
   })
   .strict()
   .superRefine((value, context) => {
-    const validReview = value.client_price_type === "review" && value.client_displayed_price === null;
+    const validReview =
+      value.client_price_type === "review" && value.client_displayed_price === null;
     const validNumeric =
       value.client_price_type !== "review" && value.client_displayed_price !== null;
     if (!validReview && !validNumeric) {
@@ -84,7 +85,9 @@ const buildingStoneSchema = commonSchema
   .superRefine((value, context) => {
     if (
       value.application === "other" &&
-      (value.customer_note === null || value.customer_note.length < 10 || value.customer_note.length > 500)
+      (value.customer_note === null ||
+        value.customer_note.length < 10 ||
+        value.customer_note.length > 500)
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -325,7 +328,9 @@ async function readBoundedUtf8Body(request: Request): Promise<string | null> {
   }
 }
 
-async function readPayload(request: Request): Promise<
+async function readPayload(
+  request: Request,
+): Promise<
   | { readonly ok: true; readonly payload: ServerRequestPayload }
   | { readonly ok: false; readonly response: Response }
 > {
