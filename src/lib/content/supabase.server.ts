@@ -107,8 +107,8 @@ type SiteRow = {
 const REQUEST_TIMEOUT_MS = 8_000;
 
 function getConfig(): { baseUrl: string; serviceRoleKey: string } {
-  const rawUrl = process.env.SUPABASE_URL?.trim();
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const rawUrl = process.env["SUPABASE_URL"]?.trim();
+  const serviceRoleKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]?.trim();
 
   if (!rawUrl || !serviceRoleKey) {
     throw new Error("Server content repository is not configured");
