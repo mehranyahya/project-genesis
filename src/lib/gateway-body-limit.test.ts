@@ -6,11 +6,12 @@ import { enforcePublicSubmitBodyLimit, PUBLIC_SUBMIT_MAX_BODY_BYTES } from "../s
 const endpoint = "https://example.test/api/submit-request";
 
 function requestWithBody(body: string, headers?: HeadersInit): Request {
-  return new Request(endpoint, {
+  const init: RequestInit = {
     method: "POST",
-    headers,
     body,
-  });
+  };
+  if (headers !== undefined) init.headers = headers;
+  return new Request(endpoint, init);
 }
 
 test("public submit gateway limit is exactly 16 KiB", () => {
