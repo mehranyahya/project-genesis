@@ -4,14 +4,14 @@ import { test } from "node:test";
 
 const migration = readFileSync(
   new URL(
-    "../../supabase/migrations/20260807201000_align_turnstile_and_rate_limits_v23.sql",
+    "../../supabase/migrations/20260807201233_align_turnstile_and_rate_limits_v23.sql",
     import.meta.url,
   ),
   "utf8",
 );
 const indexes = readFileSync(
   new URL(
-    "../../supabase/migrations/20260807201100_add_v23_rate_limit_indexes.sql",
+    "../../supabase/migrations/20260807201245_add_v23_rate_limit_indexes.sql",
     import.meta.url,
   ),
   "utf8",

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const migration = readFileSync(
-  new URL("../../supabase/migrations/20260807190000_add_telegram_outbox_rpcs.sql", import.meta.url),
+  new URL("../../supabase/migrations/20260807190349_add_telegram_outbox_rpcs.sql", import.meta.url),
   "utf8",
 );
 
