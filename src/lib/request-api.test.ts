@@ -218,7 +218,8 @@ test("server route is POST-only and isolates all backend code from the UI", () =
   assert.match(route, /createFileRoute\("\/api\/submit-request"\)/);
   assert.match(route, /POST:/);
   assert.equal(/GET:|PUT:|PATCH:|DELETE:/.test(route), false);
-  assert.match(route, /request-api\.server/);
+  assert.match(route, /request-api\.route\.server/);
+  assert.equal(/request-api\.server["']/.test(route), false);
   assert.equal(/SUPABASE|SERVICE_ROLE|process\.env|console\./.test(route), false);
   assert.equal(/component\s*:/.test(route), false);
 });

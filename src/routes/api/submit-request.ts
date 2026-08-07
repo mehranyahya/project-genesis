@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { handleSubmitRequest } from "@/lib/request-api.server";
+import { handleProtectedSubmitRequest } from "@/lib/request-api.route.server";
 
 export const Route = createFileRoute("/api/submit-request")({
   server: {
     handlers: {
-      POST: async ({ request }) => handleSubmitRequest(request),
+      POST: async ({ request }) => handleProtectedSubmitRequest(request),
     },
   },
 });
