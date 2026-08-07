@@ -119,16 +119,16 @@ test("client integration keeps token outside payload and server secret outside b
     new URL("../components/request-form/turnstile-field.tsx", import.meta.url),
     "utf8",
   );
-  const transport = readFileSync(
-    new URL("./request-submit-turnstile.ts", import.meta.url),
-    "utf8",
-  );
+  const transport = readFileSync(new URL("./request-submit-turnstile.ts", import.meta.url), "utf8");
   const form = readFileSync(
     new URL("../components/request-form/request-form.tsx", import.meta.url),
     "utf8",
   );
   const route = readFileSync(new URL("../routes/api/submit-request.ts", import.meta.url), "utf8");
-  const routeServer = readFileSync(new URL("./request-api.route.server.ts", import.meta.url), "utf8");
+  const routeServer = readFileSync(
+    new URL("./request-api.route.server.ts", import.meta.url),
+    "utf8",
+  );
 
   assert.match(field, /challenges\.cloudflare\.com\/turnstile\/v0\/api\.js\?render=explicit/);
   assert.match(field, /action: ACTION/);
