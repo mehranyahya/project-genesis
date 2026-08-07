@@ -17,11 +17,12 @@ import { getPage, getSite } from "../lib/content/adapters";
 import { buildNotFoundModel } from "../lib/static-pages";
 
 function NotFoundComponent() {
-  const data = Route.useLoaderData({ shouldThrow: false }) as
+  const data = Route.useLoaderData() as
     | { notFound: ReturnType<typeof buildNotFoundModel> }
     | undefined;
   return <NotFoundView page={data?.notFound ?? null} />;
 }
+
 
 
 
