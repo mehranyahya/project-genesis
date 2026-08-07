@@ -23,12 +23,18 @@ export function isTurnstileToken(value: unknown): value is string {
 
 export async function submitRequestWithTurnstile(input: {
   readonly payload: RequestPayload;
-  readonly turnstileToken: string;
+  readonly turnstileToken: string | null;
   readonly transport?: RequestSubmitTransport;
 }): Promise<SubmitOutcome> {
-  if (!isTurnstileToken(input.turnstileToken)) return { kind: "bot_verification_invalid" };
+  if (input.turnstileToken !== null && !isTurnstileToken(input.turnstileToken)) {
+    return { kind: "bot_verification_invalid" };
+  }
 
   const baseTransport = input.transport ?? sameOriginTransport;
+  if (input.turnstileToken === null) {
+    return submitRequest({ payload: input.payload, transport: baseTransport });
+  }
+
   const protectedTransport: RequestSubmitTransport = (request) =>
     baseTransport({
       ...request,
