@@ -178,7 +178,6 @@ export function RequestForm({
   const [selectionBlockedByCatalog, setSelectionBlocked] = useState(false);
   const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
   const [freshAttemptRequired, setFreshAttemptRequired] = useState(false);
-  const [turnstileProof, setTurnstileProof] = useState<string | null>(null);
 
   const submissionId = useRef<string | null>(null);
   const inFlight = useRef(false);
@@ -242,12 +241,7 @@ export function RequestForm({
   const selectionBlocked = selectionBlockedByCatalog;
 
   const resetTurnstile = useCallback(() => {
-    const field = turnstileRef.current;
-    if (field === null) {
-      setTurnstileProof(null);
-      return;
-    }
-    field.reset();
+    turnstileRef.current?.reset();
   }, []);
 
   const run = useCallback(
@@ -287,10 +281,19 @@ export function RequestForm({
       setPhase("submitting");
       setOutcome(null);
 
+      const turnstileProof = (await turnstileRef.current?.execute()) ?? null;
+      if (
+        attempt !== attemptIdentity.current ||
+        isStaleAttempt(attemptGeneration, generationTracker.current?.current() ?? generation)
+      ) {
+        inFlight.current = false;
+        resetTurnstile();
+        return;
+      }
+
+      const { turnstileToken } = { turnstileToken: turnstileProof };
       const result = await submitRequest(
-        transport
-          ? { payload, turnstileToken: turnstileProof, transport }
-          : { payload, turnstileToken: turnstileProof },
+        transport ? { payload, turnstileToken, transport } : { payload, turnstileToken },
       );
       resetTurnstile();
 
@@ -350,7 +353,6 @@ export function RequestForm({
       terms,
       termsReady,
       transport,
-      turnstileProof,
       values,
     ],
   );
@@ -386,9 +388,7 @@ export function RequestForm({
       </div>
 
       <div className="col-span-4 flex flex-col gap-4 md:col-span-8 lg:col-span-4">
-        {termsReady ? (
-          <TurnstileField ref={turnstileRef} onTokenChange={setTurnstileProof} />
-        ) : null}
+        {termsReady ? <TurnstileField ref={turnstileRef} /> : null}
 
         <button
           type="submit"
