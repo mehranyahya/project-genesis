@@ -72,7 +72,9 @@ function buildSeo(meta: Frontmatter): SeoMeta | null {
 export function computeTermsContentHash(version: string, body: string): string {
   const normalizedVersion = version.trim();
   const normalizedBody = normalizeNewlines(body).trim();
-  return createHash("sha256").update(`${normalizedVersion}\n${normalizedBody}`, "utf8").digest("hex");
+  return createHash("sha256")
+    .update(`${normalizedVersion}\n${normalizedBody}`, "utf8")
+    .digest("hex");
 }
 
 export function parseGitPage(raw: string, expectedSlug: PageSlug): Page | null {
