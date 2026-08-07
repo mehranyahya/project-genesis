@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import { RequestFormFields, fieldId } from "./request-form-fields";
 import { RequestFormState } from "./request-form-state";
 import { RequestSuccess } from "./request-success";
+import { TurnstileField } from "./turnstile-field";
+import type { TurnstileFieldHandle } from "./turnstile-field";
 import type { BuildingStoneValues } from "@/lib/building-stone";
 import { buildingStoneFieldId } from "@/lib/building-stone";
 import type { Site } from "@/lib/content/types";
@@ -25,13 +27,9 @@ import {
   requestSourceSelectionIdentity,
   validateRequestForm,
 } from "@/lib/request-form";
+import { submitRequestWithTurnstile } from "@/lib/request-submit-turnstile";
 import type { RequestSubmitTransport, SubmitOutcome } from "@/lib/request-submit";
-import {
-  SUBMIT_MESSAGES,
-  createSubmissionId,
-  rememberTrackingCode,
-  submitRequest,
-} from "@/lib/request-submit";
+import { SUBMIT_MESSAGES, createSubmissionId, rememberTrackingCode } from "@/lib/request-submit";
 
 export const SUBMIT_LABEL = "ثبت درخواست بررسی";
 
@@ -180,9 +178,11 @@ export function RequestForm({
   const [selectionBlocked, setSelectionBlocked] = useState(false);
   const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
   const [freshAttemptRequired, setFreshAttemptRequired] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const submissionId = useRef<string | null>(null);
   const inFlight = useRef(false);
+  const turnstileRef = useRef<TurnstileFieldHandle | null>(null);
 
   // A binding is only active when the outer kind and the bound contract kind
   // both match the source kind. A building source without a fully compatible
@@ -240,11 +240,20 @@ export function RequestForm({
 
   const termsReady = isRequestTermsDocument(terms);
 
+  const resetTurnstile = useCallback(() => {
+    const field = turnstileRef.current;
+    if (field === null) {
+      setTurnstileToken(null);
+      return;
+    }
+    field.reset();
+  }, []);
+
   const run = useCallback(
     async (revision: PriceRevision | null, options?: { readonly allowFreshAttempt?: boolean }) => {
       const allowFreshAttempt = options?.allowFreshAttempt === true;
       if (inFlight.current) return;
-      if (!termsReady || selectionBlocked) return;
+      if (!termsReady || selectionBlocked || turnstileToken === null) return;
       // After an idempotency outcome only the dedicated action may submit again;
       // the main submit button and the Enter key stay inert.
       if (freshAttemptRequired && !allowFreshAttempt) return;
@@ -277,7 +286,12 @@ export function RequestForm({
       setPhase("submitting");
       setOutcome(null);
 
-      const result = await submitRequest(transport ? { payload, transport } : { payload });
+      const result = await submitRequestWithTurnstile(
+        transport
+          ? { payload, turnstileToken, transport }
+          : { payload, turnstileToken },
+      );
+      resetTurnstile();
 
       // A stale response from an obsolete source attempt is ignored completely.
       if (attempt !== attemptIdentity.current) return;
@@ -329,11 +343,13 @@ export function RequestForm({
       freshAttemptRequired,
       generation,
       onSuccess,
+      resetTurnstile,
       selectionBlocked,
       source,
       terms,
       termsReady,
       transport,
+      turnstileToken,
       values,
     ],
   );
@@ -369,10 +385,14 @@ export function RequestForm({
       </div>
 
       <div className="col-span-4 flex flex-col gap-4 md:col-span-8 lg:col-span-4">
+        {termsReady ? (
+          <TurnstileField ref={turnstileRef} onTokenChange={setTurnstileToken} />
+        ) : null}
+
         <button
           type="submit"
           className={ACTION}
-          disabled={!termsReady || submitting || selectionBlocked}
+          disabled={!termsReady || turnstileToken === null || submitting || selectionBlocked}
         >
           {submitting ? SUBMIT_MESSAGES.submitting : SUBMIT_LABEL}
         </button>
