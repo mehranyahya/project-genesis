@@ -1,5 +1,7 @@
 import "./lib/error-capture";
 
+import { isIP } from "node:net";
+
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import {
@@ -21,8 +23,13 @@ type WorkerScheduledController = {
   scheduledTime: number;
 };
 
+type WorkerRateLimitBinding = {
+  limit: (input: { readonly key: string }) => Promise<{ readonly success: boolean }>;
+};
+
 export const TELEGRAM_RECOVERY_CRON = "0 * * * *";
 export const PUBLIC_SUBMIT_MAX_BODY_BYTES = 16 * 1024;
+export const SUBMIT_FLOOD_LIMIT_BINDING = "SUBMIT_FLOOD_LIMITER";
 
 const PUBLIC_SUBMIT_PATH = "/api/submit-request";
 
@@ -63,9 +70,9 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
-function gatewayValidationResponse(): Response {
-  return new Response(JSON.stringify({ code: "VALIDATION_ERROR", field_errors: {} }), {
-    status: 422,
+function gatewayJsonResponse(body: unknown, status: number): Response {
+  return new Response(JSON.stringify(body), {
+    status,
     headers: {
       "cache-control": "no-store, max-age=0",
       "content-type": "application/json; charset=utf-8",
@@ -75,12 +82,51 @@ function gatewayValidationResponse(): Response {
   });
 }
 
+function gatewayValidationResponse(): Response {
+  return gatewayJsonResponse({ code: "VALIDATION_ERROR", field_errors: {} }, 422);
+}
+
+function gatewayRateLimitedResponse(): Response {
+  return gatewayJsonResponse({ code: "RATE_LIMITED" }, 429);
+}
+
 function isPublicSubmitRequest(request: Request): boolean {
   if (request.method !== "POST") return false;
   try {
     return new URL(request.url).pathname === PUBLIC_SUBMIT_PATH;
   } catch {
     return false;
+  }
+}
+
+function floodLimiterFromEnv(env: unknown): WorkerRateLimitBinding | null {
+  if (env === null || typeof env !== "object") return null;
+  const value = (env as Record<string, unknown>)[SUBMIT_FLOOD_LIMIT_BINDING];
+  if (value === null || typeof value !== "object") return null;
+  const candidate = value as { limit?: unknown };
+  return typeof candidate.limit === "function" ? (value as WorkerRateLimitBinding) : null;
+}
+
+export async function enforcePublicSubmitFloodLimit(
+  request: Request,
+  env: unknown,
+): Promise<Response | null> {
+  if (!isPublicSubmitRequest(request)) return null;
+
+  const ip = request.headers.get("cf-connecting-ip")?.trim() ?? "";
+  if (isIP(ip) === 0) return null;
+
+  const limiter = floodLimiterFromEnv(env);
+  if (limiter === null) return null;
+
+  try {
+    const result = await limiter.limit({ key: ip });
+    return result.success ? null : gatewayRateLimitedResponse();
+  } catch {
+    // This is an emergency, eventually-consistent flood layer only. The exact
+    // transactional phone/IP rules in PostgreSQL remain authoritative.
+    console.error("Worker submit flood limiter unavailable");
+    return null;
   }
 }
 
@@ -150,6 +196,9 @@ function scheduleImmediateTelegramDelivery(
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const floodLimitResponse = await enforcePublicSubmitFloodLimit(request, env);
+      if (floodLimitResponse !== null) return floodLimitResponse;
+
       const bodyLimitResponse = await enforcePublicSubmitBodyLimit(request);
       if (bodyLimitResponse !== null) return bodyLimitResponse;
 
