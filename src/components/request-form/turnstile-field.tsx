@@ -33,7 +33,7 @@ declare global {
 let loader: Promise<TurnstileApi> | null = null;
 
 function siteKey(): string | null {
-  const value = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+  const value = import.meta.env["VITE_TURNSTILE_SITE_KEY"];
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
