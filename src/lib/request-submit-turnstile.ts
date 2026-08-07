@@ -4,12 +4,20 @@ import { sameOriginTransport, submitRequest } from "./request-submit";
 
 const TOKEN_MAX_LENGTH = 2048;
 
+function hasControlCharacters(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code <= 31 || code === 127) return true;
+  }
+  return false;
+}
+
 export function isTurnstileToken(value: unknown): value is string {
   return (
     typeof value === "string" &&
     value.length > 0 &&
     value.length <= TOKEN_MAX_LENGTH &&
-    !/[\u0000-\u001f\u007f]/.test(value)
+    !hasControlCharacters(value)
   );
 }
 
