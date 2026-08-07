@@ -2,8 +2,8 @@
  * The only content surface routes may consume.
  * Operational structured content is loaded through TanStack server functions;
  * routes/components never import Supabase or server credentials directly.
- * Guides and long-form pages remain Git-versioned and intentionally blocked
- * until their repository is wired in the content integration stage.
+ * Long-form pages are read from Git through a separate server-only boundary.
+ * Guides remain intentionally blocked until their Git repository is wired.
  */
 
 import type {
@@ -18,6 +18,7 @@ import type {
   ProductQuery,
   Site,
 } from "./types";
+import { getPageFromGitServer } from "./git.functions";
 import {
   getCatalogVersionFromServer,
   getPortfolioItemsFromServer,
@@ -53,8 +54,7 @@ export async function getSite(): Promise<Site | null> {
 }
 
 export async function getPage(slug: PageSlug): Promise<Page | null> {
-  void slug;
-  return null;
+  return getPageFromGitServer({ data: { slug } });
 }
 
 export async function getCatalogVersion(): Promise<CatalogVersion | null> {
