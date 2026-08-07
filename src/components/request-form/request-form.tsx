@@ -288,7 +288,9 @@ export function RequestForm({
       setOutcome(null);
 
       const result = await submitRequest(
-        transport ? { payload, turnstileToken: turnstileProof, transport } : { payload, turnstileToken: turnstileProof },
+        transport
+          ? { payload, turnstileToken: turnstileProof, transport }
+          : { payload, turnstileToken: turnstileProof },
       );
       resetTurnstile();
 
