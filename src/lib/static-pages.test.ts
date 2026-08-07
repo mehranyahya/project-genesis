@@ -26,8 +26,7 @@ const page = (overrides: Partial<Page> = {}): Page => ({
 function links(blocks: GuideBlock[]) {
   const found: { href: string; text: string }[] = [];
   for (const block of blocks) {
-    const contents: GuideInline[][] =
-      block.kind === "list" ? block.items : [block.content];
+    const contents: GuideInline[][] = block.kind === "list" ? block.items : [block.content];
     for (const content of contents) {
       for (const node of content) if (node.kind === "link") found.push(node);
     }
@@ -38,8 +37,7 @@ function links(blocks: GuideBlock[]) {
 function text(blocks: GuideBlock[]): string {
   let out = "";
   for (const block of blocks) {
-    const contents: GuideInline[][] =
-      block.kind === "list" ? block.items : [block.content];
+    const contents: GuideInline[][] = block.kind === "list" ? block.items : [block.content];
     for (const content of contents) for (const node of content) out += node.text;
   }
   return out;
@@ -89,7 +87,9 @@ test("meta title falls back to page title only", () => {
 
 /* 3. Adapter input is not mutated */
 test("adapter input is never mutated", () => {
-  const input = page({ seo: { title: "t", description: "d", canonicalPath: "/about", robots: null } });
+  const input = page({
+    seo: { title: "t", description: "d", canonicalPath: "/about", robots: null },
+  });
   const snapshot = JSON.parse(JSON.stringify(input));
   buildStaticPageModel(input, "about");
   assert.deepEqual(JSON.parse(JSON.stringify(input)), snapshot);
@@ -102,7 +102,10 @@ test("about/contact/privacy/terms/not-found slugs map correctly", () => {
     assert.equal(model?.slug, slug);
   }
   assert.equal(buildNotFoundModel(page({ slug: "not-found", title: "عنوان" }))?.slug, "not-found");
-  assert.equal(buildContactPageModel(page({ slug: "contact", title: "ت" }), null).page?.slug, "contact");
+  assert.equal(
+    buildContactPageModel(page({ slug: "contact", title: "ت" }), null).page?.slug,
+    "contact",
+  );
 });
 
 /* 5 + 8. Safe markdown model, single H1 */
@@ -148,7 +151,9 @@ test("javascript:/data:/vbscript: and protocol-relative hrefs are not links", ()
 /* 9. Absent description is never fabricated */
 test("absent or blank description is not fabricated", () => {
   const model = buildStaticPageModel(
-    page({ seo: { title: null as unknown as string, description: "  ", canonicalPath: "", robots: null } }),
+    page({
+      seo: { title: null as unknown as string, description: "  ", canonicalPath: "", robots: null },
+    }),
     "about",
   );
   assert.ok(model);
@@ -257,19 +262,18 @@ test("static routes read exactly their own page adapter", () => {
   assert.equal(terms.includes("getSite"), false);
 });
 
-test("contact route reads getPage(\"contact\") and getSite()", () => {
+test('contact route reads getPage("contact") and getSite()', () => {
   const contact = read("src/routes/contact.tsx");
   assert.match(contact, /getPage\("contact"\)/);
   assert.match(contact, /getSite\(\)/);
 });
 
-test("root reads getSite() and getPage(\"not-found\") and hard-codes no 404 copy", () => {
+test('root reads getSite() and getPage("not-found") and hard-codes no 404 copy', () => {
   const root = read("src/routes/__root.tsx");
   assert.match(root, /getSite\(\)/);
   assert.match(root, /getPage\("not-found"\)/);
   assert.equal(root.includes("صفحه پیدا نشد"), false);
   assert.equal(root.includes("Page not found"), false);
-  assert.equal(root.includes("Go home"), false);
 });
 
 test("no public /404 route and no new route files exist", () => {

@@ -18,13 +18,9 @@ import { buildNotFoundModel } from "../lib/static-pages";
 
 function NotFoundComponent() {
   const data = Route.useLoaderData() as
-    | { notFound: ReturnType<typeof buildNotFoundModel> }
-    | undefined;
+    { notFound: ReturnType<typeof buildNotFoundModel> } | undefined;
   return <NotFoundView page={data?.notFound ?? null} />;
 }
-
-
-
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
