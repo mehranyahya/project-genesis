@@ -172,7 +172,8 @@ test("immediate delivery resolves the created tracking code to one exact request
 
   const summary = await processTelegramByTrackingCode(env, "MA-1001", { fetch: mock });
   assert.deepEqual(summary, { claimed: 0, completed: 0, failedToComplete: 0 });
-  assert.match(calls[0]?.url ?? "", /tracking_code=eq%2EMA-1001/);
+  const lookup = new URL(calls[0]?.url ?? "");
+  assert.equal(lookup.searchParams.get("tracking_code"), "eq.MA-1001");
   assert.deepEqual(calls[1]?.body, { p_limit: 1, p_request_id: requestId });
 });
 
@@ -189,7 +190,7 @@ test("Worker source strips the signal, uses waitUntil, and exposes hourly recove
   assert.match(server, /TELEGRAM_RECOVERY_CRON = "0 \* \* \* \*"/);
   assert.match(server, /await processTelegramRecoveryBatch\(env\)/);
   assert.match(delivery, /p_limit: limit, p_request_id: requestId/);
-  assert.match(delivery, /p_limit: 25/);
+  assert.match(delivery, /claimNotifications\(config, dependencies, 25, null\)/);
   assert.doesNotMatch(delivery, /console\.(log|info|warn|error)/);
   assert.doesNotMatch(delivery, /parse_mode/);
   assert.match(envExample, /^TELEGRAM_BOT_TOKEN=$/m);
