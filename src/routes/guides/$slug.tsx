@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import { GuideDetailPage, GuideError, GuidesLoading } from "@/components/guides/guides";
+import { canonicalHref } from "@/lib/canonical";
 import { getGuide } from "@/lib/content/adapters";
 import { buildGuideDetailModel } from "@/lib/guides";
 import type { GuideDetailModel } from "@/lib/guides";
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/guides/$slug")({
         { title: guide.metaTitle },
         ...(guide.metaDescription ? [{ name: "description", content: guide.metaDescription }] : []),
       ],
-      links: [{ rel: "canonical", href: guide.path }],
+      links: [{ rel: "canonical", href: canonicalHref(guide.path) }],
     };
   },
   loader: async ({ params }) => {
