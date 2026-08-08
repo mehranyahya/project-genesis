@@ -24,7 +24,9 @@ function normalizePublicSiteOrigin(value) {
     parsed.search !== "" ||
     parsed.hash !== ""
   ) {
-    throw new Error("PUBLIC_SITE_ORIGIN must be an HTTPS origin without credentials, path, query or hash");
+    throw new Error(
+      "PUBLIC_SITE_ORIGIN must be an HTTPS origin without credentials, path, query or hash",
+    );
   }
 
   return parsed.origin;
@@ -78,7 +80,9 @@ if (deployTarget !== "") {
     if (rawOrigin === "") throw new Error("PUBLIC_SITE_ORIGIN is required for production");
     const expectedOrigin = normalizePublicSiteOrigin(rawOrigin);
     if (config.vars?.PUBLIC_SITE_ORIGIN !== expectedOrigin) {
-      throw new Error("Cloudflare PUBLIC_SITE_ORIGIN binding does not match deployment configuration");
+      throw new Error(
+        "Cloudflare PUBLIC_SITE_ORIGIN binding does not match deployment configuration",
+      );
     }
   } else if (config.vars?.PUBLIC_SITE_ORIGIN != null) {
     throw new Error("Preview deployment must not expose PUBLIC_SITE_ORIGIN");
