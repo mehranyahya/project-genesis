@@ -21,7 +21,9 @@ function normalizePublicSiteOrigin(value) {
     parsed.search !== "" ||
     parsed.hash !== ""
   ) {
-    throw new Error("PUBLIC_SITE_ORIGIN must be an HTTPS origin without credentials, path, query or hash");
+    throw new Error(
+      "PUBLIC_SITE_ORIGIN must be an HTTPS origin without credentials, path, query or hash",
+    );
   }
 
   return parsed.origin;
