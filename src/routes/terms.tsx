@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { ContentBlockedState, StaticPageView } from "@/components/static-pages/static-pages";
+import { canonicalHref } from "@/lib/canonical";
 import { getPage } from "@/lib/content/adapters";
 import { buildStaticPageModel, contentBlockedMeta } from "@/lib/static-pages";
 import type { StaticPageModel } from "@/lib/static-pages";
@@ -15,7 +16,9 @@ export const Route = createFileRoute("/terms")({
         ...(page.metaDescription ? [{ name: "description", content: page.metaDescription }] : []),
         ...(page.robots ? [{ name: "robots", content: page.robots }] : []),
       ],
-      links: page.canonicalPath ? [{ rel: "canonical", href: page.canonicalPath }] : [],
+      links: page.canonicalPath
+        ? [{ rel: "canonical", href: canonicalHref(page.canonicalPath) }]
+        : [],
     };
   },
   loader: async () => buildStaticPageModel(await getPage("terms"), "terms"),

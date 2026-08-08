@@ -5,6 +5,7 @@ import {
   ProductDetailError,
   ProductDetailLoading,
 } from "@/components/product/product-detail-states";
+import { canonicalHref } from "@/lib/canonical";
 import { getCatalogVersion, getProduct, getSite } from "@/lib/content/adapters";
 import { buildProductDetailModel } from "@/lib/product-detail";
 import { getRequestTermsDocument } from "@/lib/request-terms";
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/grave-stones/$slug")({
       termsDocument,
     };
   },
-  head: ({ loaderData, params }) => {
+  head: ({ loaderData }) => {
     const title = loaderData ? `${loaderData.model.title} — مهرآرا` : "جزئیات سنگ مزار — مهرآرا";
     const description = loaderData?.model.summary ?? GENERIC_DESCRIPTION;
     return {
@@ -40,7 +41,14 @@ export const Route = createFileRoute("/grave-stones/$slug")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
       ],
-      links: [{ rel: "canonical", href: `/grave-stones/${params.slug}` }],
+      links: loaderData
+        ? [
+            {
+              rel: "canonical",
+              href: canonicalHref(`/grave-stones/${loaderData.model.slug}`),
+            },
+          ]
+        : [],
     };
   },
   pendingComponent: ProductDetailLoading,

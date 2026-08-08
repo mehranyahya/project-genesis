@@ -87,6 +87,7 @@ jobs:
       - name: Build
         env:
           VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
+          VITE_PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
         run: bun run build
 
       - name: Prepare Cloudflare deploy config

@@ -5,6 +5,7 @@ import {
   CustomFunnelError,
   CustomFunnelLoading,
 } from "@/components/custom-funnel/custom-funnel-states";
+import { canonicalHref } from "@/lib/canonical";
 import { getCatalogVersion, getProducts, getSite } from "@/lib/content/adapters";
 import { getRequestTermsDocument } from "@/lib/request-terms";
 
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/grave-stones/custom")({
       { property: "og:title", content: "سفارش سفارشی سنگ مزار — مهرآرا" },
       { property: "og:description", content: "مسیر سفارش سفارشی سنگ مزار مهرآرا" },
     ],
-    links: [{ rel: "canonical", href: "/grave-stones/custom" }],
+    links: [{ rel: "canonical", href: canonicalHref("/grave-stones/custom") }],
   }),
   pendingComponent: CustomFunnelLoading,
   errorComponent: CustomFunnelError,

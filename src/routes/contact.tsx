@@ -5,6 +5,7 @@ import {
   ContentBlockedState,
   StaticPageView,
 } from "@/components/static-pages/static-pages";
+import { canonicalHref } from "@/lib/canonical";
 import { getPage, getSite } from "@/lib/content/adapters";
 import { buildContactPageModel, contentBlockedMeta } from "@/lib/static-pages";
 import type { ContactPageModel } from "@/lib/static-pages";
@@ -20,7 +21,9 @@ export const Route = createFileRoute("/contact")({
         ...(page.metaDescription ? [{ name: "description", content: page.metaDescription }] : []),
         ...(page.robots ? [{ name: "robots", content: page.robots }] : []),
       ],
-      links: page.canonicalPath ? [{ rel: "canonical", href: page.canonicalPath }] : [],
+      links: page.canonicalPath
+        ? [{ rel: "canonical", href: canonicalHref(page.canonicalPath) }]
+        : [],
     };
   },
   loader: async (): Promise<ContactPageModel> => {
