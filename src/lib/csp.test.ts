@@ -48,7 +48,8 @@ test("router follows TanStack's server-only per-request nonce pattern", () => {
   assert.match(routerSource, /createIsomorphicFn\(\)\.server\(\(\) =>/);
   assert.match(routerSource, /new Uint8Array\(16\)/);
   assert.match(routerSource, /crypto\.getRandomValues\(bytes\)/);
-  assert.match(routerSource, /ssr: getSSROptions\(\)/);
+  assert.match(routerSource, /const ssr = getSSROptions\(\)/);
+  assert.match(routerSource, /ssr === undefined \? \{\} : \{ ssr \}/);
 });
 
 test("root response CSP consumes the same SSR nonce and fails closed if it is absent", () => {
@@ -62,7 +63,7 @@ test("root response CSP consumes the same SSR nonce and fails closed if it is ab
 
 test("Turnstile loader propagates the document CSP nonce to api.js", () => {
   assert.match(turnstileSource, /querySelector<HTMLScriptElement>\("script\[nonce\]"\)/);
-  assert.match(turnstileSource, /trustedScript\?\.nonce\.trim\(\)/);
+  assert.match(turnstileSource, /trustedScript\?\.nonce\?\.trim\(\)/);
   assert.match(turnstileSource, /const nonce = documentCspNonce\(\)/);
   assert.match(turnstileSource, /if \(nonce !== null\) script\.nonce = nonce/);
   assert.match(
