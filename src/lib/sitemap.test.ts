@@ -105,14 +105,15 @@ test("production sitemap emits XML using configured origin rather than request h
 
 test("non-sitemap requests are ignored by the Worker sitemap handler", async () => {
   assert.equal(
-    await handleSitemapRequest(new Request("https://example.com/about"), { PUBLIC_INDEXING: "true" }),
+    await handleSitemapRequest(new Request("https://example.com/about"), {
+      PUBLIC_INDEXING: "true",
+    }),
     null,
   );
   assert.equal(
-    await handleSitemapRequest(
-      new Request("https://example.com/sitemap.xml", { method: "POST" }),
-      { PUBLIC_INDEXING: "true" },
-    ),
+    await handleSitemapRequest(new Request("https://example.com/sitemap.xml", { method: "POST" }), {
+      PUBLIC_INDEXING: "true",
+    }),
     null,
   );
 });
