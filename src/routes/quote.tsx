@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { QuotePage } from "@/components/request-form/quote-page";
+import { canonicalHref } from "@/lib/canonical";
 import { getPortfolioItems, getSite } from "@/lib/content/adapters";
 import { findPortfolioReference, normalizePortfolioReference } from "@/lib/portfolio-reference";
 import { getRequestTermsDocument } from "@/lib/request-terms";
@@ -36,7 +37,7 @@ export const Route = createFileRoute("/quote")({
       { property: "og:title", content: "ثبت سفارش — مهرآرا" },
       { property: "og:description", content: "ثبت درخواست بررسی سفارش در مهرآرا" },
     ],
-    links: [{ rel: "canonical", href: "/quote" }],
+    links: [{ rel: "canonical", href: canonicalHref("/quote") }],
   }),
   component: QuoteRoute,
 });
