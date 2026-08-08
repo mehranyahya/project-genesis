@@ -14,7 +14,10 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/layout/app-shell";
 import { NotFoundView } from "../components/static-pages/static-pages";
 import { getPage, getSite } from "../lib/content/adapters";
+import { buildContentSecurityPolicy } from "../lib/csp";
 import { buildNotFoundModel } from "../lib/static-pages";
+
+const CSP_MISSING_NONCE_POLICY = "default-src 'none'; frame-ancestors 'none'";
 
 function NotFoundComponent() {
   const data = Route.useLoaderData() as
@@ -61,6 +64,15 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  headers: ({ ssr }) => {
+    if (import.meta.env.DEV) return;
+    const nonce = ssr?.nonce;
+    return {
+      "Content-Security-Policy": nonce
+        ? buildContentSecurityPolicy(nonce)
+        : CSP_MISSING_NONCE_POLICY,
+    };
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
