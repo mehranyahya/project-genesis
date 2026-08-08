@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { HomePage } from "@/components/home/home-page";
+import { canonicalHref } from "@/lib/canonical";
 import { getGuides, getPortfolioItems, getProducts } from "@/lib/content/adapters";
 import { buildHomeViewModel } from "@/lib/home";
 
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "مهرآرا" },
       { property: "og:description", content: "فروشگاه سفارش‌محور سنگ مزار مهرآرا" },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [{ rel: "canonical", href: canonicalHref("/") }],
   }),
   loader: async () => {
     const [products, portfolioItems, guides] = await Promise.all([
