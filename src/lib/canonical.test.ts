@@ -40,7 +40,12 @@ test("canonical helper preserves relative paths without an origin and emits abso
 });
 
 test("canonical helper rejects unsafe paths and non-clean production origins", () => {
-  for (const path of ["https://evil.example/path", "//evil.example/path", "relative", "/bad path"] as const) {
+  for (const path of [
+    "https://evil.example/path",
+    "//evil.example/path",
+    "relative",
+    "/bad path",
+  ] as const) {
     assert.throws(() => canonicalHref(path, "https://example.com"));
   }
 
@@ -61,9 +66,21 @@ test("every route that owns a canonical link uses the shared origin-aware helper
   for (const { path, source } of routeSources) {
     assert.match(source, /rel: "canonical"/, `${path} must still own its canonical link`);
     assert.match(source, /canonicalHref\(/, `${path} must use canonicalHref`);
-    assert.equal(/rel: "canonical", href: "\//.test(source), false, `${path} has a raw relative canonical`);
-    assert.equal(/rel: "canonical", href: page\.canonicalPath/.test(source), false, `${path} bypasses helper`);
-    assert.equal(/rel: "canonical", href: guide\.path/.test(source), false, `${path} bypasses helper`);
+    assert.equal(
+      /rel: "canonical", href: "\//.test(source),
+      false,
+      `${path} has a raw relative canonical`,
+    );
+    assert.equal(
+      /rel: "canonical", href: page\.canonicalPath/.test(source),
+      false,
+      `${path} bypasses helper`,
+    );
+    assert.equal(
+      /rel: "canonical", href: guide\.path/.test(source),
+      false,
+      `${path} bypasses helper`,
+    );
   }
 });
 
@@ -71,7 +88,10 @@ test("dynamic product canonical is derived from loaded validated product data", 
   const productRoute = routeSources.find(({ path }) => path.includes("grave-stones/$slug"));
   assert.ok(productRoute);
   assert.match(productRoute.source, /loaderData\.model\.slug/);
-  assert.equal(/canonicalHref\(`\/grave-stones\/\$\{params\.slug\}`\)/.test(productRoute.source), false);
+  assert.equal(
+    /canonicalHref\(`\/grave-stones\/\$\{params\.slug\}`\)/.test(productRoute.source),
+    false,
+  );
 });
 
 test("production build receives the same public origin as sitemap preparation", () => {
