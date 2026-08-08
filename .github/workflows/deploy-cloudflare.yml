@@ -81,6 +81,7 @@ jobs:
       - name: Prepare deployment indexing policy
         env:
           DEPLOY_TARGET: ${{ inputs.target }}
+          PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
         run: node scripts/prepare-deploy-indexing.mjs "$DEPLOY_TARGET"
 
       - name: Build
@@ -91,11 +92,13 @@ jobs:
       - name: Prepare Cloudflare deploy config
         env:
           DEPLOY_TARGET: ${{ inputs.target }}
+          PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
         run: node scripts/prepare-cloudflare-deploy.mjs
 
       - name: Verify Cloudflare deploy artifact
         env:
           DEPLOY_TARGET: ${{ inputs.target }}
+          PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
         run: node scripts/verify-cloudflare-deploy.mjs
 
       - name: Write runtime secret file

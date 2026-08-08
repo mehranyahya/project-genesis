@@ -8,6 +8,30 @@ if (deployTarget !== "" && deployTarget !== "preview" && deployTarget !== "produ
   throw new Error("DEPLOY_TARGET must be preview or production when provided");
 }
 
+function normalizePublicSiteOrigin(value) {
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error("PUBLIC_SITE_ORIGIN must be a valid URL");
+  }
+
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.username !== "" ||
+    parsed.password !== "" ||
+    parsed.pathname !== "/" ||
+    parsed.search !== "" ||
+    parsed.hash !== ""
+  ) {
+    throw new Error(
+      "PUBLIC_SITE_ORIGIN must be an HTTPS origin without credentials, path, query or hash",
+    );
+  }
+
+  return parsed.origin;
+}
+
 const config = JSON.parse(await readFile(GENERATED_CONFIG, "utf8"));
 const redirect = JSON.parse(await readFile(REDIRECT_CONFIG, "utf8"));
 
@@ -22,9 +46,9 @@ if (JSON.stringify(config.triggers?.crons) !== JSON.stringify(["0 * * * *"])) {
 }
 if (
   config.assets &&
-  JSON.stringify(config.assets.run_worker_first) !== JSON.stringify(["/api/*"])
+  JSON.stringify(config.assets.run_worker_first) !== JSON.stringify(["/api/*", "/sitemap.xml"])
 ) {
-  throw new Error("Cloudflare assets must route API requests through the Worker first");
+  throw new Error("Cloudflare assets must route API and sitemap requests through the Worker first");
 }
 
 const submitFloodLimiters = Array.isArray(config.ratelimits)
@@ -49,6 +73,19 @@ if (deployTarget !== "") {
     config.vars?.PUBLIC_INDEXING !== expectedIndexing
   ) {
     throw new Error("Cloudflare deploy indexing bindings do not match DEPLOY_TARGET");
+  }
+
+  if (deployTarget === "production") {
+    const rawOrigin = process.env["PUBLIC_SITE_ORIGIN"]?.trim() ?? "";
+    if (rawOrigin === "") throw new Error("PUBLIC_SITE_ORIGIN is required for production");
+    const expectedOrigin = normalizePublicSiteOrigin(rawOrigin);
+    if (config.vars?.PUBLIC_SITE_ORIGIN !== expectedOrigin) {
+      throw new Error(
+        "Cloudflare PUBLIC_SITE_ORIGIN binding does not match deployment configuration",
+      );
+    }
+  } else if (config.vars?.PUBLIC_SITE_ORIGIN != null) {
+    throw new Error("Preview deployment must not expose PUBLIC_SITE_ORIGIN");
   }
 }
 

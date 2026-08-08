@@ -4,6 +4,7 @@ import { isIP } from "node:net";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { handleSitemapRequest } from "./lib/sitemap.server";
 import {
   processTelegramByTrackingCode,
   processTelegramRecoveryBatch,
@@ -214,6 +215,11 @@ function scheduleImmediateTelegramDelivery(
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const sitemapResponse = await handleSitemapRequest(request, env);
+      if (sitemapResponse !== null) {
+        return applyDeploymentIndexingHeaders(sitemapResponse, env);
+      }
+
       const floodLimitResponse = await enforcePublicSubmitFloodLimit(request, env);
       if (floodLimitResponse !== null) {
         return applyDeploymentIndexingHeaders(floodLimitResponse, env);

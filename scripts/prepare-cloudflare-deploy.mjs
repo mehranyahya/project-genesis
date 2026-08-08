@@ -16,6 +16,37 @@ if (deployTarget !== "" && deployTarget !== "preview" && deployTarget !== "produ
   throw new Error("DEPLOY_TARGET must be preview or production when provided");
 }
 
+function normalizePublicSiteOrigin(value) {
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error("PUBLIC_SITE_ORIGIN must be a valid URL");
+  }
+
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.username !== "" ||
+    parsed.password !== "" ||
+    parsed.pathname !== "/" ||
+    parsed.search !== "" ||
+    parsed.hash !== ""
+  ) {
+    throw new Error(
+      "PUBLIC_SITE_ORIGIN must be an HTTPS origin without credentials, path, query or hash",
+    );
+  }
+
+  return parsed.origin;
+}
+
+let publicSiteOrigin = null;
+if (deployTarget === "production") {
+  const rawOrigin = process.env["PUBLIC_SITE_ORIGIN"]?.trim() ?? "";
+  if (rawOrigin === "") throw new Error("PUBLIC_SITE_ORIGIN is required for production");
+  publicSiteOrigin = normalizePublicSiteOrigin(rawOrigin);
+}
+
 const raw = await readFile(CONFIG_PATH, "utf8");
 const config = JSON.parse(raw);
 
@@ -57,19 +88,21 @@ config.ratelimits = [...rateLimits, SUBMIT_FLOOD_LIMITER];
 if (deployTarget !== "") {
   const vars =
     typeof config.vars === "object" && config.vars !== null && !Array.isArray(config.vars)
-      ? config.vars
+      ? { ...config.vars }
       : {};
+  delete vars.PUBLIC_SITE_ORIGIN;
   config.vars = {
     ...vars,
     DEPLOY_TARGET: deployTarget,
     PUBLIC_INDEXING: deployTarget === "production" ? "true" : "false",
+    ...(publicSiteOrigin === null ? {} : { PUBLIC_SITE_ORIGIN: publicSiteOrigin }),
   };
 }
 
 if (typeof config.assets === "object" && config.assets !== null && !Array.isArray(config.assets)) {
   config.assets = {
     ...config.assets,
-    run_worker_first: ["/api/*"],
+    run_worker_first: ["/api/*", "/sitemap.xml"],
   };
 }
 
