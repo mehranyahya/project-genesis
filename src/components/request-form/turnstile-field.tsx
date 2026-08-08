@@ -48,7 +48,7 @@ function siteKey(): string | null {
 function documentCspNonce(): string | null {
   if (typeof document === "undefined") return null;
   const trustedScript = document.querySelector<HTMLScriptElement>("script[nonce]");
-  const nonce = trustedScript?.nonce.trim() ?? "";
+  const nonce = trustedScript?.nonce?.trim() ?? "";
   return nonce.length > 0 ? nonce : null;
 }
 
