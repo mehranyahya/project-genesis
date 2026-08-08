@@ -5,6 +5,7 @@ import {
   GraveStoneListError,
   GraveStoneListLoading,
 } from "@/components/grave-stones/grave-stone-list-states";
+import { canonicalHref } from "@/lib/canonical";
 import { getProducts } from "@/lib/content/adapters";
 import { buildGraveStoneListModel } from "@/lib/grave-stone-list";
 
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/grave-stones/")({
       { property: "og:title", content: "سنگ مزار — مهرآرا" },
       { property: "og:description", content: "فهرست سنگ مزار مهرآرا" },
     ],
-    links: [{ rel: "canonical", href: "/grave-stones" }],
+    links: [{ rel: "canonical", href: canonicalHref("/grave-stones") }],
   }),
   loader: async () => buildGraveStoneListModel(await getProducts()),
   pendingComponent: GraveStoneListLoading,
