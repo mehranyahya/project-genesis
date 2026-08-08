@@ -78,15 +78,24 @@ jobs:
             exit 1
           }
 
+      - name: Prepare deployment indexing policy
+        env:
+          DEPLOY_TARGET: ${{ inputs.target }}
+        run: node scripts/prepare-deploy-indexing.mjs "$DEPLOY_TARGET"
+
       - name: Build
         env:
           VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
         run: bun run build
 
       - name: Prepare Cloudflare deploy config
+        env:
+          DEPLOY_TARGET: ${{ inputs.target }}
         run: node scripts/prepare-cloudflare-deploy.mjs
 
       - name: Verify Cloudflare deploy artifact
+        env:
+          DEPLOY_TARGET: ${{ inputs.target }}
         run: node scripts/verify-cloudflare-deploy.mjs
 
       - name: Write runtime secret file

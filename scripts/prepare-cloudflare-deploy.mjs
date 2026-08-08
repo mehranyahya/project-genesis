@@ -11,6 +11,11 @@ const SUBMIT_FLOOD_LIMITER = {
   },
 };
 
+const deployTarget = process.env["DEPLOY_TARGET"]?.trim() ?? "";
+if (deployTarget !== "" && deployTarget !== "preview" && deployTarget !== "production") {
+  throw new Error("DEPLOY_TARGET must be preview or production when provided");
+}
+
 const raw = await readFile(CONFIG_PATH, "utf8");
 const config = JSON.parse(raw);
 
@@ -48,6 +53,18 @@ const rateLimits = Array.isArray(config.ratelimits)
     )
   : [];
 config.ratelimits = [...rateLimits, SUBMIT_FLOOD_LIMITER];
+
+if (deployTarget !== "") {
+  const vars =
+    typeof config.vars === "object" && config.vars !== null && !Array.isArray(config.vars)
+      ? config.vars
+      : {};
+  config.vars = {
+    ...vars,
+    DEPLOY_TARGET: deployTarget,
+    PUBLIC_INDEXING: deployTarget === "production" ? "true" : "false",
+  };
+}
 
 if (typeof config.assets === "object" && config.assets !== null && !Array.isArray(config.assets)) {
   config.assets = {

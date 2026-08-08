@@ -30,6 +30,7 @@ type WorkerRateLimitBinding = {
 export const TELEGRAM_RECOVERY_CRON = "0 * * * *";
 export const PUBLIC_SUBMIT_MAX_BODY_BYTES = 16 * 1024;
 export const SUBMIT_FLOOD_LIMIT_BINDING = "SUBMIT_FLOOD_LIMITER";
+export const PREVIEW_ROBOTS_HEADER = "noindex, nofollow, noarchive";
 
 const PUBLIC_SUBMIT_PATH = "/api/submit-request";
 
@@ -97,6 +98,23 @@ function isPublicSubmitRequest(request: Request): boolean {
   } catch {
     return false;
   }
+}
+
+function publicIndexingEnabled(env: unknown): boolean {
+  if (env === null || typeof env !== "object") return false;
+  return (env as Record<string, unknown>)["PUBLIC_INDEXING"] === "true";
+}
+
+export function applyDeploymentIndexingHeaders(response: Response, env: unknown): Response {
+  if (publicIndexingEnabled(env)) return response;
+
+  const headers = new Headers(response.headers);
+  headers.set("x-robots-tag", PREVIEW_ROBOTS_HEADER);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
 
 function floodLimiterFromEnv(env: unknown): WorkerRateLimitBinding | null {
@@ -197,23 +215,30 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const floodLimitResponse = await enforcePublicSubmitFloodLimit(request, env);
-      if (floodLimitResponse !== null) return floodLimitResponse;
+      if (floodLimitResponse !== null) {
+        return applyDeploymentIndexingHeaders(floodLimitResponse, env);
+      }
 
       const bodyLimitResponse = await enforcePublicSubmitBodyLimit(request);
-      if (bodyLimitResponse !== null) return bodyLimitResponse;
+      if (bodyLimitResponse !== null) {
+        return applyDeploymentIndexingHeaders(bodyLimitResponse, env);
+      }
 
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       const normalized = await normalizeCatastrophicSsrResponse(response);
       const consumed = consumeTelegramDeliverySignal(normalized);
       scheduleImmediateTelegramDelivery(consumed.trackingCode, env, ctx);
-      return consumed.response;
+      return applyDeploymentIndexingHeaders(consumed.response, env);
     } catch (error) {
       console.error(error);
-      return new Response(renderErrorPage(), {
-        status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
-      });
+      return applyDeploymentIndexingHeaders(
+        new Response(renderErrorPage(), {
+          status: 500,
+          headers: { "content-type": "text/html; charset=utf-8" },
+        }),
+        env,
+      );
     }
   },
 
