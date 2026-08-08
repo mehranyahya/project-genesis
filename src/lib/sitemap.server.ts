@@ -46,7 +46,9 @@ export function normalizePublicSiteOrigin(value: string): string {
     parsed.search !== "" ||
     parsed.hash !== ""
   ) {
-    throw new Error("PUBLIC_SITE_ORIGIN must be an HTTPS origin without credentials, path, query or hash");
+    throw new Error(
+      "PUBLIC_SITE_ORIGIN must be an HTTPS origin without credentials, path, query or hash",
+    );
   }
 
   return parsed.origin;
@@ -66,10 +68,7 @@ function normalizedLastModified(value: string): string | null {
   return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
 }
 
-export function buildSitemapXml(
-  origin: string,
-  products: readonly SitemapProduct[],
-): string {
+export function buildSitemapXml(origin: string, products: readonly SitemapProduct[]): string {
   const normalizedOrigin = normalizePublicSiteOrigin(origin);
   const entries = new Map<string, string | null>();
 
@@ -77,14 +76,18 @@ export function buildSitemapXml(
 
   for (const product of products) {
     if (!product.isActive || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(product.slug)) continue;
-    entries.set(`/grave-stones/${encodeURIComponent(product.slug)}`, normalizedLastModified(product.updatedAt));
+    entries.set(
+      `/grave-stones/${encodeURIComponent(product.slug)}`,
+      normalizedLastModified(product.updatedAt),
+    );
   }
 
   const body = [...entries.entries()]
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([path, lastModified]) => {
       const location = escapeXml(new URL(path, `${normalizedOrigin}/`).toString());
-      const lastmod = lastModified === null ? "" : `\n    <lastmod>${escapeXml(lastModified)}</lastmod>`;
+      const lastmod =
+        lastModified === null ? "" : `\n    <lastmod>${escapeXml(lastModified)}</lastmod>`;
       return `  <url>\n    <loc>${location}</loc>${lastmod}\n  </url>`;
     })
     .join("\n");
