@@ -81,6 +81,7 @@ test("Wrangler target bindings are explicit non-secret vars and verified before 
   assert.equal(/secrets\.PUBLIC_INDEXING/.test(deployWorkflow), false);
   assert.equal(/secrets\.DEPLOY_TARGET/.test(deployWorkflow), false);
 
-  const targetEnvOccurrences = deployWorkflow.match(/DEPLOY_TARGET: \$\{\{ inputs\.target \}\}/g) ?? [];
+  const targetEnvOccurrences =
+    deployWorkflow.match(/DEPLOY_TARGET: \$\{\{ inputs\.target \}\}/g) ?? [];
   assert.ok(targetEnvOccurrences.length >= 3);
 });
