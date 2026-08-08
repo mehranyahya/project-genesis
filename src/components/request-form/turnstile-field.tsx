@@ -45,6 +45,13 @@ function siteKey(): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
+function documentCspNonce(): string | null {
+  if (typeof document === "undefined") return null;
+  const trustedScript = document.querySelector<HTMLScriptElement>("script[nonce]");
+  const nonce = trustedScript?.nonce?.trim() ?? "";
+  return nonce.length > 0 ? nonce : null;
+}
+
 function loadTurnstile(): Promise<TurnstileApi> {
   if (typeof window === "undefined" || typeof document === "undefined") {
     return Promise.reject(new Error("Turnstile requires a browser"));
@@ -74,6 +81,8 @@ function loadTurnstile(): Promise<TurnstileApi> {
     script.src = SCRIPT_SRC;
     script.async = true;
     script.defer = true;
+    const nonce = documentCspNonce();
+    if (nonce !== null) script.nonce = nonce;
     script.addEventListener("load", ready, { once: true });
     script.addEventListener("error", failed, { once: true });
     document.head.append(script);
