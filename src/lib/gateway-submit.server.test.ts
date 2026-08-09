@@ -84,11 +84,11 @@ test("gateway emits exactly payload + gateway and signs the entire canonical env
       assert.equal(url, "https://project.supabase.co/functions/v1/submit-request");
       assert.deepEqual(Object.keys(envelope).sort(), ["gateway", "payload"]);
 
-      const signedPayload = envelope.payload as Record<string, unknown>;
-      assert.equal(signedPayload.turnstile_token, "turnstile-proof");
-      assert.equal(signedPayload.customer_name, payload.customer_name);
+      const signedPayload = envelope["payload"] as Record<string, unknown>;
+      assert.equal(signedPayload["turnstile_token"], "turnstile-proof");
+      assert.equal(signedPayload["customer_name"], payload.customer_name);
 
-      const gateway = envelope.gateway as Record<string, unknown>;
+      const gateway = envelope["gateway"] as Record<string, unknown>;
       assert.deepEqual(Object.keys(gateway).sort(), [
         "gateway_key_id",
         "ip_hash",
@@ -97,21 +97,21 @@ test("gateway emits exactly payload + gateway and signs the entire canonical env
         "received_at_unix",
         "worker_request_id",
       ]);
-      assert.equal(gateway.origin, "https://preview.example");
-      assert.equal(gateway.gateway_key_id, "gateway-v1");
-      assert.match(String(gateway.ip_hash), /^[0-9a-f]{64}$/);
+      assert.equal(gateway["origin"], "https://preview.example");
+      assert.equal(gateway["gateway_key_id"], "gateway-v1");
+      assert.match(String(gateway["ip_hash"]), /^[0-9a-f]{64}$/);
       assert.equal(Object.values(envelope).includes("2001:0db8:0:0:0:0:0:1"), false);
 
       const headers = new Headers(init.headers);
       assert.equal(headers.get("x-gateway-key-id"), "gateway-v1");
       assert.equal(headers.get("x-gateway-timestamp"), "1786319000");
-      assert.equal(headers.get("x-gateway-nonce"), gateway.nonce);
+      assert.equal(headers.get("x-gateway-nonce"), gateway["nonce"]);
 
       const body = canonicalJson(envelope);
       const signingInput = gatewaySignatureInput({
         canonicalEnvelopeBody: body,
         timestamp: 1_786_319_000,
-        nonce: String(gateway.nonce),
+        nonce: String(gateway["nonce"]),
         keyId: "gateway-v1",
       });
       const expected = createHmac("sha256", gatewaySecret).update(signingInput).digest("hex");
@@ -138,7 +138,8 @@ test("missing Turnstile proof remains a signed null field rather than a Worker h
     request({ token: null }),
     env,
     dependencies(({ envelope }) => {
-      assert.equal((envelope.payload as Record<string, unknown>).turnstile_token, null);
+      const signedPayload = envelope["payload"] as Record<string, unknown>;
+      assert.equal(signedPayload["turnstile_token"], null);
       return new Response(JSON.stringify({ code: "TEMPORARILY_UNAVAILABLE" }), { status: 503 });
     }),
   );
