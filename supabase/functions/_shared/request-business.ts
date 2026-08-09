@@ -201,15 +201,13 @@ async function prepareGraveStone(
     is_active: "eq.true",
     limit: "1",
   });
-  const products = await supabaseRest<ProductRow[]>(
-    config,
-    `products?${productParams}`,
-  );
+  const products = await supabaseRest<ProductRow[]>(config, `products?${productParams}`);
   const product = products[0];
   if (!product) return selectionUnavailable();
 
   const variantParams = new URLSearchParams({
-    select: "id,product_id,stone_code,size_code,price_type,amount_toman,includes,excludes,is_available",
+    select:
+      "id,product_id,stone_code,size_code,price_type,amount_toman,includes,excludes,is_available",
     id: `eq.${request.variant_id}`,
     product_id: `eq.${product.id}`,
     stone_code: `eq.${request.stone_code}`,
@@ -217,15 +215,13 @@ async function prepareGraveStone(
     is_available: "eq.true",
     limit: "1",
   });
-  const variants = await supabaseRest<VariantRow[]>(
-    config,
-    `product_variants?${variantParams}`,
-  );
+  const variants = await supabaseRest<VariantRow[]>(config, `product_variants?${variantParams}`);
   const variant = variants[0];
   if (!variant) return selectionUnavailable();
 
   const optionParams = new URLSearchParams({
-    select: "id,variant_id,title,price_type,amount_toman,is_available,compatible_size_codes,sort_order",
+    select:
+      "id,variant_id,title,price_type,amount_toman,is_available,compatible_size_codes,sort_order",
     variant_id: `eq.${variant.id}`,
     order: "sort_order.asc,id.asc",
   });
@@ -273,10 +269,7 @@ async function prepareGraveStone(
     amountToman = total;
   }
 
-  if (
-    request.client_price_type !== priceType ||
-    request.client_displayed_price !== amountToman
-  ) {
+  if (request.client_price_type !== priceType || request.client_displayed_price !== amountToman) {
     return {
       ok: false,
       status: 409,
@@ -365,10 +358,7 @@ async function prepareContact(
     content_schema_version: 1,
     tracking_code_prefix: common.p_tracking_code_prefix,
   };
-  if (
-    request.source_type === "portfolio" &&
-    request.portfolio_reference_id !== undefined
-  ) {
+  if (request.source_type === "portfolio" && request.portfolio_reference_id !== undefined) {
     const params = new URLSearchParams({
       select: "public_reference_id,is_active",
       public_reference_id: `eq.${request.portfolio_reference_id}`,
