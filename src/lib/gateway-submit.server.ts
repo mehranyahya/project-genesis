@@ -328,7 +328,8 @@ function sanitizeUpstream(body: unknown, status: number, retryAfter: string | nu
 
   if (code === "REQUEST_CREATED" || code === "REQUEST_REPLAYED") {
     const expectedStatus = code === "REQUEST_CREATED" ? 201 : 200;
-    return status === expectedStatus && typeof value.tracking_code === "string" &&
+    return status === expectedStatus &&
+      typeof value.tracking_code === "string" &&
       TRACKING_PATTERN.test(value.tracking_code)
       ? jsonResponse({ code, tracking_code: value.tracking_code }, expectedStatus)
       : temporaryUnavailable();
@@ -355,8 +356,7 @@ function sanitizeUpstream(body: unknown, status: number, retryAfter: string | nu
   }
   if (code === "RATE_LIMITED") {
     if (status !== 429) return temporaryUnavailable();
-    const safeRetry =
-      retryAfter !== null && /^\d{1,5}$/.test(retryAfter) ? retryAfter : "600";
+    const safeRetry = retryAfter !== null && /^\d{1,5}$/.test(retryAfter) ? retryAfter : "600";
     return jsonResponse({ code }, 429, { "retry-after": safeRetry });
   }
   if (
