@@ -43,11 +43,7 @@ function readKeyMap(): Readonly<Record<string, string>> | null {
   if (entries.length < 1 || entries.length > 2) return null;
   const keys: Record<string, string> = {};
   for (const [keyId, secret] of entries) {
-    if (
-      !KEY_ID_PATTERN.test(keyId) ||
-      typeof secret !== "string" ||
-      secret.length < 32
-    ) {
+    if (!KEY_ID_PATTERN.test(keyId) || typeof secret !== "string" || secret.length < 32) {
       return null;
     }
     keys[keyId] = secret;
@@ -153,11 +149,7 @@ export async function verifyGatewayEnvelope(
   supabase: SupabaseServerConfig,
 ): Promise<GatewayAuthResult> {
   if (request.method !== "POST") return { kind: "invalid" };
-  const contentType = request.headers
-    .get("content-type")
-    ?.split(";", 1)[0]
-    ?.trim()
-    .toLowerCase();
+  const contentType = request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase();
   if (contentType !== "application/json") return { kind: "invalid" };
 
   const keyMap = readKeyMap();
@@ -206,10 +198,7 @@ export async function verifyGatewayEnvelope(
   if (secret === undefined) return { kind: "invalid" };
 
   const nowUnix = Math.floor(Date.now() / 1000);
-  if (
-    gateway.received_at_unix < nowUnix - 60 ||
-    gateway.received_at_unix > nowUnix + 30
-  ) {
+  if (gateway.received_at_unix < nowUnix - 60 || gateway.received_at_unix > nowUnix + 30) {
     return { kind: "invalid" };
   }
 
