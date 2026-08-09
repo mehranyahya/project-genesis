@@ -104,6 +104,8 @@ test("repository-scoped deployment configuration is isolated and preview uses a 
     deployReusableWorkflow.match(/DEPLOY_TARGET: \$\{\{ inputs\.target \}\}/g) ?? [];
   assert.ok(targetEnvOccurrences.length >= 3);
   const originInputOccurrences =
-    deployReusableWorkflow.match(/PUBLIC_SITE_ORIGIN: \$\{\{ inputs\.public_site_origin \}\}/g) ?? [];
+    deployReusableWorkflow.match(
+      /PUBLIC_SITE_ORIGIN: \$\{\{ inputs\.public_site_origin \}\}/g,
+    ) ?? [];
   assert.ok(originInputOccurrences.length >= 3);
 });
