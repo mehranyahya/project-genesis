@@ -87,8 +87,14 @@ test("Wrangler target bindings expose SITE_URL, origin allowlist and exact index
   assert.match(deployWorkflow, /node scripts\/prepare-deploy-indexing\.mjs "\$DEPLOY_TARGET"/);
   assert.match(deployWorkflow, /PREVIEW_SITE_URL: \$\{\{ vars\.PREVIEW_SITE_URL \}\}/);
   assert.match(deployWorkflow, /PRODUCTION_SITE_URL: \$\{\{ vars\.PRODUCTION_SITE_URL \}\}/);
-  assert.match(deployWorkflow, /PREVIEW_ALLOWED_ORIGINS: \$\{\{ vars\.PREVIEW_ALLOWED_ORIGINS \}\}/);
-  assert.match(deployWorkflow, /PRODUCTION_ALLOWED_ORIGINS: \$\{\{ vars\.PRODUCTION_ALLOWED_ORIGINS \}\}/);
+  assert.match(
+    deployWorkflow,
+    /PREVIEW_ALLOWED_ORIGINS: \$\{\{ vars\.PREVIEW_ALLOWED_ORIGINS \}\}/,
+  );
+  assert.match(
+    deployWorkflow,
+    /PRODUCTION_ALLOWED_ORIGINS: \$\{\{ vars\.PRODUCTION_ALLOWED_ORIGINS \}\}/,
+  );
   assert.equal(/secrets\.SITE_URL/.test(deployWorkflow), false);
   assert.equal(/secrets\.ALLOWED_ORIGINS/.test(deployWorkflow), false);
   assert.equal(/secrets\.PUBLIC_INDEXING/.test(deployWorkflow), false);
