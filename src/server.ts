@@ -4,6 +4,7 @@ import { isIP } from "node:net";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { handleSignedSubmitGateway } from "./lib/gateway-submit.server";
 import { handleSitemapRequest } from "./lib/sitemap.server";
 import {
   processTelegramByTrackingCode,
@@ -228,6 +229,11 @@ export default {
       const bodyLimitResponse = await enforcePublicSubmitBodyLimit(request);
       if (bodyLimitResponse !== null) {
         return applyDeploymentIndexingHeaders(bodyLimitResponse, env);
+      }
+
+      const submitGatewayResponse = await handleSignedSubmitGateway(request, env);
+      if (submitGatewayResponse !== null) {
+        return applyDeploymentIndexingHeaders(submitGatewayResponse, env);
       }
 
       const handler = await getServerEntry();
