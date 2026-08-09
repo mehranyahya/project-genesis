@@ -1,15 +1,14 @@
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 
+import { GIT_PAGE_SOURCES } from "./generated-pages";
 import type { Page, PageSlug, SeoMeta } from "./types";
 import { PAGE_SLUGS } from "./types";
 
-const CONTENT_ROOT = path.resolve(process.cwd(), "content", "pages");
 const FRONTMATTER_DELIMITER = "---";
 const MAX_FILE_BYTES = 256 * 1024;
 
 const PAGE_SLUG_SET = new Set<PageSlug>(PAGE_SLUGS);
+const UTF8_ENCODER = new TextEncoder();
 
 type Frontmatter = Record<string, unknown>;
 
@@ -108,16 +107,8 @@ export function parseGitPage(raw: string, expectedSlug: PageSlug): Page | null {
 export async function loadGitPage(slug: PageSlug): Promise<Page | null> {
   if (!PAGE_SLUG_SET.has(slug)) return null;
 
-  const filePath = path.join(CONTENT_ROOT, `${slug}.md`);
-  let raw: string;
-  try {
-    raw = await readFile(filePath, "utf8");
-  } catch (error) {
-    const code = (error as { code?: unknown }).code;
-    if (code === "ENOENT") return null;
-    throw error;
-  }
-
-  if (Buffer.byteLength(raw, "utf8") > MAX_FILE_BYTES) return null;
+  const raw = GIT_PAGE_SOURCES[slug];
+  if (typeof raw !== "string") return null;
+  if (UTF8_ENCODER.encode(raw).byteLength > MAX_FILE_BYTES) return null;
   return parseGitPage(raw, slug);
 }
