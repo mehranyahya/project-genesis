@@ -24,8 +24,12 @@ const routeSources = routePaths.map((path) => ({
   path,
   source: readFileSync(new URL(path, import.meta.url), "utf8"),
 }));
-const deployWorkflow = readFileSync(
+const deployEntryWorkflow = readFileSync(
   new URL("../../.github/workflows/deploy-cloudflare.yml", import.meta.url),
+  "utf8",
+);
+const deployReusableWorkflow = readFileSync(
+  new URL("../../.github/workflows/deploy-cloudflare-reusable.yml", import.meta.url),
   "utf8",
 );
 
@@ -94,8 +98,15 @@ test("dynamic product canonical is derived from loaded validated product data", 
   );
 });
 
-test("production build receives the same public origin as sitemap preparation", () => {
-  assert.match(deployWorkflow, /VITE_PUBLIC_SITE_ORIGIN: \$\{\{ vars\.PUBLIC_SITE_ORIGIN \}\}/);
-  assert.equal(/secrets\.VITE_PUBLIC_SITE_ORIGIN/.test(deployWorkflow), false);
-  assert.equal(/secrets\.PUBLIC_SITE_ORIGIN/.test(deployWorkflow), false);
+test("production build receives the same repository variable as sitemap preparation", () => {
+  assert.match(
+    deployEntryWorkflow,
+    /public_site_origin: \$\{\{ vars\.PRODUCTION_PUBLIC_SITE_ORIGIN \}\}/,
+  );
+  assert.match(
+    deployReusableWorkflow,
+    /VITE_PUBLIC_SITE_ORIGIN: \$\{\{ inputs\.public_site_origin \}\}/,
+  );
+  assert.equal(/secrets\.VITE_PUBLIC_SITE_ORIGIN/.test(deployReusableWorkflow), false);
+  assert.equal(/secrets\.PUBLIC_SITE_ORIGIN/.test(deployReusableWorkflow), false);
 });
