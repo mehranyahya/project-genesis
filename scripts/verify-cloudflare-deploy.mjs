@@ -8,12 +8,12 @@ if (deployTarget !== "" && deployTarget !== "preview" && deployTarget !== "produ
   throw new Error("DEPLOY_TARGET must be preview or production when provided");
 }
 
-function normalizePublicSiteOrigin(value) {
+function normalizeOrigin(value, label) {
   let parsed;
   try {
     parsed = new URL(value);
   } catch {
-    throw new Error("PUBLIC_SITE_ORIGIN must be a valid URL");
+    throw new Error(`${label} must be a valid URL`);
   }
 
   if (
@@ -24,12 +24,23 @@ function normalizePublicSiteOrigin(value) {
     parsed.search !== "" ||
     parsed.hash !== ""
   ) {
-    throw new Error(
-      "PUBLIC_SITE_ORIGIN must be an HTTPS origin without credentials, path, query or hash",
-    );
+    throw new Error(`${label} must be a clean HTTPS origin`);
   }
 
   return parsed.origin;
+}
+
+function normalizeAllowedOrigins(value) {
+  const origins = value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item, index) => normalizeOrigin(item, `ALLOWED_ORIGINS[${index}]`));
+  if (origins.length === 0) throw new Error("ALLOWED_ORIGINS must not be empty");
+  if (new Set(origins).size !== origins.length) {
+    throw new Error("ALLOWED_ORIGINS must not contain duplicates");
+  }
+  return origins.join(",");
 }
 
 const config = JSON.parse(await readFile(GENERATED_CONFIG, "utf8"));
@@ -42,7 +53,7 @@ if (
   throw new Error("Cloudflare deploy config must enable nodejs_compat");
 }
 if (JSON.stringify(config.triggers?.crons) !== JSON.stringify(["0 * * * *"])) {
-  throw new Error("Cloudflare deploy config must expose exactly the hourly Telegram recovery cron");
+  throw new Error("Cloudflare deploy config must expose exactly the hourly recovery cron");
 }
 if (
   config.assets &&
@@ -68,24 +79,27 @@ if (
 
 if (deployTarget !== "") {
   const expectedIndexing = deployTarget === "production" ? "true" : "false";
-  if (
-    config.vars?.DEPLOY_TARGET !== deployTarget ||
-    config.vars?.PUBLIC_INDEXING !== expectedIndexing
-  ) {
-    throw new Error("Cloudflare deploy indexing bindings do not match DEPLOY_TARGET");
+  const rawSiteUrl = process.env["SITE_URL"]?.trim() ?? "";
+  const rawAllowedOrigins = process.env["ALLOWED_ORIGINS"]?.trim() ?? "";
+  if (rawSiteUrl === "") throw new Error("SITE_URL is required for deployment");
+  if (rawAllowedOrigins === "") throw new Error("ALLOWED_ORIGINS is required for deployment");
+
+  const expectedSiteUrl = normalizeOrigin(rawSiteUrl, "SITE_URL");
+  const expectedAllowedOrigins = normalizeAllowedOrigins(rawAllowedOrigins);
+  if (!expectedAllowedOrigins.split(",").includes(expectedSiteUrl)) {
+    throw new Error("ALLOWED_ORIGINS must include SITE_URL");
   }
 
-  if (deployTarget === "production") {
-    const rawOrigin = process.env["PUBLIC_SITE_ORIGIN"]?.trim() ?? "";
-    if (rawOrigin === "") throw new Error("PUBLIC_SITE_ORIGIN is required for production");
-    const expectedOrigin = normalizePublicSiteOrigin(rawOrigin);
-    if (config.vars?.PUBLIC_SITE_ORIGIN !== expectedOrigin) {
-      throw new Error(
-        "Cloudflare PUBLIC_SITE_ORIGIN binding does not match deployment configuration",
-      );
-    }
-  } else if (config.vars?.PUBLIC_SITE_ORIGIN != null) {
-    throw new Error("Preview deployment must not expose PUBLIC_SITE_ORIGIN");
+  if (
+    config.vars?.DEPLOY_TARGET !== deployTarget ||
+    config.vars?.PUBLIC_INDEXING !== expectedIndexing ||
+    config.vars?.SITE_URL !== expectedSiteUrl ||
+    config.vars?.ALLOWED_ORIGINS !== expectedAllowedOrigins
+  ) {
+    throw new Error("Cloudflare deployment bindings do not match the selected target");
+  }
+  if (config.vars?.PUBLIC_SITE_ORIGIN != null) {
+    throw new Error("Legacy PUBLIC_SITE_ORIGIN binding must not be emitted");
   }
 }
 
