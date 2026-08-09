@@ -123,10 +123,7 @@ export async function verifyTurnstile(input: {
 
   const value = result.value;
   if (value.success !== true) return { kind: "invalid" };
-  if (
-    typeof value.hostname !== "string" ||
-    !config.hostnames.has(value.hostname.toLowerCase())
-  ) {
+  if (typeof value.hostname !== "string" || !config.hostnames.has(value.hostname.toLowerCase())) {
     return { kind: "invalid" };
   }
   if (value.action !== config.action) return { kind: "invalid" };
