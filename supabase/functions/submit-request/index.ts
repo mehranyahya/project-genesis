@@ -62,11 +62,7 @@ function readFingerprintConfig(): FingerprintConfig | null {
   if (entries.length < 1 || entries.length > 2) return null;
   const keys: Record<string, string> = {};
   for (const [keyId, secret] of entries) {
-    if (
-      !KEY_ID_PATTERN.test(keyId) ||
-      typeof secret !== "string" ||
-      secret.length < 32
-    ) {
+    if (!KEY_ID_PATTERN.test(keyId) || typeof secret !== "string" || secret.length < 32) {
       return null;
     }
     keys[keyId] = secret;
@@ -156,10 +152,7 @@ Deno.serve(async (request: Request) => {
       return finish(jsonResponse({ code: "GATEWAY_REPLAY" }, 409), "GATEWAY_REPLAY");
     }
     if (gatewayAuth.kind !== "ok") {
-      return finish(
-        jsonResponse({ code: "TEMPORARILY_UNAVAILABLE" }, 401),
-        "GATEWAY_AUTH_INVALID",
-      );
+      return finish(jsonResponse({ code: "TEMPORARILY_UNAVAILABLE" }, 401), "GATEWAY_AUTH_INVALID");
     }
     workerRequestId = gatewayAuth.envelope.gateway.worker_request_id;
 
@@ -186,10 +179,7 @@ Deno.serve(async (request: Request) => {
     if (fingerprintSecret === undefined) {
       return finish(temporaryUnavailable(), "TEMPORARILY_UNAVAILABLE");
     }
-    const fingerprint = await hmacSha256Hex(
-      fingerprintSecret,
-      canonicalJson(parsed.value.request),
-    );
+    const fingerprint = await hmacSha256Hex(fingerprintSecret, canonicalJson(parsed.value.request));
     if (!HASH_PATTERN.test(fingerprint)) {
       return finish(temporaryUnavailable(), "TEMPORARILY_UNAVAILABLE");
     }
