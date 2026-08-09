@@ -3,7 +3,8 @@ import type { BotVerification, RiskFlag } from "./request-contract.ts";
 
 const SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const SITEVERIFY_TIMEOUT_MS = 5_000;
-const HOSTNAME_PATTERN = /^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)*[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$/;
+const HOSTNAME_PATTERN =
+  /^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)*[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$/;
 
 interface TurnstileConfig {
   readonly secret: string;
@@ -34,7 +35,11 @@ function readConfig(): TurnstileConfig | null {
   const action = Deno.env.get("TURNSTILE_EXPECTED_ACTION")?.trim() ?? "";
   const namespaceUuid = Deno.env.get("SITEVERIFY_NAMESPACE_UUID")?.trim() ?? "";
   if (secret === "" || rawHostnames === "" || action !== "submit_request") return null;
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(namespaceUuid)) {
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      namespaceUuid,
+    )
+  ) {
     return null;
   }
   const hostnames = rawHostnames
@@ -100,10 +105,7 @@ export async function verifyTurnstile(input: {
   }
 
   const tokenHash = await sha256Hex(input.token);
-  const idempotencyKey = await uuidV5(
-    config.namespaceUuid,
-    `${input.submissionId}:${tokenHash}`,
-  );
+  const idempotencyKey = await uuidV5(config.namespaceUuid, `${input.submissionId}:${tokenHash}`);
 
   let result = await oneAttempt(config, input.token, idempotencyKey);
   if (result.kind === "transport_failure") {
@@ -121,7 +123,10 @@ export async function verifyTurnstile(input: {
 
   const value = result.value;
   if (value.success !== true) return { kind: "invalid" };
-  if (typeof value.hostname !== "string" || !config.hostnames.has(value.hostname.toLowerCase())) {
+  if (
+    typeof value.hostname !== "string" ||
+    !config.hostnames.has(value.hostname.toLowerCase())
+  ) {
     return { kind: "invalid" };
   }
   if (value.action !== config.action) return { kind: "invalid" };
