@@ -18,144 +18,45 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: cloudflare-${{ inputs.target }}
-  cancel-in-progress: false
-
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment: ${{ inputs.target }}
+  preview:
+    if: ${{ inputs.target == 'preview' }}
+    uses: ./.github/workflows/deploy-cloudflare-reusable.yml
+    with:
+      target: preview
+      production_confirmation: ""
+      public_site_origin: ""
+    secrets:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.PREVIEW_CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.PREVIEW_CLOUDFLARE_API_TOKEN }}
+      VITE_TURNSTILE_SITE_KEY: ${{ secrets.PREVIEW_VITE_TURNSTILE_SITE_KEY }}
+      SUPABASE_URL: ${{ secrets.PREVIEW_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PREVIEW_SUPABASE_SERVICE_ROLE_KEY }}
+      REQUEST_FINGERPRINT_KEY: ${{ secrets.PREVIEW_REQUEST_FINGERPRINT_KEY }}
+      REQUEST_FINGERPRINT_KEY_ID: ${{ secrets.PREVIEW_REQUEST_FINGERPRINT_KEY_ID }}
+      IP_HASH_KEY: ${{ secrets.PREVIEW_IP_HASH_KEY }}
+      TURNSTILE_SECRET_KEY: ${{ secrets.PREVIEW_TURNSTILE_SECRET_KEY }}
+      TURNSTILE_ALLOWED_HOSTNAMES: ${{ secrets.PREVIEW_TURNSTILE_ALLOWED_HOSTNAMES }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.PREVIEW_TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.PREVIEW_TELEGRAM_ADMIN_CHAT_ID }}
 
-    steps:
-      - name: Validate manual deployment request
-        shell: bash
-        env:
-          DEPLOY_TARGET: ${{ inputs.target }}
-          PRODUCTION_CONFIRMATION: ${{ inputs.production_confirmation }}
-        run: |
-          set -euo pipefail
-          if [[ "$DEPLOY_TARGET" == "production" ]]; then
-            [[ "$GITHUB_REF" == "refs/heads/main" ]] || {
-              echo "Production deployment is allowed only from main." >&2
-              exit 1
-            }
-            [[ "$PRODUCTION_CONFIRMATION" == "DEPLOY_PRODUCTION" ]] || {
-              echo "Production deployment confirmation is invalid." >&2
-              exit 1
-            }
-          fi
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Lint
-        run: bun run lint
-
-      - name: Typecheck
-        run: bunx tsc --noEmit
-
-      - name: Tests
-        run: bun test
-
-      - name: Validate public build configuration
-        shell: bash
-        env:
-          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
-        run: |
-          set -euo pipefail
-          [[ -n "$VITE_TURNSTILE_SITE_KEY" ]] || {
-            echo "VITE_TURNSTILE_SITE_KEY is not configured for this GitHub Environment." >&2
-            exit 1
-          }
-
-      - name: Prepare deployment indexing policy
-        env:
-          DEPLOY_TARGET: ${{ inputs.target }}
-          PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
-        run: node scripts/prepare-deploy-indexing.mjs "$DEPLOY_TARGET"
-
-      - name: Build
-        env:
-          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
-          VITE_PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
-        run: bun run build
-
-      - name: Prepare Cloudflare deploy config
-        env:
-          DEPLOY_TARGET: ${{ inputs.target }}
-          PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
-        run: node scripts/prepare-cloudflare-deploy.mjs
-
-      - name: Verify Cloudflare deploy artifact
-        env:
-          DEPLOY_TARGET: ${{ inputs.target }}
-          PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
-        run: node scripts/verify-cloudflare-deploy.mjs
-
-      - name: Write runtime secret file
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          REQUEST_FINGERPRINT_KEY: ${{ secrets.REQUEST_FINGERPRINT_KEY }}
-          REQUEST_FINGERPRINT_KEY_ID: ${{ secrets.REQUEST_FINGERPRINT_KEY_ID }}
-          IP_HASH_KEY: ${{ secrets.IP_HASH_KEY }}
-          TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
-          TURNSTILE_ALLOWED_HOSTNAMES: ${{ secrets.TURNSTILE_ALLOWED_HOSTNAMES }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
-        run: node scripts/write-cloudflare-secrets.mjs "$RUNNER_TEMP/cloudflare-runtime-secrets.json"
-
-      - name: Validate Cloudflare CI credentials
-        shell: bash
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          set -euo pipefail
-          [[ -n "$CLOUDFLARE_ACCOUNT_ID" ]] || {
-            echo "CLOUDFLARE_ACCOUNT_ID is not configured for this GitHub Environment." >&2
-            exit 1
-          }
-          [[ -n "$CLOUDFLARE_API_TOKEN" ]] || {
-            echo "CLOUDFLARE_API_TOKEN is not configured for this GitHub Environment." >&2
-            exit 1
-          }
-
-      - name: Upload preview version without promotion
-        if: ${{ inputs.target == 'preview' }}
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: >-
-          npx --yes wrangler@4.97.0 versions upload
-          --config .output/server/wrangler.json
-          --secrets-file "$RUNNER_TEMP/cloudflare-runtime-secrets.json"
-          --keep-vars
-          --strict
-
-      - name: Deploy production
-        if: ${{ inputs.target == 'production' }}
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: >-
-          npx --yes wrangler@4.97.0 deploy
-          --config .output/server/wrangler.json
-          --secrets-file "$RUNNER_TEMP/cloudflare-runtime-secrets.json"
-          --keep-vars
-          --strict
-
-      - name: Remove runtime secret file
-        if: ${{ always() }}
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/cloudflare-runtime-secrets.json"
+  production:
+    if: ${{ inputs.target == 'production' }}
+    uses: ./.github/workflows/deploy-cloudflare-reusable.yml
+    with:
+      target: production
+      production_confirmation: ${{ inputs.production_confirmation }}
+      public_site_origin: ${{ vars.PRODUCTION_PUBLIC_SITE_ORIGIN }}
+    secrets:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.PRODUCTION_CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.PRODUCTION_CLOUDFLARE_API_TOKEN }}
+      VITE_TURNSTILE_SITE_KEY: ${{ secrets.PRODUCTION_VITE_TURNSTILE_SITE_KEY }}
+      SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_SERVICE_ROLE_KEY }}
+      REQUEST_FINGERPRINT_KEY: ${{ secrets.PRODUCTION_REQUEST_FINGERPRINT_KEY }}
+      REQUEST_FINGERPRINT_KEY_ID: ${{ secrets.PRODUCTION_REQUEST_FINGERPRINT_KEY_ID }}
+      IP_HASH_KEY: ${{ secrets.PRODUCTION_IP_HASH_KEY }}
+      TURNSTILE_SECRET_KEY: ${{ secrets.PRODUCTION_TURNSTILE_SECRET_KEY }}
+      TURNSTILE_ALLOWED_HOSTNAMES: ${{ secrets.PRODUCTION_TURNSTILE_ALLOWED_HOSTNAMES }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.PRODUCTION_TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.PRODUCTION_TELEGRAM_ADMIN_CHAT_ID }}
