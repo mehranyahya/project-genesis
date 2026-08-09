@@ -17,8 +17,12 @@ const verifyCloudflare = readFileSync(
   new URL("../../scripts/verify-cloudflare-deploy.mjs", import.meta.url),
   "utf8",
 );
-const deployWorkflow = readFileSync(
+const deployEntryWorkflow = readFileSync(
   new URL("../../.github/workflows/deploy-cloudflare.yml", import.meta.url),
+  "utf8",
+);
+const deployReusableWorkflow = readFileSync(
+  new URL("../../.github/workflows/deploy-cloudflare-reusable.yml", import.meta.url),
   "utf8",
 );
 
@@ -71,7 +75,7 @@ test("deployment indexing script closes preview and requires a real production s
   assert.equal(prepareIndexing.includes("http://"), false);
 });
 
-test("Wrangler target bindings expose sitemap only for a configured production origin", () => {
+test("repository-scoped deployment configuration is isolated and preview uses a stable alias", () => {
   assert.match(prepareCloudflare, /DEPLOY_TARGET/);
   assert.match(prepareCloudflare, /PUBLIC_INDEXING/);
   assert.match(prepareCloudflare, /PUBLIC_SITE_ORIGIN/);
@@ -82,17 +86,24 @@ test("Wrangler target bindings expose sitemap only for a configured production o
   assert.match(verifyCloudflare, /config\.vars\?\.PUBLIC_SITE_ORIGIN/);
   assert.match(verifyCloudflare, /Preview deployment must not expose PUBLIC_SITE_ORIGIN/);
 
-  assert.match(deployWorkflow, /Prepare deployment indexing policy/);
-  assert.match(deployWorkflow, /node scripts\/prepare-deploy-indexing\.mjs "\$DEPLOY_TARGET"/);
-  assert.match(deployWorkflow, /PUBLIC_SITE_ORIGIN: \$\{\{ vars\.PUBLIC_SITE_ORIGIN \}\}/);
-  assert.equal(/secrets\.PUBLIC_SITE_ORIGIN/.test(deployWorkflow), false);
-  assert.equal(/secrets\.PUBLIC_INDEXING/.test(deployWorkflow), false);
-  assert.equal(/secrets\.DEPLOY_TARGET/.test(deployWorkflow), false);
+  assert.equal(/\benvironment:/.test(deployEntryWorkflow), false);
+  assert.equal(/\benvironment:/.test(deployReusableWorkflow), false);
+  assert.match(deployEntryWorkflow, /secrets\.PREVIEW_CLOUDFLARE_ACCOUNT_ID/);
+  assert.match(deployEntryWorkflow, /secrets\.PRODUCTION_CLOUDFLARE_ACCOUNT_ID/);
+  assert.match(deployEntryWorkflow, /secrets\.PREVIEW_TURNSTILE_ALLOWED_HOSTNAMES/);
+  assert.match(deployEntryWorkflow, /secrets\.PRODUCTION_TURNSTILE_ALLOWED_HOSTNAMES/);
+  assert.match(
+    deployEntryWorkflow,
+    /public_site_origin: \$\{\{ vars\.PRODUCTION_PUBLIC_SITE_ORIGIN \}\}/,
+  );
+  assert.match(deployReusableWorkflow, /--preview-alias staging/);
+  assert.match(deployReusableWorkflow, /npx --yes wrangler@4\.97\.0 versions upload/);
+  assert.equal(/vars\.PUBLIC_SITE_ORIGIN/.test(deployEntryWorkflow), false);
 
   const targetEnvOccurrences =
-    deployWorkflow.match(/DEPLOY_TARGET: \$\{\{ inputs\.target \}\}/g) ?? [];
+    deployReusableWorkflow.match(/DEPLOY_TARGET: \$\{\{ inputs\.target \}\}/g) ?? [];
   assert.ok(targetEnvOccurrences.length >= 3);
-  const originVarOccurrences =
-    deployWorkflow.match(/PUBLIC_SITE_ORIGIN: \$\{\{ vars\.PUBLIC_SITE_ORIGIN \}\}/g) ?? [];
-  assert.ok(originVarOccurrences.length >= 3);
+  const originInputOccurrences =
+    deployReusableWorkflow.match(/PUBLIC_SITE_ORIGIN: \$\{\{ inputs\.public_site_origin \}\}/g) ?? [];
+  assert.ok(originInputOccurrences.length >= 3);
 });
