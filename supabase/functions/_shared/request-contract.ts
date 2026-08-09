@@ -121,9 +121,7 @@ function exactKeys(object: Record<string, unknown>, allowed: ReadonlySet<string>
 function trimmedString(value: unknown, min: number, max: number): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
-  return trimmed.length >= min && trimmed.length <= max && trimmed === value
-    ? value
-    : null;
+  return trimmed.length >= min && trimmed.length <= max && trimmed === value ? value : null;
 }
 
 function nullableTrimmed(value: unknown, max: number): string | null | false {
@@ -150,8 +148,7 @@ function commonPayload(
       ? raw.submission_id
       : null;
   const customerName = trimmedString(raw.customer_name, 2, 80);
-  const phone =
-    typeof raw.phone === "string" && PHONE_PATTERN.test(raw.phone) ? raw.phone : null;
+  const phone = typeof raw.phone === "string" && PHONE_PATTERN.test(raw.phone) ? raw.phone : null;
   const city = nullableTrimmed(raw.city, 50);
   const locationText = nullableTrimmed(raw.location_text, 200);
   const preferredContact =
@@ -219,10 +216,7 @@ function parseSecurityFields(raw: Record<string, unknown>): {
   honeypotFilled: boolean;
 } | null {
   const token = raw.turnstile_token;
-  if (
-    token !== null &&
-    (typeof token !== "string" || token.length < 1 || token.length > 2048)
-  ) {
+  if (token !== null && (typeof token !== "string" || token.length < 1 || token.length > 2048)) {
     return null;
   }
 
@@ -239,10 +233,7 @@ function parseSecurityFields(raw: Record<string, unknown>): {
   }
 
   const honeypot = raw.honeypot;
-  if (
-    honeypot !== undefined &&
-    (typeof honeypot !== "string" || honeypot.length > 200)
-  ) {
+  if (honeypot !== undefined && (typeof honeypot !== "string" || honeypot.length > 200)) {
     return null;
   }
 
