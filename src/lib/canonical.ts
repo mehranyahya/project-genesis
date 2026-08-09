@@ -1,7 +1,7 @@
 const SAFE_CANONICAL_PATH = /^\/(?!\/)[^\s<>"']*$/;
 
-function configuredPublicOrigin(): string | null {
-  const value = import.meta.env?.["VITE_PUBLIC_SITE_ORIGIN"];
+function configuredSiteUrl(): string | null {
+  const value = import.meta.env?.["VITE_SITE_URL"];
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
 }
 
@@ -27,7 +27,7 @@ export function normalizeCanonicalOrigin(value: string): string {
   return parsed.origin;
 }
 
-export function canonicalHref(path: string, origin = configuredPublicOrigin()): string {
+export function canonicalHref(path: string, origin = configuredSiteUrl()): string {
   if (!SAFE_CANONICAL_PATH.test(path)) {
     throw new Error("Canonical path must be a safe same-origin absolute path");
   }
