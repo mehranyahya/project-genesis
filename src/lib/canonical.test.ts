@@ -66,11 +66,7 @@ test("every route that owns a canonical link uses the shared origin-aware helper
   for (const { path, source } of routeSources) {
     assert.match(source, /rel: "canonical"/, `${path} must still own its canonical link`);
     assert.match(source, /canonicalHref\(/, `${path} must use canonicalHref`);
-    assert.equal(
-      /rel: "canonical", href: "\//.test(source),
-      false,
-      `${path} has a raw relative canonical`,
-    );
+    assert.equal(/rel: "canonical", href: "\//.test(source), false, `${path} has a raw canonical`);
     assert.equal(
       /rel: "canonical", href: page\.canonicalPath/.test(source),
       false,
@@ -94,8 +90,10 @@ test("dynamic product canonical is derived from loaded validated product data", 
   );
 });
 
-test("production build receives the same public origin as sitemap preparation", () => {
-  assert.match(deployWorkflow, /VITE_PUBLIC_SITE_ORIGIN: \$\{\{ vars\.PUBLIC_SITE_ORIGIN \}\}/);
-  assert.equal(/secrets\.VITE_PUBLIC_SITE_ORIGIN/.test(deployWorkflow), false);
-  assert.equal(/secrets\.PUBLIC_SITE_ORIGIN/.test(deployWorkflow), false);
+test("build canonical origin is derived from the selected repository SITE_URL", () => {
+  assert.match(deployWorkflow, /VITE_SITE_URL: \$\{\{ env\.SITE_URL \}\}/);
+  assert.match(deployWorkflow, /PREVIEW_SITE_URL: \$\{\{ vars\.PREVIEW_SITE_URL \}\}/);
+  assert.match(deployWorkflow, /PRODUCTION_SITE_URL: \$\{\{ vars\.PRODUCTION_SITE_URL \}\}/);
+  assert.equal(/vars\.PUBLIC_SITE_ORIGIN/.test(deployWorkflow), false);
+  assert.equal(/secrets\.SITE_URL/.test(deployWorkflow), false);
 });
