@@ -1,9 +1,4 @@
-import {
-  canonicalJson,
-  constantTimeHexEqual,
-  hmacSha256Hex,
-  sha256Hex,
-} from "./crypto.ts";
+import { canonicalJson, constantTimeHexEqual, hmacSha256Hex, sha256Hex } from "./crypto.ts";
 import { supabaseRpc } from "./supabase-rest.ts";
 import type { SupabaseServerConfig } from "./supabase-rest.ts";
 
@@ -48,7 +43,13 @@ function readKeyMap(): Readonly<Record<string, string>> | null {
   if (entries.length < 1 || entries.length > 2) return null;
   const keys: Record<string, string> = {};
   for (const [keyId, secret] of entries) {
-    if (!KEY_ID_PATTERN.test(keyId) || typeof secret !== "string" || secret.length < 32) return null;
+    if (
+      !KEY_ID_PATTERN.test(keyId) ||
+      typeof secret !== "string" ||
+      secret.length < 32
+    ) {
+      return null;
+    }
     keys[keyId] = secret;
   }
   return keys;
@@ -85,14 +86,18 @@ function parseGateway(value: unknown): GatewayMetadata | null {
     "gateway_key_id",
     "worker_request_id",
   ];
-  if (Object.keys(raw).length !== allowed.length || !Object.keys(raw).every((key) => allowed.includes(key))) {
+  if (
+    Object.keys(raw).length !== allowed.length ||
+    !Object.keys(raw).every((key) => allowed.includes(key))
+  ) {
     return null;
   }
 
   const origin = cleanOrigin(raw.origin);
   if (
     origin === null ||
-    (raw.ip_hash !== null && (typeof raw.ip_hash !== "string" || !HASH_PATTERN.test(raw.ip_hash))) ||
+    (raw.ip_hash !== null &&
+      (typeof raw.ip_hash !== "string" || !HASH_PATTERN.test(raw.ip_hash))) ||
     typeof raw.received_at_unix !== "number" ||
     !Number.isSafeInteger(raw.received_at_unix) ||
     typeof raw.nonce !== "string" ||
@@ -148,7 +153,11 @@ export async function verifyGatewayEnvelope(
   supabase: SupabaseServerConfig,
 ): Promise<GatewayAuthResult> {
   if (request.method !== "POST") return { kind: "invalid" };
-  const contentType = request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase();
+  const contentType = request.headers
+    .get("content-type")
+    ?.split(";", 1)[0]
+    ?.trim()
+    .toLowerCase();
   if (contentType !== "application/json") return { kind: "invalid" };
 
   const keyMap = readKeyMap();
@@ -162,7 +171,9 @@ export async function verifyGatewayEnvelope(
   } catch {
     return { kind: "invalid" };
   }
-  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) return { kind: "invalid" };
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return { kind: "invalid" };
+  }
   const object = parsed as Record<string, unknown>;
   if (
     Object.keys(object).length !== 2 ||
@@ -195,7 +206,10 @@ export async function verifyGatewayEnvelope(
   if (secret === undefined) return { kind: "invalid" };
 
   const nowUnix = Math.floor(Date.now() / 1000);
-  if (gateway.received_at_unix < nowUnix - 60 || gateway.received_at_unix > nowUnix + 30) {
+  if (
+    gateway.received_at_unix < nowUnix - 60 ||
+    gateway.received_at_unix > nowUnix + 30
+  ) {
     return { kind: "invalid" };
   }
 
@@ -212,7 +226,9 @@ export async function verifyGatewayEnvelope(
       bodyHash,
     }),
   );
-  if (!constantTimeHexEqual(expectedSignature, headerSignature)) return { kind: "invalid" };
+  if (!constantTimeHexEqual(expectedSignature, headerSignature)) {
+    return { kind: "invalid" };
+  }
 
   const claimed = await supabaseRpc<boolean>(supabase, "claim_gateway_nonce", {
     p_nonce: gateway.nonce,
