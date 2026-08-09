@@ -124,6 +124,7 @@ test("effects stay quiet and Mineral Glass is restricted to approved floating su
   assert.match(styles, /backdrop-filter:\s*blur\(var\(--mineral-glass-blur\)\)/);
 
   const glassConsumers = runtimeFiles()
+    .filter((rel) => rel !== TOKENS && rel !== STYLE_ENTRY)
     .filter((rel) => /mineral-glass/.test(stripComments(read(rel))))
     .sort();
   assert.deepEqual(glassConsumers, [
