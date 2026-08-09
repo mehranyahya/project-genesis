@@ -35,6 +35,18 @@ const FIELD_ERROR_ALLOWLIST = new Set([
   "terms",
 ]);
 
+interface UpstreamObject extends Record<string, unknown> {
+  price_type?: unknown;
+  amount_toman?: unknown;
+  version?: unknown;
+  content_hash?: unknown;
+  code?: unknown;
+  tracking_code?: unknown;
+  price?: unknown;
+  terms?: unknown;
+  field_errors?: unknown;
+}
+
 interface GatewayConfig {
   readonly functionUrl: string;
   readonly keys: Readonly<Record<string, string>>;
@@ -286,7 +298,7 @@ function sanitizeFieldErrors(value: unknown): Record<string, true> {
 
 function sanitizePrice(value: unknown): Record<string, unknown> | null {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
-  const price = value as Record<string, unknown>;
+  const price = value as UpstreamObject;
   if (price.price_type === "review" && price.amount_toman === null) {
     return { price_type: "review", amount_toman: null };
   }
@@ -303,7 +315,7 @@ function sanitizePrice(value: unknown): Record<string, unknown> | null {
 
 function sanitizeTerms(value: unknown): Record<string, string> | null {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
-  const terms = value as Record<string, unknown>;
+  const terms = value as UpstreamObject;
   if (
     typeof terms.version === "string" &&
     terms.version.trim().length >= 1 &&
@@ -320,7 +332,7 @@ function sanitizeUpstream(body: unknown, status: number, retryAfter: string | nu
   if (body === null || typeof body !== "object" || Array.isArray(body)) {
     return temporaryUnavailable();
   }
-  const value = body as Record<string, unknown>;
+  const value = body as UpstreamObject;
   const code = value.code;
   if (typeof code !== "string") return temporaryUnavailable();
   if (code === "GATEWAY_REPLAY") return temporaryUnavailable();
