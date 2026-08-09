@@ -120,11 +120,7 @@ function parseGatewayKeys(raw: string): Readonly<Record<string, string>> | null 
   if (entries.length < 1 || entries.length > 2) return null;
   const keys: Record<string, string> = {};
   for (const [keyId, secret] of entries) {
-    if (
-      !KEY_ID_PATTERN.test(keyId) ||
-      typeof secret !== "string" ||
-      secret.length < 32
-    ) {
+    if (!KEY_ID_PATTERN.test(keyId) || typeof secret !== "string" || secret.length < 32) {
       return null;
     }
     keys[keyId] = secret;
@@ -234,9 +230,7 @@ function hashClientIp(request: Request, secret: string): string | null {
   const raw = request.headers.get("cf-connecting-ip");
   if (raw === null) return null;
   const canonical = canonicalizeClientIp(raw);
-  return canonical === null
-    ? null
-    : createHmac("sha256", secret).update(canonical).digest("hex");
+  return canonical === null ? null : createHmac("sha256", secret).update(canonical).digest("hex");
 }
 
 function sha256Hex(value: string): string {
@@ -334,8 +328,7 @@ function sanitizeUpstream(body: unknown, status: number, retryAfter: string | nu
 
   if (code === "REQUEST_CREATED" || code === "REQUEST_REPLAYED") {
     const expectedStatus = code === "REQUEST_CREATED" ? 201 : 200;
-    return status === expectedStatus &&
-      typeof value.tracking_code === "string" &&
+    return status === expectedStatus && typeof value.tracking_code === "string" &&
       TRACKING_PATTERN.test(value.tracking_code)
       ? jsonResponse({ code, tracking_code: value.tracking_code }, expectedStatus)
       : temporaryUnavailable();
@@ -402,11 +395,7 @@ export async function handleSignedSubmitGateway(
     return jsonResponse({ code: "VALIDATION_ERROR", field_errors: {} }, 405);
   }
 
-  const contentType = request.headers
-    .get("content-type")
-    ?.split(";", 1)[0]
-    ?.trim()
-    .toLowerCase();
+  const contentType = request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase();
   if (contentType !== "application/json") return validationError();
 
   const config = readGatewayConfig(env);
@@ -463,9 +452,7 @@ export async function handleSignedSubmitGateway(
   });
   const secret = config.keys[config.primaryKeyId];
   if (secret === undefined) return temporaryUnavailable();
-  const signature = createHmac("sha256", secret)
-    .update(signingInput, "utf8")
-    .digest("hex");
+  const signature = createHmac("sha256", secret).update(signingInput, "utf8").digest("hex");
 
   let upstream: Response;
   try {
