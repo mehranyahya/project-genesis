@@ -120,7 +120,13 @@ function parseGatewayKeys(raw: string): Readonly<Record<string, string>> | null 
   if (entries.length < 1 || entries.length > 2) return null;
   const keys: Record<string, string> = {};
   for (const [keyId, secret] of entries) {
-    if (!KEY_ID_PATTERN.test(keyId) || typeof secret !== "string" || secret.length < 32) return null;
+    if (
+      !KEY_ID_PATTERN.test(keyId) ||
+      typeof secret !== "string" ||
+      secret.length < 32
+    ) {
+      return null;
+    }
     keys[keyId] = secret;
   }
   return keys;
@@ -161,7 +167,9 @@ function readGatewayConfig(env: unknown): GatewayConfig | null {
 
   const keys = parseGatewayKeys(rawKeys);
   const allowedOrigins = parseAllowedOrigins(rawOrigins);
-  if (keys === null || allowedOrigins === null || !KEY_ID_PATTERN.test(primaryKeyId)) return null;
+  if (keys === null || allowedOrigins === null || !KEY_ID_PATTERN.test(primaryKeyId)) {
+    return null;
+  }
   const primarySecret = keys[primaryKeyId];
   if (primarySecret === undefined) return null;
 
@@ -226,7 +234,9 @@ function hashClientIp(request: Request, secret: string): string | null {
   const raw = request.headers.get("cf-connecting-ip");
   if (raw === null) return null;
   const canonical = canonicalizeClientIp(raw);
-  return canonical === null ? null : createHmac("sha256", secret).update(canonical).digest("hex");
+  return canonical === null
+    ? null
+    : createHmac("sha256", secret).update(canonical).digest("hex");
 }
 
 function sha256Hex(value: string): string {
@@ -313,7 +323,9 @@ function sanitizeTerms(value: unknown): Record<string, string> | null {
 }
 
 function sanitizeUpstream(body: unknown, status: number, retryAfter: string | null): Response {
-  if (body === null || typeof body !== "object" || Array.isArray(body)) return temporaryUnavailable();
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    return temporaryUnavailable();
+  }
   const value = body as Record<string, unknown>;
   const code = value.code;
   if (typeof code !== "string") return temporaryUnavailable();
@@ -322,7 +334,9 @@ function sanitizeUpstream(body: unknown, status: number, retryAfter: string | nu
 
   if (code === "REQUEST_CREATED" || code === "REQUEST_REPLAYED") {
     const expectedStatus = code === "REQUEST_CREATED" ? 201 : 200;
-    return status === expectedStatus && typeof value.tracking_code === "string" && TRACKING_PATTERN.test(value.tracking_code)
+    return status === expectedStatus &&
+      typeof value.tracking_code === "string" &&
+      TRACKING_PATTERN.test(value.tracking_code)
       ? jsonResponse({ code, tracking_code: value.tracking_code }, expectedStatus)
       : temporaryUnavailable();
   }
@@ -348,7 +362,8 @@ function sanitizeUpstream(body: unknown, status: number, retryAfter: string | nu
   }
   if (code === "RATE_LIMITED") {
     if (status !== 429) return temporaryUnavailable();
-    const safeRetry = retryAfter !== null && /^\d{1,5}$/.test(retryAfter) ? retryAfter : "600";
+    const safeRetry =
+      retryAfter !== null && /^\d{1,5}$/.test(retryAfter) ? retryAfter : "600";
     return jsonResponse({ code }, 429, { "retry-after": safeRetry });
   }
   if (
@@ -358,7 +373,7 @@ function sanitizeUpstream(body: unknown, status: number, retryAfter: string | nu
   ) {
     return status === 409 ? jsonResponse({ code }, 409) : temporaryUnavailable();
   }
-  return status === 503 ? temporaryUnavailable() : temporaryUnavailable();
+  return temporaryUnavailable();
 }
 
 async function readUpstreamJson(response: Response): Promise<unknown | null> {
@@ -383,9 +398,15 @@ export async function handleSignedSubmitGateway(
     return null;
   }
   if (url.pathname !== SUBMIT_PATH) return null;
-  if (request.method !== "POST") return jsonResponse({ code: "VALIDATION_ERROR", field_errors: {} }, 405);
+  if (request.method !== "POST") {
+    return jsonResponse({ code: "VALIDATION_ERROR", field_errors: {} }, 405);
+  }
 
-  const contentType = request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase();
+  const contentType = request.headers
+    .get("content-type")
+    ?.split(";", 1)[0]
+    ?.trim()
+    .toLowerCase();
   if (contentType !== "application/json") return validationError();
 
   const config = readGatewayConfig(env);
@@ -393,10 +414,14 @@ export async function handleSignedSubmitGateway(
 
   const rawOrigin = request.headers.get("origin");
   const origin = rawOrigin === null ? null : normalizeOrigin(rawOrigin);
-  if (origin === null || !config.allowedOrigins.has(origin)) return jsonResponse({ code: "VALIDATION_ERROR", field_errors: {} }, 403);
+  if (origin === null || !config.allowedOrigins.has(origin)) {
+    return jsonResponse({ code: "VALIDATION_ERROR", field_errors: {} }, 403);
+  }
 
   const turnstileToken = readTurnstileToken(request);
-  if (turnstileToken === false) return jsonResponse({ code: "BOT_VERIFICATION_INVALID" }, 422);
+  if (turnstileToken === false) {
+    return jsonResponse({ code: "BOT_VERIFICATION_INVALID" }, 422);
+  }
 
   let parsed: unknown;
   try {
@@ -404,14 +429,20 @@ export async function handleSignedSubmitGateway(
   } catch {
     return validationError();
   }
-  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) return validationError();
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return validationError();
+  }
   const browserPayload = parsed as Record<string, unknown>;
-  if (Object.prototype.hasOwnProperty.call(browserPayload, "turnstile_token")) return validationError();
+  if (Object.prototype.hasOwnProperty.call(browserPayload, "turnstile_token")) {
+    return validationError();
+  }
 
   const timestamp = dependencies.nowUnix();
   const nonce = dependencies.randomNonce();
   const workerRequestId = dependencies.randomUuid();
-  if (!/^[0-9a-f]{32}$/.test(nonce) || !UUID_PATTERN.test(workerRequestId)) return temporaryUnavailable();
+  if (!/^[0-9a-f]{32}$/.test(nonce) || !UUID_PATTERN.test(workerRequestId)) {
+    return temporaryUnavailable();
+  }
 
   const gateway: GatewayMetadata = {
     ip_hash: hashClientIp(request, config.ipHashSecret),
@@ -432,7 +463,9 @@ export async function handleSignedSubmitGateway(
   });
   const secret = config.keys[config.primaryKeyId];
   if (secret === undefined) return temporaryUnavailable();
-  const signature = createHmac("sha256", secret).update(signingInput, "utf8").digest("hex");
+  const signature = createHmac("sha256", secret)
+    .update(signingInput, "utf8")
+    .digest("hex");
 
   let upstream: Response;
   try {
