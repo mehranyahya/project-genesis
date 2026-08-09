@@ -151,7 +151,7 @@ test("accent aliases keep interactive green separate from the oxidative accent",
     const match = source.match(new RegExp(`${name}:\\s*([^;]+);`));
     const value = match?.[1]?.trim() ?? "";
     const ref = value.match(/^var\((--[a-z0-9-]+)\)$/);
-    return ref?.[1] ? resolve(ref[1], seen) : value;
+    return ref?.[1] ? resolve(ref[1], seen) : value.toLowerCase();
   };
   assert.equal(resolve("--accent"), MASTER_TOKENS["--color-action-primary"]);
   assert.equal(resolve("--color-sidebar-accent"), MASTER_TOKENS["--color-action-primary"]);
