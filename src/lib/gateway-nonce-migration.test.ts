@@ -16,8 +16,14 @@ test("gateway nonce table is short-lived, forced-RLS and service-role only", () 
   assert.match(migration, /expires_at <= seen_at \+ interval '5 minutes'/);
   assert.match(migration, /alter table public\.gateway_nonces enable row level security/);
   assert.match(migration, /alter table public\.gateway_nonces force row level security/);
-  assert.match(migration, /revoke all on table public\.gateway_nonces from public, anon, authenticated/);
-  assert.match(migration, /grant select, insert, delete on table public\.gateway_nonces to service_role/);
+  assert.match(
+    migration,
+    /revoke all on table public\.gateway_nonces from public, anon, authenticated/,
+  );
+  assert.match(
+    migration,
+    /grant select, insert, delete on table public\.gateway_nonces to service_role/,
+  );
   assert.match(migration, /gateway_nonces_expires_at_idx/);
 });
 
