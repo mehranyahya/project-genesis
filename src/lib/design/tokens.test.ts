@@ -20,23 +20,36 @@ const COMPONENTS = [
 ];
 
 const MASTER_TOKENS: Record<string, string> = {
-  "--color-canvas": "#f4efe6",
-  "--color-surface": "#f4efe6",
-  "--color-surface-media": "#e7e1d7",
-  "--color-text-primary": "#121212",
-  "--color-text-secondary": "#5c5850",
-  "--color-text-caption": "#6b665e",
-  "--color-border-subtle": "#b9aa92",
-  "--color-border-control": "#5c5850",
-  "--color-action-primary": "#203b34",
-  "--color-accent": "#9c6b32",
-  "--color-surface-inverse": "#121212",
-  "--color-text-inverse": "#f4efe6",
-  "--color-focus": "#203b34",
-  "--color-focus-inverse": "#f4efe6",
-  "--color-status-success": "#203b34",
-  "--color-status-error": "#8b2f2f",
+  "--color-canvas": "#f3f1eb",
+  "--color-surface": "#fcfbf8",
+  "--color-surface-media": "#f2f2f0",
+  "--color-text-primary": "#171918",
+  "--color-text-secondary": "#5c605b",
+  "--color-text-caption": "#6b706a",
+  "--color-border-subtle": "#d8d3c9",
+  "--color-border-control": "#6b706a",
+  "--color-action-primary": "#173f3a",
+  "--color-accent": "#8f4c2f",
+  "--color-surface-inverse": "#111413",
+  "--color-text-inverse": "#fcfbf8",
+  "--color-focus": "#173f3a",
+  "--color-focus-inverse": "#fcfbf8",
+  "--color-status-success": "#173f3a",
+  "--color-status-error": "#8f4c2f",
 };
+
+const APPROVED_PRIMITIVES = [
+  "#f3f1eb",
+  "#fcfbf8",
+  "#f2f2f0",
+  "#171918",
+  "#5c605b",
+  "#d8d3c9",
+  "#6b706a",
+  "#173f3a",
+  "#8f4c2f",
+  "#111413",
+];
 
 const RUNTIME_EXTENSIONS = new Set([".ts", ".tsx", ".css", ".js", ".jsx"]);
 
@@ -64,7 +77,7 @@ const runtimeFiles = (): string[] => {
 const stripComments = (source: string) =>
   source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-test("every master token is declared with the exact master value", () => {
+test("every master token is declared with the exact V23.3 value", () => {
   const tokens = read(TOKENS).toLowerCase();
   for (const [name, value] of Object.entries(MASTER_TOKENS)) {
     assert.match(tokens, new RegExp(`${name}:\\s*${value};`), `token ${name} must equal ${value}`);
@@ -80,25 +93,46 @@ test("recursive runtime scan finds zero raw colors outside tokens.css", () => {
   assert.ok(rawColor.test(read(TOKENS)));
 });
 
-test("token file declares no raw color beyond the master palette", () => {
-  const allowed = new Set(Object.values(MASTER_TOKENS));
-  const found =
-    read(TOKENS)
-      .toLowerCase()
-      .match(/#[0-9a-f]{3,8}\b/g) ?? [];
-  for (const hex of found) {
+test("token file declares only the approved primitive palette and Mineral Glass alpha", () => {
+  const tokenSource = read(TOKENS).toLowerCase();
+  const foundHex = tokenSource.match(/#[0-9a-f]{3,8}\b/g) ?? [];
+  const allowed = new Set(APPROVED_PRIMITIVES);
+  for (const hex of foundHex) {
     assert.ok(allowed.has(hex), `unexpected raw color ${hex} in tokens`);
   }
+  assert.deepEqual([...new Set(foundHex)].sort(), [...allowed].sort());
+  assert.match(tokenSource, /rgba\(252, 251, 248, 0\.88\)/);
+  assert.match(tokenSource, /rgba\(252, 251, 248, 0\.96\)/);
 });
 
-test("recursive runtime scan finds no gradient, glass, blur, shimmer or animation lib", () => {
-  const banned =
-    /gradient|backdrop-filter|backdrop-blur|blur\(|tw-animate|animate-pulse|shimmer|spinner/i;
+test("effects stay quiet and Mineral Glass is restricted to approved floating surfaces", () => {
+  const banned = /gradient|tw-animate|animate-pulse|shimmer|spinner|parallax/i;
   const offenders = runtimeFiles().filter((rel) => banned.test(stripComments(read(rel))));
   assert.deepEqual(offenders, [], `banned effect in: ${offenders.join(", ")}`);
+
+  const glassImplementationOffenders = runtimeFiles()
+    .filter((rel) => rel !== TOKENS && rel !== STYLE_ENTRY)
+    .filter((rel) => /backdrop-filter|backdrop-blur|blur\(/i.test(stripComments(read(rel))));
+  assert.deepEqual(
+    glassImplementationOffenders,
+    [],
+    `glass implementation escaped style entry: ${glassImplementationOffenders.join(", ")}`,
+  );
+
+  const styles = stripComments(read(STYLE_ENTRY));
+  assert.match(styles, /\.mineral-glass\s*\{/);
+  assert.match(styles, /backdrop-filter:\s*blur\(var\(--mineral-glass-blur\)\)/);
+
+  const glassConsumers = runtimeFiles()
+    .filter((rel) => /mineral-glass/.test(stripComments(read(rel))))
+    .sort();
+  assert.deepEqual(glassConsumers, [
+    "components/layout/app-shell.tsx",
+    "components/layout/site-header.tsx",
+  ]);
 });
 
-test("accent aliases: interactive resolves to Serpentine, bronze stays decorative", () => {
+test("accent aliases keep interactive green separate from the oxidative accent", () => {
   const tokens = stripComments(read(TOKENS));
   assert.match(tokens, /--accent:\s*var\(--color-action-primary\);/);
   assert.match(tokens, /--accent-foreground:\s*var\(--color-text-inverse\);/);
@@ -109,7 +143,6 @@ test("accent aliases: interactive resolves to Serpentine, bronze stays decorativ
   assert.match(styles, /--color-sidebar-accent:\s*var\(--color-action-primary\);/);
   assert.match(styles, /--color-sidebar-accent-foreground:\s*var\(--color-text-inverse\);/);
 
-  // No public interactive alias may resolve to Aged Bronze.
   const resolve = (name: string, seen = new Set<string>()): string => {
     if (seen.has(name)) return name;
     seen.add(name);
@@ -125,20 +158,20 @@ test("accent aliases: interactive resolves to Serpentine, bronze stays decorativ
   assert.equal(resolve("--decorative-accent"), MASTER_TOKENS["--color-accent"]);
 });
 
-test("CTA, focus, success and selected use Serpentine; bronze stays decorative", () => {
+test("CTA, focus and success use the action green; the oxidative accent stays decorative", () => {
   const button = read("components/ui/button.tsx");
   assert.match(button, /bg-action-primary/);
   assert.match(button, /outline-focus/);
   assert.equal(/bg-accent|text-accent\b|hover:[a-z-]*accent/.test(button), false);
 
   for (const file of COMPONENTS) {
-    assert.equal(/bg-accent\b/.test(read(file)), false, `interactive bronze in ${file}`);
+    assert.equal(/bg-accent\b/.test(read(file)), false, `interactive accent in ${file}`);
   }
 
   const tokens = read(TOKENS).toLowerCase();
-  const serpentine = MASTER_TOKENS["--color-action-primary"];
-  assert.match(tokens, new RegExp(`--color-focus:\\s*${serpentine};`));
-  assert.match(tokens, new RegExp(`--color-status-success:\\s*${serpentine};`));
+  const actionGreen = MASTER_TOKENS["--color-action-primary"];
+  assert.match(tokens, new RegExp(`--color-focus:\\s*${actionGreen};`));
+  assert.match(tokens, new RegExp(`--color-status-success:\\s*${actionGreen};`));
 });
 
 test("button honours motion, focus, touch target and disabled contract", () => {
@@ -163,7 +196,6 @@ test("field wires label, description, error and invalid state to its control", (
   assert.match(field, /role="alert"/);
   assert.match(field, /role="status"/);
   assert.match(field, /aria-live="polite"/);
-  // Non-color redundancy for both error and success.
   assert.ok(field.includes("خطا:"));
   assert.ok(field.includes("انجام شد:"));
 });
@@ -200,7 +232,6 @@ test("bootstrap font assets are unchanged", () => {
   }
 });
 
-// Persian/RTL glyph coverage fixture used for visual review.
 export const TYPOGRAPHY_FIXTURE =
   "۱۲۰×۶۰ «مهرآرا»… • MA-1001 120x60 +989123456789 ۰۱۲۳۴۵۶۷۸۹ ٠١٢٣٤٥٦٧٨٩";
 
