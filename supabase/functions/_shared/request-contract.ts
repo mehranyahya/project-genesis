@@ -85,13 +85,7 @@ export interface GraveStonePayload extends CommonPayload {
 export interface BuildingStonePayload extends CommonPayload {
   readonly request_type: "building_stone";
   readonly stone_type: "marble" | "granite" | "travertine" | "crystal";
-  readonly application:
-    | "facade"
-    | "flooring"
-    | "stairs"
-    | "interior_wall"
-    | "countertop"
-    | "other";
+  readonly application: "facade" | "flooring" | "stairs" | "interior_wall" | "countertop" | "other";
   readonly area_m2: number | null;
   readonly client_price_type: "review";
   readonly client_displayed_price: null;
@@ -127,7 +121,9 @@ function exactKeys(object: Record<string, unknown>, allowed: ReadonlySet<string>
 function trimmedString(value: unknown, min: number, max: number): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
-  return trimmed.length >= min && trimmed.length <= max && trimmed === value ? value : null;
+  return trimmed.length >= min && trimmed.length <= max && trimmed === value
+    ? value
+    : null;
 }
 
 function nullableTrimmed(value: unknown, max: number): string | null | false {
@@ -149,11 +145,13 @@ function commonPayload(
   requestType: CommonPayload["request_type"],
   errors: Record<string, true>,
 ): CommonPayload | null {
-  const submissionId = typeof raw.submission_id === "string" && UUID_PATTERN.test(raw.submission_id)
-    ? raw.submission_id
-    : null;
+  const submissionId =
+    typeof raw.submission_id === "string" && UUID_PATTERN.test(raw.submission_id)
+      ? raw.submission_id
+      : null;
   const customerName = trimmedString(raw.customer_name, 2, 80);
-  const phone = typeof raw.phone === "string" && PHONE_PATTERN.test(raw.phone) ? raw.phone : null;
+  const phone =
+    typeof raw.phone === "string" && PHONE_PATTERN.test(raw.phone) ? raw.phone : null;
   const city = nullableTrimmed(raw.city, 50);
   const locationText = nullableTrimmed(raw.location_text, 200);
   const preferredContact =
@@ -170,14 +168,18 @@ function commonPayload(
 
   if (customerName === null) fieldError(errors, "customer_name");
   if (phone === null) fieldError(errors, "phone");
-  if (city === false || (requestType === "grave_stone" && city === null)) fieldError(errors, "city");
+  if (city === false || (requestType === "grave_stone" && city === null)) {
+    fieldError(errors, "city");
+  }
   if (locationText === false || (requestType === "grave_stone" && locationText === null)) {
     fieldError(errors, "location_text");
   }
   if (preferredContact === null) fieldError(errors, "preferred_contact");
   if (preferredContactTime === false) fieldError(errors, "preferred_contact_time");
   if (customerNote === false) fieldError(errors, "customer_note");
-  if (termsVersion === null || termsHash === null || raw.terms_accepted !== true) fieldError(errors, "terms");
+  if (termsVersion === null || termsHash === null || raw.terms_accepted !== true) {
+    fieldError(errors, "terms");
+  }
 
   if (
     submissionId === null ||
@@ -217,19 +219,32 @@ function parseSecurityFields(raw: Record<string, unknown>): {
   honeypotFilled: boolean;
 } | null {
   const token = raw.turnstile_token;
-  if (token !== null && (typeof token !== "string" || token.length < 1 || token.length > 2048)) return null;
+  if (
+    token !== null &&
+    (typeof token !== "string" || token.length < 1 || token.length > 2048)
+  ) {
+    return null;
+  }
 
   const duration = raw.form_fill_duration_ms;
   if (
     duration !== undefined &&
     duration !== null &&
-    (typeof duration !== "number" || !Number.isSafeInteger(duration) || duration < 0 || duration > 86_400_000)
+    (typeof duration !== "number" ||
+      !Number.isSafeInteger(duration) ||
+      duration < 0 ||
+      duration > 86_400_000)
   ) {
     return null;
   }
 
   const honeypot = raw.honeypot;
-  if (honeypot !== undefined && (typeof honeypot !== "string" || honeypot.length > 200)) return null;
+  if (
+    honeypot !== undefined &&
+    (typeof honeypot !== "string" || honeypot.length > 200)
+  ) {
+    return null;
+  }
 
   return {
     turnstileToken: token as string | null,
@@ -244,7 +259,11 @@ export function parseRequestPayload(value: unknown): PayloadParseResult {
   }
   const raw = value as Record<string, unknown>;
   const requestType = raw.request_type;
-  if (requestType !== "grave_stone" && requestType !== "building_stone" && requestType !== "contact") {
+  if (
+    requestType !== "grave_stone" &&
+    requestType !== "building_stone" &&
+    requestType !== "contact"
+  ) {
     return { ok: false, fieldErrors: {} };
   }
 
@@ -345,7 +364,9 @@ export function parseRequestPayload(value: unknown): PayloadParseResult {
     }
     if (
       raw.application === "other" &&
-      (common.customer_note === null || common.customer_note.length < 10 || common.customer_note.length > 500)
+      (common.customer_note === null ||
+        common.customer_note.length < 10 ||
+        common.customer_note.length > 500)
     ) {
       fieldError(errors, "customer_note");
       return { ok: false, fieldErrors: errors };
