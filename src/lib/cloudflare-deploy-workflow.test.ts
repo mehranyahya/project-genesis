@@ -9,6 +9,10 @@ const workflow = readFileSync(
   new URL("../../.github/workflows/deploy-cloudflare.yml", import.meta.url),
   "utf8",
 );
+const implementationWorkflow = readFileSync(
+  new URL("../../.github/workflows/deploy-cloudflare-reusable.yml", import.meta.url),
+  "utf8",
+);
 const writerPath = new URL("../../scripts/write-cloudflare-secrets.mjs", import.meta.url);
 const writer = readFileSync(writerPath, "utf8");
 
@@ -28,36 +32,54 @@ test("Cloudflare deployment is manual-only and production requires main plus exa
   assert.match(workflow, /workflow_dispatch:/);
   assert.equal(/^\s*push:/m.test(workflow), false);
   assert.equal(/^\s*pull_request:/m.test(workflow), false);
-  assert.match(workflow, /environment: \$\{\{ inputs\.target \}\}/);
-  assert.match(workflow, /DEPLOY_TARGET: \$\{\{ inputs\.target \}\}/);
-  assert.match(workflow, /GITHUB_REF.*refs\/heads\/main/);
-  assert.match(workflow, /PRODUCTION_CONFIRMATION.*DEPLOY_PRODUCTION/);
+  assert.equal(/^\s*environment:/m.test(`${workflow}\n${implementationWorkflow}`), false);
+  assert.match(workflow, /uses: \.\/\.github\/workflows\/deploy-cloudflare-reusable\.yml/);
+  assert.match(implementationWorkflow, /DEPLOY_TARGET: \$\{\{ inputs\.target \}\}/);
+  assert.match(implementationWorkflow, /GITHUB_REF.*refs\/heads\/main/);
+  assert.match(implementationWorkflow, /PRODUCTION_CONFIRMATION.*DEPLOY_PRODUCTION/);
 });
 
 test("preview uploads a version while production alone uses wrangler deploy", () => {
-  assert.match(workflow, /if: \$\{\{ inputs\.target == 'preview' \}\}/);
-  assert.match(workflow, /npx --yes wrangler@4\.97\.0 versions upload/);
-  assert.match(workflow, /if: \$\{\{ inputs\.target == 'production' \}\}/);
-  assert.match(workflow, /npx --yes wrangler@4\.97\.0 deploy/);
+  assert.match(implementationWorkflow, /if: \$\{\{ inputs\.target == 'preview' \}\}/);
+  assert.match(implementationWorkflow, /npx --yes wrangler@4\.97\.0 versions upload/);
+  assert.match(implementationWorkflow, /--preview-alias staging/);
+  assert.match(implementationWorkflow, /if: \$\{\{ inputs\.target == 'production' \}\}/);
+  assert.match(implementationWorkflow, /npx --yes wrangler@4\.97\.0 deploy/);
 
-  const deployOccurrences = workflow.match(/wrangler@4\.97\.0 deploy/g) ?? [];
+  const deployOccurrences = implementationWorkflow.match(/wrangler@4\.97\.0 deploy/g) ?? [];
   assert.equal(deployOccurrences.length, 1);
 
   for (const option of ["--secrets-file", "--keep-vars", "--strict"] as const) {
-    assert.equal(workflow.split(option).length - 1, 2, `${option} must protect both targets`);
+    assert.equal(
+      implementationWorkflow.split(option).length - 1,
+      2,
+      `${option} must protect both targets`,
+    );
   }
-  assert.match(workflow, /if: \$\{\{ always\(\) \}\}/);
-  assert.match(workflow, /rm -f .*cloudflare-runtime-secrets\.json/);
+  assert.match(implementationWorkflow, /if: \$\{\{ always\(\) \}\}/);
+  assert.match(implementationWorkflow, /rm -f .*cloudflare-runtime-secrets\.json/);
 });
 
-test("workflow fails before build/deploy when required environment configuration is absent", () => {
-  assert.match(workflow, /VITE_TURNSTILE_SITE_KEY: \$\{\{ secrets\.VITE_TURNSTILE_SITE_KEY \}\}/);
-  assert.match(workflow, /CLOUDFLARE_ACCOUNT_ID: \$\{\{ secrets\.CLOUDFLARE_ACCOUNT_ID \}\}/);
-  assert.match(workflow, /CLOUDFLARE_API_TOKEN: \$\{\{ secrets\.CLOUDFLARE_API_TOKEN \}\}/);
-  assert.match(workflow, /Validate public build configuration/);
-  assert.match(workflow, /Validate Cloudflare CI credentials/);
-  assert.match(workflow, /node scripts\/prepare-cloudflare-deploy\.mjs/);
-  assert.match(workflow, /node scripts\/verify-cloudflare-deploy\.mjs/);
+test("workflow fails before build/deploy when required repository configuration is absent", () => {
+  assert.match(
+    implementationWorkflow,
+    /VITE_TURNSTILE_SITE_KEY: \$\{\{ secrets\.VITE_TURNSTILE_SITE_KEY \}\}/,
+  );
+  assert.match(
+    implementationWorkflow,
+    /CLOUDFLARE_ACCOUNT_ID: \$\{\{ secrets\.CLOUDFLARE_ACCOUNT_ID \}\}/,
+  );
+  assert.match(
+    implementationWorkflow,
+    /CLOUDFLARE_API_TOKEN: \$\{\{ secrets\.CLOUDFLARE_API_TOKEN \}\}/,
+  );
+  assert.match(workflow, /secrets\.PREVIEW_VITE_TURNSTILE_SITE_KEY/);
+  assert.match(workflow, /secrets\.PRODUCTION_VITE_TURNSTILE_SITE_KEY/);
+  assert.match(workflow, /vars\.PRODUCTION_PUBLIC_SITE_ORIGIN/);
+  assert.match(implementationWorkflow, /Validate public build configuration/);
+  assert.match(implementationWorkflow, /Validate Cloudflare CI credentials/);
+  assert.match(implementationWorkflow, /node scripts\/prepare-cloudflare-deploy\.mjs/);
+  assert.match(implementationWorkflow, /node scripts\/verify-cloudflare-deploy\.mjs/);
 });
 
 test("runtime secret writer emits only the approved server keys with restrictive permissions", () => {
@@ -100,10 +122,12 @@ test("runtime secret writer emits only the approved server keys with restrictive
 });
 
 test("deployment source contains no SMS provider dependency", () => {
-  assert.equal(/SMS_[A-Z0-9_]+/.test(workflow), false);
+  assert.equal(/SMS_[A-Z0-9_]+/.test(`${workflow}\n${implementationWorkflow}`), false);
   assert.equal(/SMS_[A-Z0-9_]+/.test(writer), false);
   for (const name of runtimeSecretNames) {
-    assert.match(workflow, new RegExp(`secrets\\.${name}`));
+    assert.match(implementationWorkflow, new RegExp(`secrets\\.${name}`));
+    assert.match(workflow, new RegExp(`secrets\\.PREVIEW_${name}`));
+    assert.match(workflow, new RegExp(`secrets\\.PRODUCTION_${name}`));
     assert.match(writer, new RegExp(`\\b${name}\\b`));
   }
 });
