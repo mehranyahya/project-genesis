@@ -3,10 +3,7 @@ import { verifyGatewayEnvelope } from "../_shared/gateway-auth.ts";
 import { prepareBusinessRequest } from "../_shared/request-business.ts";
 import { parseRequestPayload } from "../_shared/request-contract.ts";
 import type { BotVerification, RiskFlag } from "../_shared/request-contract.ts";
-import {
-  readSupabaseServerConfig,
-  supabaseRpc,
-} from "../_shared/supabase-rest.ts";
+import { readSupabaseServerConfig, supabaseRpc } from "../_shared/supabase-rest.ts";
 import { verifyTurnstile } from "../_shared/turnstile.ts";
 
 const TRACKING_PATTERN = /^MA-[1-9][0-9]{3,}$/;
@@ -65,7 +62,13 @@ function readFingerprintConfig(): FingerprintConfig | null {
   if (entries.length < 1 || entries.length > 2) return null;
   const keys: Record<string, string> = {};
   for (const [keyId, secret] of entries) {
-    if (!KEY_ID_PATTERN.test(keyId) || typeof secret !== "string" || secret.length < 32) return null;
+    if (
+      !KEY_ID_PATTERN.test(keyId) ||
+      typeof secret !== "string" ||
+      secret.length < 32
+    ) {
+      return null;
+    }
     keys[keyId] = secret;
   }
   if (keys[primaryKeyId] === undefined) return null;
@@ -121,9 +124,7 @@ function logOutcome(input: {
       code: input.code,
       status: input.status,
       duration_ms: input.durationMs,
-      ...(input.botVerification === undefined
-        ? {}
-        : { bot_verification: input.botVerification }),
+      ...(input.botVerification === undefined ? {} : { bot_verification: input.botVerification }),
     }),
   );
 }
@@ -155,7 +156,10 @@ Deno.serve(async (request: Request) => {
       return finish(jsonResponse({ code: "GATEWAY_REPLAY" }, 409), "GATEWAY_REPLAY");
     }
     if (gatewayAuth.kind !== "ok") {
-      return finish(jsonResponse({ code: "TEMPORARILY_UNAVAILABLE" }, 401), "GATEWAY_AUTH_INVALID");
+      return finish(
+        jsonResponse({ code: "TEMPORARILY_UNAVAILABLE" }, 401),
+        "GATEWAY_AUTH_INVALID",
+      );
     }
     workerRequestId = gatewayAuth.envelope.gateway.worker_request_id;
 
