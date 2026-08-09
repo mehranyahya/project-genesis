@@ -1,7 +1,7 @@
 /*
- * Mehrara design tokens — Quiet Monumental Luxury.
+ * Mehrara design tokens — Quiet Material Intelligence.
  * Raw color values exist ONLY in this file. Components consume semantic roles.
- * Solid surfaces only; no themes and no runtime theme switching.
+ * Light-first only; no runtime theme switching.
  */
 
 @font-face {
@@ -22,27 +22,26 @@
 
 /* Master semantic roles. These names are the contract. */
 @theme {
-  --color-canvas: #f4efe6;
-  --color-surface: #f4efe6;
-  --color-surface-media: #e7e1d7;
-  --color-text-primary: #121212;
-  --color-text-secondary: #5c5850;
-  --color-text-caption: #6b665e;
-  --color-border-subtle: #b9aa92;
-  --color-border-control: #5c5850;
-  --color-action-primary: #203b34;
-  --color-accent: #9c6b32;
-  --color-surface-inverse: #121212;
-  --color-text-inverse: #f4efe6;
-  --color-focus: #203b34;
-  --color-focus-inverse: #f4efe6;
-  --color-status-success: #203b34;
-  --color-status-error: #8b2f2f;
+  --color-canvas: #F3F1EB;
+  --color-surface: #FCFBF8;
+  --color-surface-media: #F2F2F0;
+  --color-text-primary: #171918;
+  --color-text-secondary: #5C605B;
+  --color-text-caption: #6B706A;
+  --color-border-subtle: #D8D3C9;
+  --color-border-control: #6B706A;
+  --color-action-primary: #173F3A;
+  --color-accent: #8F4C2F;
+  --color-surface-inverse: #111413;
+  --color-text-inverse: #FCFBF8;
+  --color-focus: #173F3A;
+  --color-focus-inverse: #FCFBF8;
+  --color-status-success: #173F3A;
+  --color-status-error: #8F4C2F;
 }
 
 :root {
-  /* Compatibility aliases for untouched scaffold primitives.
-     They resolve to the master roles above; no new raw values. */
+  /* Compatibility aliases for untouched scaffold primitives. */
   --background: var(--color-canvas);
   --foreground: var(--color-text-primary);
   --surface: var(--color-surface);
@@ -54,7 +53,6 @@
   --primary-foreground: var(--color-text-inverse);
   --secondary: var(--color-surface-inverse);
   --secondary-foreground: var(--color-text-inverse);
-  /* Aged Bronze is decorative only; the interactive alias stays Serpentine. */
   --decorative-accent: var(--color-accent);
   --accent: var(--color-action-primary);
   --accent-foreground: var(--color-text-inverse);
@@ -74,8 +72,15 @@
   --disabled-foreground: var(--color-text-caption);
   --skeleton: var(--color-surface-media);
 
-  /* Geometry: sharp, no global radius */
+  /* Mineral Glass is restricted to the three approved floating surfaces. */
+  --color-mineral-glass: rgba(252, 251, 248, 0.88);
+  --color-mineral-glass-fallback: rgba(252, 251, 248, 0.96);
+  --mineral-glass-blur: 14px;
+
+  /* Geometry */
   --radius: 0px;
+  --radius-control: 2px;
+  --radius-glass: 14px;
   --edge-width: 1px;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
