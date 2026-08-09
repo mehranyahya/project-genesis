@@ -23,65 +23,64 @@ function requireLongSecret(name) {
   return value;
 }
 
-function requireHttpsUrl(name) {
-  const value = requireValue(name);
+function requireFunctionBaseUrl() {
+  const value = requireValue("SUPABASE_FUNCTION_BASE_URL");
   let parsed;
   try {
     parsed = new URL(value);
   } catch {
-    throw new Error(`Deployment URL is invalid: ${name}`);
+    throw new Error("SUPABASE_FUNCTION_BASE_URL is invalid");
   }
-  if (parsed.protocol !== "https:") throw new Error(`Deployment URL must use HTTPS: ${name}`);
-  return value;
-}
-
-function requireFingerprintKeyId() {
-  const value = requireValue("REQUEST_FINGERPRINT_KEY_ID");
-  if (!/^[A-Za-z0-9._-]{1,64}$/.test(value)) {
-    throw new Error("REQUEST_FINGERPRINT_KEY_ID has an invalid format");
-  }
-  return value;
-}
-
-function requireTurnstileHostnames() {
-  const value = requireValue("TURNSTILE_ALLOWED_HOSTNAMES");
-  const rawItems = value.split(",");
-  const items = rawItems.map((item) => item.trim().toLowerCase());
   if (
-    items.length === 0 ||
-    items.some(
-      (item) =>
-        item.length === 0 ||
-        item.length > 253 ||
-        item.startsWith(".") ||
-        item.endsWith(".") ||
-        item.includes("..") ||
-        !/^[a-z0-9.-]+$/.test(item),
-    )
+    parsed.protocol !== "https:" ||
+    parsed.username !== "" ||
+    parsed.password !== "" ||
+    parsed.search !== "" ||
+    parsed.hash !== ""
   ) {
-    throw new Error("TURNSTILE_ALLOWED_HOSTNAMES contains an invalid hostname");
+    throw new Error("SUPABASE_FUNCTION_BASE_URL must be a clean HTTPS URL");
   }
-  return items.join(",");
+  return value.replace(/\/+$/, "");
 }
 
-function requireTelegramChatId() {
-  const value = requireValue("TELEGRAM_ADMIN_CHAT_ID");
-  if (!/^-?[1-9][0-9]*$/.test(value)) {
-    throw new Error("TELEGRAM_ADMIN_CHAT_ID has an invalid format");
+function requireGatewayKeyMap() {
+  const raw = requireValue("EDGE_GATEWAY_KEYS_JSON");
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error("EDGE_GATEWAY_KEYS_JSON must be valid JSON");
   }
-  return value;
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error("EDGE_GATEWAY_KEYS_JSON must be an object");
+  }
+
+  const entries = Object.entries(parsed);
+  if (entries.length < 1 || entries.length > 2) {
+    throw new Error("EDGE_GATEWAY_KEYS_JSON must contain one or two keys");
+  }
+  for (const [keyId, secret] of entries) {
+    if (!/^[A-Za-z0-9._-]{1,64}$/.test(keyId)) {
+      throw new Error("EDGE_GATEWAY_KEYS_JSON contains an invalid key id");
+    }
+    if (typeof secret !== "string" || secret.length < 32) {
+      throw new Error("EDGE_GATEWAY_KEYS_JSON contains an invalid secret");
+    }
+  }
+  return { raw, keys: parsed };
+}
+
+const gatewayKeyMap = requireGatewayKeyMap();
+const primaryKeyId = requireValue("EDGE_GATEWAY_PRIMARY_KEY_ID");
+if (!/^[A-Za-z0-9._-]{1,64}$/.test(primaryKeyId) || !(primaryKeyId in gatewayKeyMap.keys)) {
+  throw new Error("EDGE_GATEWAY_PRIMARY_KEY_ID must reference EDGE_GATEWAY_KEYS_JSON");
 }
 
 const secrets = {
-  SUPABASE_URL: requireHttpsUrl("SUPABASE_URL"),
-  SUPABASE_SERVICE_ROLE_KEY: requireValue("SUPABASE_SERVICE_ROLE_KEY"),
-  REQUEST_FINGERPRINT_KEY: requireLongSecret("REQUEST_FINGERPRINT_KEY"),
-  REQUEST_FINGERPRINT_KEY_ID: requireFingerprintKeyId(),
-  IP_HASH_KEY: requireLongSecret("IP_HASH_KEY"),
-  TURNSTILE_SECRET_KEY: requireValue("TURNSTILE_SECRET_KEY"),
-  TURNSTILE_ALLOWED_HOSTNAMES: requireTurnstileHostnames(),
-  TELEGRAM_BOT_TOKEN: requireValue("TELEGRAM_BOT_TOKEN"),
-  TELEGRAM_ADMIN_CHAT_ID: requireTelegramChatId(),
+  SUPABASE_FUNCTION_BASE_URL: requireFunctionBaseUrl(),
+  EDGE_GATEWAY_KEYS_JSON: gatewayKeyMap.raw,
+  EDGE_GATEWAY_PRIMARY_KEY_ID: primaryKeyId,
+  IP_HASH_SECRET: requireLongSecret("IP_HASH_SECRET"),
 };
 
 await writeFile(outputPath, `${JSON.stringify(secrets)}\n`, {
