@@ -36,7 +36,9 @@ function request(input?: {
     origin: input?.origin ?? "https://preview.example",
     "cf-connecting-ip": input?.ip ?? "2001:0db8:0:0:0:0:0:1",
   });
-  if (input?.token !== null) headers.set("x-turnstile-token", input?.token ?? "turnstile-proof");
+  if (input?.token !== null) {
+    headers.set("x-turnstile-token", input?.token ?? "turnstile-proof");
+  }
   return new Request("https://preview.example/api/submit-request", {
     method: "POST",
     headers,
@@ -45,7 +47,11 @@ function request(input?: {
 }
 
 function dependencies(
-  responder: (input: { url: string; init: RequestInit; envelope: Record<string, unknown> }) => Response,
+  responder: (input: {
+    url: string;
+    init: RequestInit;
+    envelope: Record<string, unknown>;
+  }) => Response,
 ): GatewayDependencies {
   return {
     nowUnix: () => 1_786_319_000,
@@ -147,11 +153,19 @@ test("gateway rejects wrong origin, malformed token and reserved token injection
     return new Response("{}", { status: 503 });
   });
 
-  const wrongOrigin = await handleSignedSubmitGateway(request({ origin: "https://evil.example" }), env, deps);
+  const wrongOrigin = await handleSignedSubmitGateway(
+    request({ origin: "https://evil.example" }),
+    env,
+    deps,
+  );
   assert.ok(wrongOrigin);
   assert.equal(wrongOrigin.status, 403);
 
-  const malformedToken = await handleSignedSubmitGateway(request({ token: "bad\u0001token" }), env, deps);
+  const malformedToken = await handleSignedSubmitGateway(
+    request({ token: "bad\u0001token" }),
+    env,
+    deps,
+  );
   assert.ok(malformedToken);
   assert.equal(malformedToken.status, 422);
 
@@ -166,14 +180,20 @@ test("gateway rejects wrong origin, malformed token and reserved token injection
 });
 
 test("gateway fails closed on incomplete configuration and sanitizes upstream errors", async () => {
-  const broken = await handleSignedSubmitGateway(request(), { ...env, EDGE_GATEWAY_KEYS_JSON: "{}" });
+  const broken = await handleSignedSubmitGateway(request(), {
+    ...env,
+    EDGE_GATEWAY_KEYS_JSON: "{}",
+  });
   assert.ok(broken);
   assert.equal(broken.status, 503);
 
   const replay = await handleSignedSubmitGateway(
     request(),
     env,
-    dependencies(() => new Response(JSON.stringify({ code: "GATEWAY_REPLAY", detail: "secret" }), { status: 409 })),
+    dependencies(
+      () =>
+        new Response(JSON.stringify({ code: "GATEWAY_REPLAY", detail: "secret" }), { status: 409 }),
+    ),
   );
   assert.ok(replay);
   assert.equal(replay.status, 503);
@@ -182,8 +202,11 @@ test("gateway fails closed on incomplete configuration and sanitizes upstream er
   const unknown = await handleSignedSubmitGateway(
     request(),
     env,
-    dependencies(() =>
-      new Response(JSON.stringify({ code: "SOMETHING_NEW", stack: "must not escape" }), { status: 500 }),
+    dependencies(
+      () =>
+        new Response(JSON.stringify({ code: "SOMETHING_NEW", stack: "must not escape" }), {
+          status: 500,
+        }),
     ),
   );
   assert.ok(unknown);
