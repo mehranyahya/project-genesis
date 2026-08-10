@@ -3,16 +3,14 @@
 @source "../src";
 
 /*
- * Mehrara — Quiet Monumental Luxury.
+ * Mehrara — Quiet Material Intelligence.
  * Color, geometry, typography and motion values live in src/styles/tokens.css.
- * This file only maps them to Tailwind utilities and sets base rules.
- * Solid surfaces only, per the Quiet Monumental Luxury contract.
  */
 
 @theme inline {
   --font-sans: var(--font-sans);
 
-  --radius-sm: var(--radius);
+  --radius-sm: var(--radius-control);
   --radius-md: var(--radius);
   --radius-lg: var(--radius);
   --radius-xl: var(--radius);
@@ -32,7 +30,6 @@
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-accent-foreground: var(--accent-foreground);
-  /* Decorative-only bronze: never wired to an interactive state. */
   --color-decorative-accent: var(--decorative-accent);
   --color-decorative-stone: var(--decorative-stone);
   --color-muted: var(--muted);
@@ -109,7 +106,23 @@
   }
 }
 
-/* Prices and tracking codes use tabular figures. */
+@layer components {
+  /* Only approved floating surfaces may opt into this class. */
+  .mineral-glass {
+    border: var(--edge-width) solid var(--color-border-subtle);
+    border-radius: var(--radius-glass);
+    background-color: var(--color-mineral-glass-fallback);
+  }
+
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .mineral-glass {
+      background-color: var(--color-mineral-glass);
+      -webkit-backdrop-filter: blur(var(--mineral-glass-blur));
+      backdrop-filter: blur(var(--mineral-glass-blur));
+    }
+  }
+}
+
 @utility numeric {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;

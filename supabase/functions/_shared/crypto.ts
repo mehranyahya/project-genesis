@@ -1,17 +1,6 @@
+export { canonicalJson, stableValue } from "./json.ts";
+
 const encoder = new TextEncoder();
-
-export function stableValue(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(stableValue);
-  if (value === null || typeof value !== "object") return value;
-  const input = value as Record<string, unknown>;
-  const output: Record<string, unknown> = {};
-  for (const key of Object.keys(input).sort()) output[key] = stableValue(input[key]);
-  return output;
-}
-
-export function canonicalJson(value: unknown): string {
-  return JSON.stringify(stableValue(value));
-}
 
 export function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");

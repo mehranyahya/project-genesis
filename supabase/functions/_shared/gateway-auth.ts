@@ -1,4 +1,5 @@
 import { canonicalJson, constantTimeHexEqual, hmacSha256Hex, sha256Hex } from "./crypto.ts";
+import { parseStrictJson, readBoundedUtf8 } from "./json.ts";
 import { supabaseRpc } from "./supabase-rest.ts";
 import type { SupabaseServerConfig } from "./supabase-rest.ts";
 
@@ -29,15 +30,10 @@ export type GatewayAuthResult =
   | { readonly kind: "invalid" }
   | { readonly kind: "configuration_error" };
 
-function readKeyMap(): Readonly<Record<string, string>> | null {
+export function readGatewayKeyMap(): Readonly<Record<string, string>> | null {
   const raw = Deno.env.get("EDGE_GATEWAY_KEYS_JSON")?.trim() ?? "";
   if (raw === "") return null;
-  let value: unknown;
-  try {
-    value = JSON.parse(raw);
-  } catch {
-    return null;
-  }
+  const value = parseStrictJson(raw);
   if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
   const entries = Object.entries(value as Record<string, unknown>);
   if (entries.length < 1 || entries.length > 2) return null;
@@ -46,7 +42,12 @@ function readKeyMap(): Readonly<Record<string, string>> | null {
     if (!KEY_ID_PATTERN.test(keyId) || typeof secret !== "string" || secret.length < 32) {
       return null;
     }
-    keys[keyId] = secret;
+    Object.defineProperty(keys, keyId, {
+      value: secret,
+      enumerable: true,
+      configurable: false,
+      writable: false,
+    });
   }
   return keys;
 }
@@ -135,13 +136,13 @@ function signingInput(input: {
 }
 
 async function readBoundedBody(request: Request): Promise<string | null> {
-  const bytes = new Uint8Array(await request.arrayBuffer());
-  if (bytes.byteLength === 0 || bytes.byteLength > MAX_ENVELOPE_BYTES) return null;
-  try {
-    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-  } catch {
-    return null;
+  const declaredLength = request.headers.get("content-length");
+  if (declaredLength !== null) {
+    const parsedLength = Number(declaredLength);
+    if (Number.isFinite(parsedLength) && parsedLength > MAX_ENVELOPE_BYTES) return null;
   }
+  const value = await readBoundedUtf8(request.body, MAX_ENVELOPE_BYTES);
+  return value === "" ? null : value;
 }
 
 export async function verifyGatewayEnvelope(
@@ -152,17 +153,12 @@ export async function verifyGatewayEnvelope(
   const contentType = request.headers.get("content-type")?.split(";", 1)[0]?.trim().toLowerCase();
   if (contentType !== "application/json") return { kind: "invalid" };
 
-  const keyMap = readKeyMap();
+  const keyMap = readGatewayKeyMap();
   if (keyMap === null) return { kind: "configuration_error" };
 
   const rawBody = await readBoundedBody(request);
   if (rawBody === null) return { kind: "invalid" };
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(rawBody);
-  } catch {
-    return { kind: "invalid" };
-  }
+  const parsed = parseStrictJson(rawBody);
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
     return { kind: "invalid" };
   }

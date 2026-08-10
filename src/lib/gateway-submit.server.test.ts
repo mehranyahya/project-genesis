@@ -120,6 +120,7 @@ test("gateway emits exactly payload + gateway and signs the entire canonical env
       assert.equal(headers.has("apikey"), false);
       assert.equal(headers.has("user-agent"), false);
       assert.equal(headers.has("cf-connecting-ip"), false);
+      assert.equal(init.redirect, "error");
 
       return new Response(JSON.stringify({ code: "REQUEST_CREATED", tracking_code: "MA-1001" }), {
         status: 201,
@@ -213,4 +214,72 @@ test("gateway fails closed on incomplete configuration and sanitizes upstream er
   assert.ok(unknown);
   assert.equal(unknown.status, 503);
   assert.equal((await unknown.text()).includes("stack"), false);
+});
+
+test("gateway rejects duplicate keys and malformed Unicode before signing", async () => {
+  let calls = 0;
+  const deps = dependencies(() => {
+    calls += 1;
+    return new Response("{}", { status: 503 });
+  });
+  const rawRequest = (body: string) =>
+    new Request("https://preview.example/api/submit-request", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: "https://preview.example",
+      },
+      body,
+    });
+
+  const duplicate = await handleSignedSubmitGateway(
+    rawRequest('{"request_type":"contact","request_type":"grave_stone"}'),
+    env,
+    deps,
+  );
+  assert.ok(duplicate);
+  assert.equal(duplicate.status, 422);
+
+  const escapedDuplicate = await handleSignedSubmitGateway(
+    rawRequest('{"a":1,"\\u0061":2}'),
+    env,
+    deps,
+  );
+  assert.ok(escapedDuplicate);
+  assert.equal(escapedDuplicate.status, 422);
+
+  const malformedUnicode = await handleSignedSubmitGateway(
+    rawRequest('{"customer_name":"\\ud800"}'),
+    env,
+    deps,
+  );
+  assert.ok(malformedUnicode);
+  assert.equal(malformedUnicode.status, 422);
+  assert.equal(calls, 0);
+});
+
+test("gateway rejects duplicate key maps and duplicate upstream JSON", async () => {
+  const duplicateMap = `{"gateway-v1":"${gatewaySecret}","gateway-v1":"${"h".repeat(40)}"}`;
+  const configFailure = await handleSignedSubmitGateway(request(), {
+    ...env,
+    EDGE_GATEWAY_KEYS_JSON: duplicateMap,
+  });
+  assert.ok(configFailure);
+  assert.equal(configFailure.status, 503);
+
+  const duplicateUpstream = await handleSignedSubmitGateway(
+    request(),
+    env,
+    dependencies(
+      () =>
+        new Response(
+          '{"code":"REQUEST_CREATED","code":"REQUEST_REPLAYED","tracking_code":"MA-1001"}',
+          {
+            status: 201,
+          },
+        ),
+    ),
+  );
+  assert.ok(duplicateUpstream);
+  assert.equal(duplicateUpstream.status, 503);
 });

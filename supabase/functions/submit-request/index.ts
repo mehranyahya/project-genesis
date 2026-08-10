@@ -4,11 +4,14 @@ import { prepareBusinessRequest } from "../_shared/request-business.ts";
 import { parseRequestPayload } from "../_shared/request-contract.ts";
 import type { BotVerification, RiskFlag } from "../_shared/request-contract.ts";
 import { readSupabaseServerConfig, supabaseRpc } from "../_shared/supabase-rest.ts";
+import { processTelegramByRequestId } from "../_shared/telegram-delivery.ts";
 import { verifyTurnstile } from "../_shared/turnstile.ts";
+import { parseStrictJson } from "../_shared/json.ts";
 
 const TRACKING_PATTERN = /^MA-[1-9][0-9]{3,}$/;
 const HASH_PATTERN = /^[0-9a-f]{64}$/;
 const KEY_ID_PATTERN = /^[A-Za-z0-9._-]{1,64}$/;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 interface FingerprintConfig {
   readonly keys: Readonly<Record<string, string>>;
@@ -23,6 +26,7 @@ interface InspectResult {
 interface StorageResult {
   readonly code?: unknown;
   readonly tracking_code?: unknown;
+  readonly request_id?: unknown;
 }
 
 function responseHeaders(): Headers {
@@ -51,12 +55,7 @@ function readFingerprintConfig(): FingerprintConfig | null {
   const primaryKeyId = Deno.env.get("REQUEST_FINGERPRINT_PRIMARY_KEY_ID")?.trim() ?? "";
   if (rawMap === "" || !KEY_ID_PATTERN.test(primaryKeyId)) return null;
 
-  let value: unknown;
-  try {
-    value = JSON.parse(rawMap);
-  } catch {
-    return null;
-  }
+  const value = parseStrictJson(rawMap);
   if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
   const entries = Object.entries(value as Record<string, unknown>);
   if (entries.length < 1 || entries.length > 2) return null;
@@ -65,7 +64,12 @@ function readFingerprintConfig(): FingerprintConfig | null {
     if (!KEY_ID_PATTERN.test(keyId) || typeof secret !== "string" || secret.length < 32) {
       return null;
     }
-    keys[keyId] = secret;
+    Object.defineProperty(keys, keyId, {
+      value: secret,
+      enumerable: true,
+      configurable: false,
+      writable: false,
+    });
   }
   if (keys[primaryKeyId] === undefined) return null;
   return { keys, primaryKeyId };
@@ -73,7 +77,7 @@ function readFingerprintConfig(): FingerprintConfig | null {
 
 function trackingCodePrefix(): string | null {
   const value = Deno.env.get("TRACKING_CODE_PREFIX")?.trim() ?? "";
-  return /^[A-Z][A-Z0-9]{1,9}$/.test(value) ? value : null;
+  return value === "MA" ? value : null;
 }
 
 function inspectResponse(value: InspectResult): Response | null | false {
@@ -90,21 +94,55 @@ function inspectResponse(value: InspectResult): Response | null | false {
   return false;
 }
 
-function storageResponse(value: StorageResult): Response | false {
+function storageResponse(
+  value: StorageResult,
+): { readonly response: Response; readonly immediateRequestId: string | null } | false {
   if (value.code === "REQUEST_CREATED" || value.code === "REQUEST_REPLAYED") {
     const status = value.code === "REQUEST_CREATED" ? 201 : 200;
-    return typeof value.tracking_code === "string" && TRACKING_PATTERN.test(value.tracking_code)
-      ? jsonResponse({ code: value.code, tracking_code: value.tracking_code }, status)
-      : false;
+    if (typeof value.tracking_code !== "string" || !TRACKING_PATTERN.test(value.tracking_code)) {
+      return false;
+    }
+    if (
+      value.request_id !== undefined &&
+      (typeof value.request_id !== "string" || !UUID_PATTERN.test(value.request_id))
+    ) {
+      return false;
+    }
+    if (value.code === "REQUEST_CREATED" && typeof value.request_id !== "string") return false;
+    return {
+      response: jsonResponse({ code: value.code, tracking_code: value.tracking_code }, status),
+      immediateRequestId: value.code === "REQUEST_CREATED" ? (value.request_id as string) : null,
+    };
   }
   if (value.code === "RATE_LIMITED") {
-    return jsonResponse({ code: "RATE_LIMITED" }, 429, { "retry-after": "600" });
+    return {
+      response: jsonResponse({ code: "RATE_LIMITED" }, 429, { "retry-after": "600" }),
+      immediateRequestId: null,
+    };
   }
   if (value.code === "IDEMPOTENCY_CONFLICT" || value.code === "IDEMPOTENCY_EXPIRED") {
-    return jsonResponse({ code: value.code }, 409);
+    return { response: jsonResponse({ code: value.code }, 409), immediateRequestId: null };
   }
-  if (value.code === "TEMPORARILY_UNAVAILABLE") return temporaryUnavailable();
+  if (value.code === "TEMPORARILY_UNAVAILABLE") {
+    return { response: temporaryUnavailable(), immediateRequestId: null };
+  }
   return false;
+}
+
+function scheduleImmediateTelegramDelivery(
+  supabase: ReturnType<typeof readSupabaseServerConfig>,
+  requestId: string | null,
+): void {
+  if (requestId === null) return;
+  const task = processTelegramByRequestId(supabase, requestId).catch(() => {
+    console.error("Telegram immediate delivery failed");
+  });
+  const runtime = (
+    globalThis as unknown as {
+      readonly EdgeRuntime?: { readonly waitUntil?: (promise: Promise<unknown>) => void };
+    }
+  ).EdgeRuntime;
+  if (typeof runtime?.waitUntil === "function") runtime.waitUntil(task);
 }
 
 function logOutcome(input: {
@@ -179,23 +217,42 @@ Deno.serve(async (request: Request) => {
     if (fingerprintSecret === undefined) {
       return finish(temporaryUnavailable(), "TEMPORARILY_UNAVAILABLE");
     }
-    const fingerprint = await hmacSha256Hex(fingerprintSecret, canonicalJson(parsed.value.request));
+    const canonicalRequest = canonicalJson(parsed.value.request);
+    const candidates = await Promise.all(
+      [
+        fingerprintConfig.primaryKeyId,
+        ...Object.keys(fingerprintConfig.keys).filter(
+          (keyId) => keyId !== fingerprintConfig.primaryKeyId,
+        ),
+      ].map(async (keyId) => ({
+        keyId,
+        fingerprint: await hmacSha256Hex(fingerprintConfig.keys[keyId]!, canonicalRequest),
+      })),
+    );
+    const primaryCandidate = candidates[0];
+    if (primaryCandidate === undefined) {
+      return finish(temporaryUnavailable(), "TEMPORARILY_UNAVAILABLE");
+    }
+    const fingerprint = primaryCandidate.fingerprint;
     if (!HASH_PATTERN.test(fingerprint)) {
       return finish(temporaryUnavailable(), "TEMPORARILY_UNAVAILABLE");
     }
 
     // Replay lookup intentionally happens before Siteverify. A valid replay must
     // not fail because its one-time Turnstile token was already consumed.
-    const inspected = await supabaseRpc<InspectResult>(supabase, "inspect_request_idempotency", {
-      p_submission_id: parsed.value.request.submission_id,
-      p_request_fingerprint: fingerprint,
-      p_request_fingerprint_key_id: fingerprintConfig.primaryKeyId,
-    });
-    const replayResponse = inspectResponse(inspected);
-    if (replayResponse === false) {
-      return finish(temporaryUnavailable(), "TEMPORARILY_UNAVAILABLE");
-    }
-    if (replayResponse !== null) {
+    for (let index = 0; index < candidates.length; index += 1) {
+      const candidate = candidates[index]!;
+      const inspected = await supabaseRpc<InspectResult>(supabase, "inspect_request_idempotency", {
+        p_submission_id: parsed.value.request.submission_id,
+        p_request_fingerprint: candidate.fingerprint,
+        p_request_fingerprint_key_id: candidate.keyId,
+      });
+      if (inspected.code === "MISSING") break;
+      if (inspected.code === "IDEMPOTENCY_CONFLICT" && index + 1 < candidates.length) continue;
+      const replayResponse = inspectResponse(inspected);
+      if (replayResponse === false || replayResponse === null) {
+        return finish(temporaryUnavailable(), "TEMPORARILY_UNAVAILABLE");
+      }
       return finish(replayResponse, String(inspected.code));
     }
 
@@ -241,7 +298,8 @@ Deno.serve(async (request: Request) => {
     if (storedResponse === false) {
       return finish(temporaryUnavailable(), "TEMPORARILY_UNAVAILABLE");
     }
-    return finish(storedResponse, String(stored.code));
+    scheduleImmediateTelegramDelivery(supabase, storedResponse.immediateRequestId);
+    return finish(storedResponse.response, String(stored.code));
   } catch {
     return finish(temporaryUnavailable(), "TEMPORARILY_UNAVAILABLE");
   }

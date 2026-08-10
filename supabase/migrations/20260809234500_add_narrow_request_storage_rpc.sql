@@ -42,6 +42,7 @@ declare
   v_tracking_code text;
   v_sequence_value bigint;
   v_needs_review boolean;
+  v_request_id uuid;
 begin
   -- These are storage-boundary invariants only. Business/Catalog/Terms decisions
   -- must already have been completed by the Edge Function.
@@ -71,8 +72,7 @@ begin
      or jsonb_typeof(p_risk_flags) <> 'array'
      or not (p_risk_flags <@ '["shared_ip_volume","turnstile_no_token","turnstile_unavailable","fast_submit_signal","repeat_phone_short_window"]'::jsonb)
      or (p_ip_hash is not null and p_ip_hash !~ '^[0-9a-f]{64}$')
-     or p_tracking_code_prefix is null
-     or p_tracking_code_prefix !~ '^[A-Z][A-Z0-9]{1,9}$'
+     or p_tracking_code_prefix is distinct from 'MA'
      or p_configuration_snapshot is null
      or jsonb_typeof(p_configuration_snapshot) <> 'object'
      or not (p_configuration_snapshot ?& array['content_schema_version','tracking_code_prefix'])
@@ -131,7 +131,8 @@ begin
     end if;
     return jsonb_build_object(
       'code', 'REQUEST_REPLAYED',
-      'tracking_code', v_existing.tracking_code
+      'tracking_code', v_existing.tracking_code,
+      'request_id', v_existing.id
     );
   end if;
 
@@ -266,7 +267,7 @@ begin
     );
 
   v_sequence_value := nextval('public.request_code_seq'::regclass);
-  v_tracking_code := p_tracking_code_prefix || '-' || v_sequence_value::text;
+  v_tracking_code := 'MA-' || v_sequence_value::text;
 
   begin
     insert into public.requests (
@@ -325,7 +326,8 @@ begin
       v_now,
       v_now,
       v_now
-    );
+    )
+    returning id into v_request_id;
   exception when unique_violation then
     -- Defensive race fallback. The advisory lock should serialize matching
     -- submission IDs, but a uniqueness race never creates a second code.
@@ -339,7 +341,8 @@ begin
        and v_existing.request_fingerprint_key_id is not distinct from p_request_fingerprint_key_id then
       return jsonb_build_object(
         'code', 'REQUEST_REPLAYED',
-        'tracking_code', v_existing.tracking_code
+        'tracking_code', v_existing.tracking_code,
+        'request_id', v_existing.id
       );
     end if;
     return jsonb_build_object('code', 'TEMPORARILY_UNAVAILABLE');
@@ -347,7 +350,8 @@ begin
 
   return jsonb_build_object(
     'code', 'REQUEST_CREATED',
-    'tracking_code', v_tracking_code
+    'tracking_code', v_tracking_code,
+    'request_id', v_request_id
   );
 end;
 $$;

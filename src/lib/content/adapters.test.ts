@@ -187,6 +187,14 @@ test("guide adapters remain content-blocked until their Git repository is wired"
   assert.equal(await adapters.getGuide("any"), null);
 });
 
+test("structured content remains an explicit empty scaffold without Worker service-role access", () => {
+  const source = readFileSync(new URL("./supabase.server.ts", import.meta.url), "utf8");
+  assert.match(source, /CONTENT_LATER_SCAFFOLD/);
+  assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY|SUPABASE_URL|process\.env|fetch\(/);
+  assert.match(source, /return \[\];/);
+  assert.match(source, /return null;/);
+});
+
 test("content adapters cross only approved TanStack server-function boundaries", () => {
   const source = readFileSync(new URL("./adapters.ts", import.meta.url), "utf8");
 

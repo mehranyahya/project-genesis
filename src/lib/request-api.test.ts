@@ -228,7 +228,7 @@ test("TanStack submit route is POST-only fail-closed while Worker owns the signe
 
   assert.match(server, /handleSignedSubmitGateway\(request, env\)/);
   const gatewayPosition = server.indexOf("handleSignedSubmitGateway(request, env)");
-  const tanstackPosition = server.indexOf("getServerEntry()");
+  const tanstackPosition = server.indexOf("const handler = await getServerEntry()");
   assert.ok(gatewayPosition >= 0 && tanstackPosition > gatewayPosition);
 
   assert.match(gateway, /SUPABASE_FUNCTION_BASE_URL/);

@@ -11,7 +11,6 @@ import { supabaseRest, supabaseRpc } from "./supabase-rest.ts";
 import type { SupabaseServerConfig } from "./supabase-rest.ts";
 
 const HASH_PATTERN = /^[0-9a-f]{64}$/;
-const TRACKING_PREFIX_PATTERN = /^[A-Z][A-Z0-9]{1,9}$/;
 
 type PriceType = "fixed" | "estimate" | "review";
 
@@ -49,7 +48,7 @@ interface PortfolioRow {
   readonly is_active: boolean;
 }
 
-export interface StorageInput {
+export interface StorageInput extends Readonly<Record<string, unknown>> {
   readonly p_submission_id: string;
   readonly p_request_fingerprint: string;
   readonly p_request_fingerprint_key_id: string;
@@ -394,7 +393,7 @@ export async function prepareBusinessRequest(input: {
   readonly trackingCodePrefix: string;
   readonly nowIso: string;
 }): Promise<BusinessResult> {
-  if (!TRACKING_PREFIX_PATTERN.test(input.trackingCodePrefix)) return temporaryUnavailable();
+  if (input.trackingCodePrefix !== "MA") return temporaryUnavailable();
   const termsFailure = validateTerms(input.request);
   if (termsFailure !== null) return termsFailure;
 

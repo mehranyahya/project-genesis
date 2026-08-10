@@ -28,6 +28,10 @@ const deployWorkflow = readFileSync(
   new URL("../../.github/workflows/deploy-cloudflare.yml", import.meta.url),
   "utf8",
 );
+const reusableDeployWorkflow = readFileSync(
+  new URL("../../.github/workflows/deploy-cloudflare-reusable.yml", import.meta.url),
+  "utf8",
+);
 
 test("canonical helper preserves relative paths without an origin and emits absolute HTTPS URLs", () => {
   assert.equal(canonicalHref("/", null), "/");
@@ -91,9 +95,9 @@ test("dynamic product canonical is derived from loaded validated product data", 
 });
 
 test("build canonical origin is derived from the selected repository SITE_URL", () => {
-  assert.match(deployWorkflow, /VITE_SITE_URL: \$\{\{ env\.SITE_URL \}\}/);
-  assert.match(deployWorkflow, /PREVIEW_SITE_URL: \$\{\{ vars\.PREVIEW_SITE_URL \}\}/);
-  assert.match(deployWorkflow, /PRODUCTION_SITE_URL: \$\{\{ vars\.PRODUCTION_SITE_URL \}\}/);
+  assert.match(reusableDeployWorkflow, /VITE_SITE_URL: \$\{\{ inputs\.site_url \}\}/);
+  assert.match(deployWorkflow, /site_url: \$\{\{ vars\.PREVIEW_SITE_URL \}\}/);
+  assert.match(deployWorkflow, /site_url: \$\{\{ vars\.PRODUCTION_SITE_URL \}\}/);
   assert.equal(/vars\.PUBLIC_SITE_ORIGIN/.test(deployWorkflow), false);
   assert.equal(/secrets\.SITE_URL/.test(deployWorkflow), false);
 });

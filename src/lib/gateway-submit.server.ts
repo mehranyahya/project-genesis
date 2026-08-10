@@ -1,10 +1,13 @@
 import { createHash, createHmac, randomBytes, randomUUID } from "node:crypto";
 import { isIP } from "node:net";
 
+import { canonicalJson, parseStrictJson, readBoundedUtf8 } from "./strict-json";
+
 const SUBMIT_PATH = "/api/submit-request";
 const TOKEN_MAX_LENGTH = 2048;
 const UPSTREAM_TIMEOUT_MS = 12_000;
 const RESPONSE_BODY_LIMIT = 16 * 1024;
+const REQUEST_BODY_LIMIT = 16 * 1024;
 const HASH_PATTERN = /^[0-9a-f]{64}$/;
 const TRACKING_PATTERN = /^MA-[1-9][0-9]{3,}$/;
 const KEY_ID_PATTERN = /^[A-Za-z0-9._-]{1,64}$/;
@@ -121,12 +124,7 @@ function parseAllowedOrigins(raw: string): ReadonlySet<string> | null {
 }
 
 function parseGatewayKeys(raw: string): Readonly<Record<string, string>> | null {
-  let value: unknown;
-  try {
-    value = JSON.parse(raw);
-  } catch {
-    return null;
-  }
+  const value = parseStrictJson(raw);
   if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
   const entries = Object.entries(value as Record<string, unknown>);
   if (entries.length < 1 || entries.length > 2) return null;
@@ -135,7 +133,12 @@ function parseGatewayKeys(raw: string): Readonly<Record<string, string>> | null 
     if (!KEY_ID_PATTERN.test(keyId) || typeof secret !== "string" || secret.length < 32) {
       return null;
     }
-    keys[keyId] = secret;
+    Object.defineProperty(keys, keyId, {
+      value: secret,
+      enumerable: true,
+      configurable: false,
+      writable: false,
+    });
   }
   return keys;
 }
@@ -206,18 +209,7 @@ function readTurnstileToken(request: Request): string | null | false {
   return value;
 }
 
-function stableValue(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(stableValue);
-  if (value === null || typeof value !== "object") return value;
-  const object = value as Record<string, unknown>;
-  const result: Record<string, unknown> = {};
-  for (const key of Object.keys(object).sort()) result[key] = stableValue(object[key]);
-  return result;
-}
-
-export function canonicalJson(value: unknown): string {
-  return JSON.stringify(stableValue(value));
-}
+export { canonicalJson } from "./strict-json";
 
 export function canonicalizeClientIp(value: string): string | null {
   const candidate = value.trim();
@@ -382,13 +374,13 @@ function sanitizeUpstream(body: unknown, status: number, retryAfter: string | nu
 }
 
 async function readUpstreamJson(response: Response): Promise<unknown | null> {
-  const text = await response.text();
-  if (new TextEncoder().encode(text).byteLength > RESPONSE_BODY_LIMIT) return null;
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
+  const declaredLength = response.headers.get("content-length");
+  if (declaredLength !== null) {
+    const parsedLength = Number(declaredLength);
+    if (Number.isFinite(parsedLength) && parsedLength > RESPONSE_BODY_LIMIT) return null;
   }
+  const text = await readBoundedUtf8(response.body, RESPONSE_BODY_LIMIT);
+  return text === null ? null : parseStrictJson(text);
 }
 
 export async function handleSignedSubmitGateway(
@@ -424,12 +416,9 @@ export async function handleSignedSubmitGateway(
     return jsonResponse({ code: "BOT_VERIFICATION_INVALID" }, 422);
   }
 
-  let parsed: unknown;
-  try {
-    parsed = await request.json();
-  } catch {
-    return validationError();
-  }
+  const rawBody = await readBoundedUtf8(request.body, REQUEST_BODY_LIMIT);
+  if (rawBody === null) return validationError();
+  const parsed = parseStrictJson(rawBody);
   if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
     return validationError();
   }
@@ -480,6 +469,7 @@ export async function handleSignedSubmitGateway(
       },
       body: canonicalEnvelopeBody,
       cache: "no-store",
+      redirect: "error",
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
   } catch {

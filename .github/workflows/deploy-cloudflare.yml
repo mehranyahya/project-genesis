@@ -10,6 +10,14 @@ on:
         options:
           - preview
           - production
+      content_confirmation:
+        description: Type CONTENT_FINALIZED after reviewed content and Catalog are loaded
+        required: true
+        type: string
+      migration_confirmation:
+        description: Type MIGRATIONS_VERIFIED_AFTER_BACKUP after the ordered DB gate
+        required: true
+        type: string
       production_confirmation:
         description: Type DEPLOY_PRODUCTION for a production deployment
         required: false
@@ -18,209 +26,41 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: cloudflare-${{ inputs.deploy_target }}
-  cancel-in-progress: false
-
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+  preview:
+    if: ${{ inputs.deploy_target == 'preview' }}
+    uses: ./.github/workflows/deploy-cloudflare-reusable.yml
+    with:
+      target: preview
+      content_confirmation: ${{ inputs.content_confirmation }}
+      migration_confirmation: ${{ inputs.migration_confirmation }}
+      production_confirmation: ${{ inputs.production_confirmation }}
+      site_url: ${{ vars.PREVIEW_SITE_URL }}
+      allowed_origins: ${{ vars.PREVIEW_ALLOWED_ORIGINS }}
+    secrets:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.PREVIEW_CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.PREVIEW_CLOUDFLARE_API_TOKEN }}
+      VITE_TURNSTILE_SITE_KEY: ${{ secrets.PREVIEW_VITE_TURNSTILE_SITE_KEY }}
+      SUPABASE_FUNCTION_BASE_URL: ${{ secrets.PREVIEW_SUPABASE_FUNCTION_BASE_URL }}
+      EDGE_GATEWAY_KEYS_JSON: ${{ secrets.PREVIEW_EDGE_GATEWAY_KEYS_JSON }}
+      EDGE_GATEWAY_PRIMARY_KEY_ID: ${{ secrets.PREVIEW_EDGE_GATEWAY_PRIMARY_KEY_ID }}
+      IP_HASH_SECRET: ${{ secrets.PREVIEW_IP_HASH_SECRET }}
 
-    steps:
-      - name: Validate manual deployment request
-        shell: bash
-        env:
-          DEPLOY_TARGET: ${{ inputs.deploy_target }}
-          PRODUCTION_CONFIRMATION: ${{ inputs.production_confirmation }}
-        run: |
-          set -euo pipefail
-          if [[ "$DEPLOY_TARGET" == "production" ]]; then
-            [[ "$GITHUB_REF" == "refs/heads/main" ]] || {
-              echo "Production deployment is allowed only from main." >&2
-              exit 1
-            }
-            [[ "$PRODUCTION_CONFIRMATION" == "DEPLOY_PRODUCTION" ]] || {
-              echo "Production deployment confirmation is invalid." >&2
-              exit 1
-            }
-          fi
-
-      - name: Resolve deployment target configuration
-        shell: bash
-        env:
-          DEPLOY_TARGET: ${{ inputs.deploy_target }}
-          PREVIEW_SITE_URL: ${{ vars.PREVIEW_SITE_URL }}
-          PRODUCTION_SITE_URL: ${{ vars.PRODUCTION_SITE_URL }}
-          PREVIEW_ALLOWED_ORIGINS: ${{ vars.PREVIEW_ALLOWED_ORIGINS }}
-          PRODUCTION_ALLOWED_ORIGINS: ${{ vars.PRODUCTION_ALLOWED_ORIGINS }}
-        run: |
-          set -euo pipefail
-          case "$DEPLOY_TARGET" in
-            preview)
-              SITE_URL="$PREVIEW_SITE_URL"
-              ALLOWED_ORIGINS="$PREVIEW_ALLOWED_ORIGINS"
-              PUBLIC_INDEXING="false"
-              ;;
-            production)
-              SITE_URL="$PRODUCTION_SITE_URL"
-              ALLOWED_ORIGINS="$PRODUCTION_ALLOWED_ORIGINS"
-              PUBLIC_INDEXING="true"
-              ;;
-            *)
-              echo "Unknown deployment target." >&2
-              exit 1
-              ;;
-          esac
-
-          [[ -n "$SITE_URL" ]] || {
-            echo "SITE_URL repository variable is missing for $DEPLOY_TARGET." >&2
-            exit 1
-          }
-          [[ -n "$ALLOWED_ORIGINS" ]] || {
-            echo "ALLOWED_ORIGINS repository variable is missing for $DEPLOY_TARGET." >&2
-            exit 1
-          }
-
-          node --input-type=module - "$SITE_URL" "$ALLOWED_ORIGINS" <<'NODE'
-          const [siteUrl, rawOrigins] = process.argv.slice(2);
-          const normalizeOrigin = (value, label) => {
-            let parsed;
-            try {
-              parsed = new URL(value);
-            } catch {
-              throw new Error(`${label} must be a valid URL`);
-            }
-            if (
-              parsed.protocol !== "https:" ||
-              parsed.username !== "" ||
-              parsed.password !== "" ||
-              parsed.pathname !== "/" ||
-              parsed.search !== "" ||
-              parsed.hash !== ""
-            ) {
-              throw new Error(`${label} must be a clean HTTPS origin`);
-            }
-            return parsed.origin;
-          };
-
-          const normalizedSite = normalizeOrigin(siteUrl, "SITE_URL");
-          const origins = rawOrigins
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean)
-            .map((item, index) => normalizeOrigin(item, `ALLOWED_ORIGINS[${index}]`));
-          if (origins.length === 0) throw new Error("ALLOWED_ORIGINS must not be empty");
-          if (new Set(origins).size !== origins.length) {
-            throw new Error("ALLOWED_ORIGINS must not contain duplicates");
-          }
-          if (!origins.includes(normalizedSite)) {
-            throw new Error("ALLOWED_ORIGINS must include SITE_URL");
-          }
-          NODE
-
-          {
-            echo "DEPLOY_TARGET=$DEPLOY_TARGET"
-            echo "SITE_URL=$SITE_URL"
-            echo "ALLOWED_ORIGINS=$ALLOWED_ORIGINS"
-            echo "PUBLIC_INDEXING=$PUBLIC_INDEXING"
-          } >> "$GITHUB_ENV"
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Lint
-        run: bun run lint
-
-      - name: Typecheck
-        run: bunx tsc --noEmit
-
-      - name: Tests
-        run: bun test
-
-      - name: Validate public build configuration
-        shell: bash
-        env:
-          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
-        run: |
-          set -euo pipefail
-          [[ -n "$VITE_TURNSTILE_SITE_KEY" ]] || {
-            echo "VITE_TURNSTILE_SITE_KEY repository secret is not configured." >&2
-            exit 1
-          }
-
-      - name: Prepare deployment indexing policy
-        run: node scripts/prepare-deploy-indexing.mjs "$DEPLOY_TARGET"
-
-      - name: Build
-        env:
-          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
-          VITE_SITE_URL: ${{ env.SITE_URL }}
-        run: bun run build
-
-      - name: Prepare Cloudflare deploy config
-        run: node scripts/prepare-cloudflare-deploy.mjs
-
-      - name: Verify Cloudflare deploy artifact
-        run: node scripts/verify-cloudflare-deploy.mjs
-
-      - name: Write runtime secret file
-        env:
-          SUPABASE_FUNCTION_BASE_URL: ${{ secrets.SUPABASE_FUNCTION_BASE_URL }}
-          EDGE_GATEWAY_KEYS_JSON: ${{ secrets.EDGE_GATEWAY_KEYS_JSON }}
-          EDGE_GATEWAY_PRIMARY_KEY_ID: ${{ secrets.EDGE_GATEWAY_PRIMARY_KEY_ID }}
-          IP_HASH_SECRET: ${{ secrets.IP_HASH_SECRET }}
-        run: node scripts/write-cloudflare-secrets.mjs "$RUNNER_TEMP/cloudflare-runtime-secrets.json"
-
-      - name: Validate Cloudflare CI credentials
-        shell: bash
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          set -euo pipefail
-          [[ -n "$CLOUDFLARE_ACCOUNT_ID" ]] || {
-            echo "CLOUDFLARE_ACCOUNT_ID repository secret is not configured." >&2
-            exit 1
-          }
-          [[ -n "$CLOUDFLARE_API_TOKEN" ]] || {
-            echo "CLOUDFLARE_API_TOKEN repository secret is not configured." >&2
-            exit 1
-          }
-
-      - name: Upload preview version without promotion
-        if: ${{ inputs.deploy_target == 'preview' }}
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: >-
-          npx --yes wrangler@4.97.0 versions upload
-          --config .output/server/wrangler.json
-          --secrets-file "$RUNNER_TEMP/cloudflare-runtime-secrets.json"
-          --keep-vars
-          --strict
-
-      - name: Deploy production
-        if: ${{ inputs.deploy_target == 'production' }}
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: >-
-          npx --yes wrangler@4.97.0 deploy
-          --config .output/server/wrangler.json
-          --secrets-file "$RUNNER_TEMP/cloudflare-runtime-secrets.json"
-          --keep-vars
-          --strict
-
-      - name: Remove runtime secret file
-        if: ${{ always() }}
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/cloudflare-runtime-secrets.json"
+  production:
+    if: ${{ inputs.deploy_target == 'production' }}
+    uses: ./.github/workflows/deploy-cloudflare-reusable.yml
+    with:
+      target: production
+      content_confirmation: ${{ inputs.content_confirmation }}
+      migration_confirmation: ${{ inputs.migration_confirmation }}
+      production_confirmation: ${{ inputs.production_confirmation }}
+      site_url: ${{ vars.PRODUCTION_SITE_URL }}
+      allowed_origins: ${{ vars.PRODUCTION_ALLOWED_ORIGINS }}
+    secrets:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.PRODUCTION_CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.PRODUCTION_CLOUDFLARE_API_TOKEN }}
+      VITE_TURNSTILE_SITE_KEY: ${{ secrets.PRODUCTION_VITE_TURNSTILE_SITE_KEY }}
+      SUPABASE_FUNCTION_BASE_URL: ${{ secrets.PRODUCTION_SUPABASE_FUNCTION_BASE_URL }}
+      EDGE_GATEWAY_KEYS_JSON: ${{ secrets.PRODUCTION_EDGE_GATEWAY_KEYS_JSON }}
+      EDGE_GATEWAY_PRIMARY_KEY_ID: ${{ secrets.PRODUCTION_EDGE_GATEWAY_PRIMARY_KEY_ID }}
+      IP_HASH_SECRET: ${{ secrets.PRODUCTION_IP_HASH_SECRET }}

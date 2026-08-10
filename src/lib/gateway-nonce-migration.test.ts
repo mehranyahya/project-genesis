@@ -44,4 +44,7 @@ test("nonce claim is atomic, timestamp bounded and never executable by browser r
   );
   assert.match(migration, /set statement_timeout to '3s'/);
   assert.match(migration, /set lock_timeout to '1s'/);
+  assert.match(migration, /for update skip locked/);
+  assert.match(migration, /limit 100/);
+  assert.match(migration, /delete from public\.gateway_nonces n[\s\S]*using expired e/);
 });

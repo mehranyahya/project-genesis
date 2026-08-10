@@ -1,4 +1,7 @@
+import { parseStrictJson, readBoundedUtf8 } from "./json.ts";
+
 const REQUEST_TIMEOUT_MS = 8_000;
+const RESPONSE_BODY_LIMIT = 512 * 1024;
 
 export interface SupabaseServerConfig {
   readonly baseUrl: string;
@@ -30,10 +33,20 @@ export async function supabaseRest<T>(
       authorization: `Bearer ${config.serviceRoleKey}`,
       ...(init?.headers ?? {}),
     },
+    redirect: "error",
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!response.ok) throw new Error(`Supabase REST failed (${response.status})`);
-  return (await response.json()) as T;
+  const declaredLength = response.headers.get("content-length");
+  if (declaredLength !== null) {
+    const parsedLength = Number(declaredLength);
+    if (Number.isFinite(parsedLength) && parsedLength > RESPONSE_BODY_LIMIT) {
+      throw new Error("Supabase REST response exceeded the size limit");
+    }
+  }
+  const raw = await readBoundedUtf8(response.body, RESPONSE_BODY_LIMIT);
+  if (raw === null || raw === "") throw new Error("Supabase REST response was invalid");
+  return parseStrictJson(raw) as T;
 }
 
 export async function supabaseRpc<T>(

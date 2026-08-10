@@ -54,9 +54,22 @@ begin
     return false;
   end if;
 
-  -- A cryptographically random nonce should not collide. This targeted cleanup
-  -- only allows an already-expired value to be reused and avoids a table-wide
-  -- delete in the request transaction; routine retention can purge old rows.
+  -- Bound retention work on every authenticated call so abandoned nonce rows
+  -- cannot grow forever. SKIP LOCKED keeps concurrent requests independent.
+  with expired as (
+    select n.nonce
+      from public.gateway_nonces n
+     where n.expires_at <= v_now
+     order by n.expires_at, n.nonce
+     for update skip locked
+     limit 100
+  )
+  delete from public.gateway_nonces n
+   using expired e
+   where n.nonce = e.nonce;
+
+  -- A cryptographically random nonce should not collide, but permit reuse of
+  -- the same value after expiry even when it was outside the cleanup batch.
   delete from public.gateway_nonces
    where nonce = p_nonce
      and expires_at <= v_now;

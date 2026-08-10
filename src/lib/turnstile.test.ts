@@ -171,7 +171,10 @@ test("client executes fresh proof before transport while Siteverify authority li
     "utf8",
   );
   const route = readFileSync(new URL("../routes/api/submit-request.ts", import.meta.url), "utf8");
-  const workerGateway = readFileSync(new URL("./gateway-submit.server.ts", import.meta.url), "utf8");
+  const workerGateway = readFileSync(
+    new URL("./gateway-submit.server.ts", import.meta.url),
+    "utf8",
+  );
   const edgeTurnstile = readFileSync(
     new URL("../../supabase/functions/_shared/turnstile.ts", import.meta.url),
     "utf8",

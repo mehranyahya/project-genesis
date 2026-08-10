@@ -11,13 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
-import { Route as ApiSubmitRequestRouteImport } from './routes/api/submit-request'
 import { Route as BuildingStoneRouteImport } from './routes/building-stone'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ApiSubmitRequestRouteImport } from './routes/api/submit-request'
 import { Route as GraveStonesIndexRouteImport } from './routes/grave-stones/index'
 import { Route as GraveStonesSlugRouteImport } from './routes/grave-stones/$slug'
 import { Route as GraveStonesCustomRouteImport } from './routes/grave-stones/custom'
@@ -32,11 +32,6 @@ const IndexRoute = IndexRouteImport.update({
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiSubmitRequestRoute = ApiSubmitRequestRouteImport.update({
-  id: '/api/submit-request',
-  path: '/api/submit-request',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuildingStoneRoute = BuildingStoneRouteImport.update({
@@ -69,6 +64,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSubmitRequestRoute = ApiSubmitRequestRouteImport.update({
+  id: '/api/submit-request',
+  path: '/api/submit-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GraveStonesIndexRoute = GraveStonesIndexRouteImport.update({
   id: '/grave-stones/',
   path: '/grave-stones/',
@@ -98,13 +98,13 @@ const GuidesSlugRoute = GuidesSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/api/submit-request': typeof ApiSubmitRequestRoute
   '/building-stone': typeof BuildingStoneRoute
   '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
   '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
   '/terms': typeof TermsRoute
+  '/api/submit-request': typeof ApiSubmitRequestRoute
   '/grave-stones/$slug': typeof GraveStonesSlugRoute
   '/grave-stones/custom': typeof GraveStonesCustomRoute
   '/guides/$slug': typeof GuidesSlugRoute
@@ -114,13 +114,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/api/submit-request': typeof ApiSubmitRequestRoute
   '/building-stone': typeof BuildingStoneRoute
   '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
   '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
   '/terms': typeof TermsRoute
+  '/api/submit-request': typeof ApiSubmitRequestRoute
   '/grave-stones/$slug': typeof GraveStonesSlugRoute
   '/grave-stones/custom': typeof GraveStonesCustomRoute
   '/guides/$slug': typeof GuidesSlugRoute
@@ -131,13 +131,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/api/submit-request': typeof ApiSubmitRequestRoute
   '/building-stone': typeof BuildingStoneRoute
   '/contact': typeof ContactRoute
   '/portfolio': typeof PortfolioRoute
   '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
   '/terms': typeof TermsRoute
+  '/api/submit-request': typeof ApiSubmitRequestRoute
   '/grave-stones/$slug': typeof GraveStonesSlugRoute
   '/grave-stones/custom': typeof GraveStonesCustomRoute
   '/guides/$slug': typeof GuidesSlugRoute
@@ -149,13 +149,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/api/submit-request'
     | '/building-stone'
     | '/contact'
     | '/portfolio'
     | '/privacy'
     | '/quote'
     | '/terms'
+    | '/api/submit-request'
     | '/grave-stones/$slug'
     | '/grave-stones/custom'
     | '/guides/$slug'
@@ -165,13 +165,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/api/submit-request'
     | '/building-stone'
     | '/contact'
     | '/portfolio'
     | '/privacy'
     | '/quote'
     | '/terms'
+    | '/api/submit-request'
     | '/grave-stones/$slug'
     | '/grave-stones/custom'
     | '/guides/$slug'
@@ -181,13 +181,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
-    | '/api/submit-request'
     | '/building-stone'
     | '/contact'
     | '/portfolio'
     | '/privacy'
     | '/quote'
     | '/terms'
+    | '/api/submit-request'
     | '/grave-stones/$slug'
     | '/grave-stones/custom'
     | '/guides/$slug'
@@ -198,13 +198,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  ApiSubmitRequestRoute: typeof ApiSubmitRequestRoute
   BuildingStoneRoute: typeof BuildingStoneRoute
   ContactRoute: typeof ContactRoute
   PortfolioRoute: typeof PortfolioRoute
   PrivacyRoute: typeof PrivacyRoute
   QuoteRoute: typeof QuoteRoute
   TermsRoute: typeof TermsRoute
+  ApiSubmitRequestRoute: typeof ApiSubmitRequestRoute
   GraveStonesSlugRoute: typeof GraveStonesSlugRoute
   GraveStonesCustomRoute: typeof GraveStonesCustomRoute
   GuidesSlugRoute: typeof GuidesSlugRoute
@@ -226,13 +226,6 @@ declare module '@tanstack/react-router' {
       path: '/about'
       fullPath: '/about'
       preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/submit-request': {
-      id: '/api/submit-request'
-      path: '/api/submit-request'
-      fullPath: '/api/submit-request'
-      preLoaderRoute: typeof ApiSubmitRequestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/building-stone': {
@@ -277,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/submit-request': {
+      id: '/api/submit-request'
+      path: '/api/submit-request'
+      fullPath: '/api/submit-request'
+      preLoaderRoute: typeof ApiSubmitRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/grave-stones/': {
       id: '/grave-stones/'
       path: '/grave-stones'
@@ -318,13 +318,13 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  ApiSubmitRequestRoute: ApiSubmitRequestRoute,
   BuildingStoneRoute: BuildingStoneRoute,
   ContactRoute: ContactRoute,
   PortfolioRoute: PortfolioRoute,
   PrivacyRoute: PrivacyRoute,
   QuoteRoute: QuoteRoute,
   TermsRoute: TermsRoute,
+  ApiSubmitRequestRoute: ApiSubmitRequestRoute,
   GraveStonesSlugRoute: GraveStonesSlugRoute,
   GraveStonesCustomRoute: GraveStonesCustomRoute,
   GuidesSlugRoute: GuidesSlugRoute,

@@ -66,13 +66,34 @@ function requireGatewayKeyMap() {
     if (typeof secret !== "string" || secret.length < 32) {
       throw new Error("EDGE_GATEWAY_KEYS_JSON contains an invalid secret");
     }
+    for (let index = 0; index < secret.length; index += 1) {
+      const code = secret.charCodeAt(index);
+      if (code >= 0xd800 && code <= 0xdbff) {
+        const next = secret.charCodeAt(index + 1);
+        if (index + 1 >= secret.length || next < 0xdc00 || next > 0xdfff) {
+          throw new Error("EDGE_GATEWAY_KEYS_JSON contains malformed Unicode");
+        }
+        index += 1;
+      } else if (code >= 0xdc00 && code <= 0xdfff) {
+        throw new Error("EDGE_GATEWAY_KEYS_JSON contains malformed Unicode");
+      }
+    }
   }
-  return { raw, keys: parsed };
+  const canonical = JSON.stringify(
+    Object.fromEntries(entries.sort(([left], [right]) => left.localeCompare(right, "en"))),
+  );
+  if (raw !== canonical) {
+    throw new Error("EDGE_GATEWAY_KEYS_JSON must be canonical JSON without duplicate keys");
+  }
+  return { raw: canonical, keys: parsed };
 }
 
 const gatewayKeyMap = requireGatewayKeyMap();
 const primaryKeyId = requireValue("EDGE_GATEWAY_PRIMARY_KEY_ID");
-if (!/^[A-Za-z0-9._-]{1,64}$/.test(primaryKeyId) || !(primaryKeyId in gatewayKeyMap.keys)) {
+if (
+  !/^[A-Za-z0-9._-]{1,64}$/.test(primaryKeyId) ||
+  !Object.prototype.hasOwnProperty.call(gatewayKeyMap.keys, primaryKeyId)
+) {
   throw new Error("EDGE_GATEWAY_PRIMARY_KEY_ID must reference EDGE_GATEWAY_KEYS_JSON");
 }
 

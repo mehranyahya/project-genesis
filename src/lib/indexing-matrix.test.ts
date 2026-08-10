@@ -21,6 +21,10 @@ const deployWorkflow = readFileSync(
   new URL("../../.github/workflows/deploy-cloudflare.yml", import.meta.url),
   "utf8",
 );
+const reusableDeployWorkflow = readFileSync(
+  new URL("../../.github/workflows/deploy-cloudflare-reusable.yml", import.meta.url),
+  "utf8",
+);
 
 test("indexing fails closed unless PUBLIC_INDEXING is exactly true", async () => {
   const missing = applyDeploymentIndexingHeaders(new Response("missing"), {});
@@ -83,20 +87,17 @@ test("Wrangler target bindings expose SITE_URL, origin allowlist and exact index
   assert.match(verifyCloudflare, /config\.vars\?\.ALLOWED_ORIGINS/);
   assert.match(verifyCloudflare, /Legacy PUBLIC_SITE_ORIGIN binding must not be emitted/);
 
-  assert.match(deployWorkflow, /Prepare deployment indexing policy/);
-  assert.match(deployWorkflow, /node scripts\/prepare-deploy-indexing\.mjs "\$DEPLOY_TARGET"/);
-  assert.match(deployWorkflow, /PREVIEW_SITE_URL: \$\{\{ vars\.PREVIEW_SITE_URL \}\}/);
-  assert.match(deployWorkflow, /PRODUCTION_SITE_URL: \$\{\{ vars\.PRODUCTION_SITE_URL \}\}/);
+  assert.match(reusableDeployWorkflow, /Prepare deployment indexing policy/);
   assert.match(
-    deployWorkflow,
-    /PREVIEW_ALLOWED_ORIGINS: \$\{\{ vars\.PREVIEW_ALLOWED_ORIGINS \}\}/,
+    reusableDeployWorkflow,
+    /node scripts\/prepare-deploy-indexing\.mjs "\$DEPLOY_TARGET"/,
   );
-  assert.match(
-    deployWorkflow,
-    /PRODUCTION_ALLOWED_ORIGINS: \$\{\{ vars\.PRODUCTION_ALLOWED_ORIGINS \}\}/,
-  );
+  assert.match(deployWorkflow, /site_url: \$\{\{ vars\.PREVIEW_SITE_URL \}\}/);
+  assert.match(deployWorkflow, /site_url: \$\{\{ vars\.PRODUCTION_SITE_URL \}\}/);
+  assert.match(deployWorkflow, /allowed_origins: \$\{\{ vars\.PREVIEW_ALLOWED_ORIGINS \}\}/);
+  assert.match(deployWorkflow, /allowed_origins: \$\{\{ vars\.PRODUCTION_ALLOWED_ORIGINS \}\}/);
   assert.equal(/secrets\.SITE_URL/.test(deployWorkflow), false);
   assert.equal(/secrets\.ALLOWED_ORIGINS/.test(deployWorkflow), false);
   assert.equal(/secrets\.PUBLIC_INDEXING/.test(deployWorkflow), false);
-  assert.equal(/^\s*environment:/m.test(deployWorkflow), false);
+  assert.equal(/^\s*environment:/m.test(`${deployWorkflow}\n${reusableDeployWorkflow}`), false);
 });

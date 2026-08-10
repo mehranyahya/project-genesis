@@ -1,8 +1,10 @@
 import { sha256Hex, uuidV5 } from "./crypto.ts";
+import { parseStrictJson, readBoundedUtf8 } from "./json.ts";
 import type { BotVerification, RiskFlag } from "./request-contract.ts";
 
 const SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const SITEVERIFY_TIMEOUT_MS = 5_000;
+const SITEVERIFY_RESPONSE_LIMIT = 16 * 1024;
 const HOSTNAME_PATTERN =
   /^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)*[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$/;
 
@@ -60,7 +62,11 @@ async function oneAttempt(
   config: TurnstileConfig,
   token: string,
   idempotencyKey: string,
-): Promise<{ kind: "response"; value: SiteverifyResponse } | { kind: "transport_failure" }> {
+): Promise<
+  | { kind: "response"; value: SiteverifyResponse }
+  | { kind: "transport_failure" }
+  | { kind: "invalid" }
+> {
   const body = new FormData();
   body.set("secret", config.secret);
   body.set("response", token);
@@ -71,19 +77,30 @@ async function oneAttempt(
     response = await fetch(SITEVERIFY_URL, {
       method: "POST",
       body,
+      redirect: "error",
       signal: AbortSignal.timeout(SITEVERIFY_TIMEOUT_MS),
     });
   } catch {
     return { kind: "transport_failure" };
   }
 
-  if (response.status >= 500) return { kind: "transport_failure" };
-  if (!response.ok) return { kind: "transport_failure" };
-  try {
-    return { kind: "response", value: (await response.json()) as SiteverifyResponse };
-  } catch {
+  if (response.status === 429 || response.status >= 500) return { kind: "transport_failure" };
+  if (!response.ok) return { kind: "invalid" };
+
+  const declaredLength = response.headers.get("content-length");
+  if (declaredLength !== null) {
+    const parsedLength = Number(declaredLength);
+    if (Number.isFinite(parsedLength) && parsedLength > SITEVERIFY_RESPONSE_LIMIT) {
+      return { kind: "transport_failure" };
+    }
+  }
+  const raw = await readBoundedUtf8(response.body, SITEVERIFY_RESPONSE_LIMIT);
+  if (raw === null) return { kind: "transport_failure" };
+  const value = parseStrictJson(raw);
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
     return { kind: "transport_failure" };
   }
+  return { kind: "response", value: value as SiteverifyResponse };
 }
 
 export async function verifyTurnstile(input: {
@@ -111,6 +128,7 @@ export async function verifyTurnstile(input: {
   if (result.kind === "transport_failure") {
     result = await oneAttempt(config, input.token, idempotencyKey);
   }
+  if (result.kind === "invalid") return { kind: "invalid" };
   if (result.kind === "transport_failure") {
     const riskFlags: RiskFlag[] = ["turnstile_unavailable"];
     if (input.fastSubmitSignal) riskFlags.push("fast_submit_signal");

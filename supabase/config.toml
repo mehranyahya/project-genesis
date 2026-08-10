@@ -1,2 +1,5 @@
 [functions.submit-request]
 verify_jwt = false
+
+[functions.telegram-recovery]
+verify_jwt = false
