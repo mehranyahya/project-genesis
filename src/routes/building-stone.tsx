@@ -15,10 +15,10 @@ export const Route = createFileRoute("/building-stone")({
   },
   head: () => ({
     meta: [
-      { title: "سنگ ساختمانی — مهرآرا" },
-      { name: "description", content: "درخواست بررسی سنگ ساختمانی مهرآرا" },
-      { property: "og:title", content: "سنگ ساختمانی — مهرآرا" },
-      { property: "og:description", content: "درخواست بررسی سنگ ساختمانی مهرآرا" },
+      { title: "سنگ ساختمانی" },
+      { name: "description", content: "ثبت درخواست بررسی سنگ ساختمانی" },
+      { property: "og:title", content: "سنگ ساختمانی" },
+      { property: "og:description", content: "ثبت درخواست بررسی سنگ ساختمانی" },
     ],
     links: [{ rel: "canonical", href: canonicalHref("/building-stone") }],
   }),

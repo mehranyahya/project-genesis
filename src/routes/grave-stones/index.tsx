@@ -12,10 +12,10 @@ import { buildGraveStoneListModel } from "@/lib/grave-stone-list";
 export const Route = createFileRoute("/grave-stones/")({
   head: () => ({
     meta: [
-      { title: "سنگ مزار — مهرآرا" },
-      { name: "description", content: "فهرست سنگ مزار مهرآرا" },
-      { property: "og:title", content: "سنگ مزار — مهرآرا" },
-      { property: "og:description", content: "فهرست سنگ مزار مهرآرا" },
+      { title: "سنگ مزار" },
+      { name: "description", content: "فهرست مدل‌های سنگ مزار" },
+      { property: "og:title", content: "سنگ مزار" },
+      { property: "og:description", content: "فهرست مدل‌های سنگ مزار" },
     ],
     links: [{ rel: "canonical", href: canonicalHref("/grave-stones") }],
   }),

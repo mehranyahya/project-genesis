@@ -9,10 +9,10 @@ import { buildPortfolioModel } from "@/lib/portfolio";
 export const Route = createFileRoute("/portfolio")({
   head: () => ({
     meta: [
-      { title: "نمونه‌کارها — مهرآرا" },
-      { name: "description", content: "نمونه‌کارهای اجراشدهٔ مهرآرا" },
-      { property: "og:title", content: "نمونه‌کارها — مهرآرا" },
-      { property: "og:description", content: "نمونه‌کارهای اجراشدهٔ مهرآرا" },
+      { title: "نمونه‌کارها" },
+      { name: "description", content: "نمونه‌کارهای اجراشدهٔ سنگ مزار" },
+      { property: "og:title", content: "نمونه‌کارها" },
+      { property: "og:description", content: "نمونه‌کارهای اجراشدهٔ سنگ مزار" },
     ],
     links: [{ rel: "canonical", href: canonicalHref("/portfolio") }],
   }),

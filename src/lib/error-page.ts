@@ -3,7 +3,7 @@ export function renderErrorPage(): string {
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <title>بارگذاری صفحه انجام نشد — مهرآرا</title>
+    <title>بارگذاری صفحه انجام نشد</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
       * { box-sizing: border-box; }

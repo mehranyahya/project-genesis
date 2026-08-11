@@ -17,7 +17,7 @@ export function AppShell({ site, children }: { site: Site | null; children: Reac
         {SKIP_LINK_LABEL}
       </a>
 
-      <SiteHeader />
+      <SiteHeader site={site} />
 
       <main id={MAIN_CONTENT_ID} className="w-full flex-1 pb-24 lg:pb-0">
         {children}

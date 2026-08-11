@@ -26,10 +26,10 @@ export const Route = createFileRoute("/grave-stones/custom")({
   },
   head: () => ({
     meta: [
-      { title: "سفارش سفارشی سنگ مزار — مهرآرا" },
-      { name: "description", content: "مسیر سفارش سفارشی سنگ مزار مهرآرا" },
-      { property: "og:title", content: "سفارش سفارشی سنگ مزار — مهرآرا" },
-      { property: "og:description", content: "مسیر سفارش سفارشی سنگ مزار مهرآرا" },
+      { title: "سفارش سفارشی سنگ مزار" },
+      { name: "description", content: "مسیر ثبت سفارش سفارشی سنگ مزار" },
+      { property: "og:title", content: "سفارش سفارشی سنگ مزار" },
+      { property: "og:description", content: "مسیر ثبت سفارش سفارشی سنگ مزار" },
     ],
     links: [{ rel: "canonical", href: canonicalHref("/grave-stones/custom") }],
   }),

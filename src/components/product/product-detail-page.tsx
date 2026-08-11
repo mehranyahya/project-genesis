@@ -4,6 +4,7 @@ import { ProductDraftSummary } from "./product-draft-summary";
 import { ProductMediaStage } from "./product-media-stage";
 import { ProductPricePanel } from "./product-price-panel";
 import { ProductSelection } from "./product-selection";
+import { ProductShare } from "./product-share";
 import { RequestForm } from "@/components/request-form/request-form";
 import type { Site } from "@/lib/content/types";
 import { isCatalogVersion } from "@/lib/content/types";
@@ -104,6 +105,8 @@ export function ProductDetailPage({
           </button>
           {!canReview ? <p className="text-sm text-text-secondary">{DRAFT_BLOCKED_TEXT}</p> : null}
         </div>
+
+        <ProductShare slug={model.slug} title={model.title} code={model.code} />
 
         {draft ? (
           <>

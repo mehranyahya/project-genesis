@@ -6,7 +6,7 @@ import type { Site } from "@/lib/content/types";
 
 export const SUCCESS_ACTIONS = {
   whatsapp: "ارسال کد در واتساپ",
-  phone: "تماس با مهرآرا",
+  phone: "تماس تلفنی",
   portfolio: "مشاهده نمونه‌کارها",
   home: "بازگشت به خانه",
 } as const;
@@ -15,11 +15,11 @@ const LINK =
   "inline-flex min-h-11 items-center justify-center border border-border-strong bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:border-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 export function successText(trackingCode: string): string {
-  return `درخواست شما با کد ${trackingCode} ثبت شد. برای تسریع هماهنگی، همین کد را در واتساپ مهرآرا ارسال کنید. موجودی، محل اجرا و جزئیات سفارش بررسی می‌شود و پیش از هر اقدامی برای تأیید نهایی با شما تماس می‌گیریم. هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.`;
+  return `درخواست شما با کد ${trackingCode} ثبت شد. برای تسریع هماهنگی، همین کد را در واتساپ ارسال کنید. موجودی، محل اجرا و جزئیات سفارش بررسی می‌شود و پیش از هر اقدامی برای تأیید نهایی با شما تماس می‌گیریم. هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.`;
 }
 
 export function whatsappMessage(trackingCode: string): string {
-  return `کد پیگیری مهرآرا: ${trackingCode}`;
+  return `کد پیگیری: ${trackingCode}`;
 }
 
 function digitsOnly(value: string): string {
@@ -58,9 +58,8 @@ export function RequestSuccess({
       <h2 className="text-base font-bold text-text-primary">ثبت درخواست انجام شد</h2>
       <p className="text-sm text-text-primary">
         درخواست شما با کد <bdi dir="ltr">{trackingCode}</bdi> ثبت شد. برای تسریع هماهنگی، همین کد را
-        در واتساپ مهرآرا ارسال کنید. موجودی، محل اجرا و جزئیات سفارش بررسی می‌شود و پیش از هر اقدامی
-        برای تأیید نهایی با شما تماس می‌گیریم. هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام
-        می‌شود.
+        در واتساپ ارسال کنید. موجودی، محل اجرا و جزئیات سفارش بررسی می‌شود و پیش از هر اقدامی برای
+        تأیید نهایی با شما تماس می‌گیریم. هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.
       </p>
 
       <div className="flex flex-wrap gap-3">

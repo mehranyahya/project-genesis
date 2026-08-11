@@ -14,9 +14,11 @@ export function SiteFooter({ site }: { site: Site | null }) {
         data-decorative="bronze-rule"
       />
       <div className="mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-8 px-4 py-10 md:grid-cols-8 lg:grid-cols-12">
-        <div className="col-span-4 md:col-span-8 lg:col-span-4">
-          <p className="text-lg font-bold">مهرآرا</p>
-        </div>
+        {site?.displayName?.trim() ? (
+          <div className="col-span-4 md:col-span-8 lg:col-span-4">
+            <p className="text-lg font-bold">{site.displayName.trim()}</p>
+          </div>
+        ) : null}
 
         <nav aria-label="ناوبری پاورقی" className="col-span-4 md:col-span-4 lg:col-span-4">
           <ul>

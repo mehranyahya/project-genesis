@@ -2,9 +2,15 @@ import { Link } from "@tanstack/react-router";
 
 import { MobileNavigation } from "./mobile-navigation";
 import { PRIMARY_CTA, PRIMARY_NAV } from "@/lib/navigation";
+import type { Site } from "@/lib/content/types";
+
+/** Neutral home-link copy used whenever the Site adapter has no display name. */
+export const NEUTRAL_HOME_LABEL = "صفحهٔ اصلی";
 
 /** The single floating header surface allowed to use Mineral Glass. */
-export function SiteHeader() {
+export function SiteHeader({ site }: { site: Site | null }) {
+  const brand = site?.displayName?.trim() ? site.displayName.trim() : null;
+
   return (
     <header className="sticky top-0 z-20 px-3 pt-3">
       <div className="mineral-glass mx-auto grid w-full max-w-[80rem] grid-cols-4 items-center gap-x-4 px-4 py-2 md:grid-cols-8 lg:grid-cols-12">
@@ -13,7 +19,7 @@ export function SiteHeader() {
             to="/"
             className="inline-flex min-h-11 items-center text-lg font-bold text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
-            مهرآرا
+            {brand ?? NEUTRAL_HOME_LABEL}
           </Link>
         </div>
 
