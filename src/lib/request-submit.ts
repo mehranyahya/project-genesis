@@ -12,7 +12,7 @@ import { REQUEST_FIELD_ERRORS, isRequestTermsDocument } from "./request-form";
 export const SUBMIT_ENDPOINT = "/api/submit-request";
 export const SUBMIT_TIMEOUT_MS = 15000;
 
-export const TRACKING_CODE_PATTERN = /^MA-[1-9][0-9]{3,}$/;
+export const TRACKING_CODE_PATTERN = /^[A-Z][A-Z0-9]{1,9}-[1-9][0-9]{3,}$/;
 
 export function isTrackingCode(value: unknown): value is string {
   return typeof value === "string" && TRACKING_CODE_PATTERN.test(value);
