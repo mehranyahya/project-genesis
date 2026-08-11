@@ -8,10 +8,10 @@ import { buildHomeViewModel } from "@/lib/home";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "مهرآرا" },
-      { name: "description", content: "فروشگاه سفارش‌محور سنگ مزار مهرآرا" },
-      { property: "og:title", content: "مهرآرا" },
-      { property: "og:description", content: "فروشگاه سفارش‌محور سنگ مزار مهرآرا" },
+      { title: "سنگ مزار سفارشی و سنگ ساختمانی" },
+      { name: "description", content: "انتخاب مدل سنگ مزار، مشاهدهٔ وضعیت قیمت و ثبت درخواست بررسی سفارش." },
+      { property: "og:title", content: "سنگ مزار سفارشی و سنگ ساختمانی" },
+      { property: "og:description", content: "انتخاب مدل سنگ مزار، مشاهدهٔ وضعیت قیمت و ثبت درخواست بررسی سفارش." },
     ],
     links: [{ rel: "canonical", href: canonicalHref("/") }],
   }),

@@ -10,7 +10,7 @@ import { getCatalogVersion, getProduct, getSite } from "@/lib/content/adapters";
 import { buildProductDetailModel } from "@/lib/product-detail";
 import { getRequestTermsDocument } from "@/lib/request-terms";
 
-const GENERIC_DESCRIPTION = "صفحهٔ جزئیات سنگ مزار مهرآرا";
+const GENERIC_DESCRIPTION = "جزئیات مدل سنگ مزار و ثبت درخواست بررسی سفارش.";
 
 export const Route = createFileRoute("/grave-stones/$slug")({
   loader: async ({ params }) => {
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/grave-stones/$slug")({
     };
   },
   head: ({ loaderData }) => {
-    const title = loaderData ? `${loaderData.model.title} — مهرآرا` : "جزئیات سنگ مزار — مهرآرا";
+    const title = loaderData ? loaderData.model.title : "جزئیات سنگ مزار";
     const description = loaderData?.model.summary ?? GENERIC_DESCRIPTION;
     return {
       meta: [

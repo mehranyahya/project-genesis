@@ -76,12 +76,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "مهرآرا" },
-      { name: "description", content: "فروشگاه سفارش‌محور سنگ مزار مهرآرا" },
-      { property: "og:title", content: "مهرآرا" },
-      { property: "og:description", content: "فروشگاه سفارش‌محور سنگ مزار مهرآرا" },
+      { title: "سنگ مزار سفارشی و سنگ ساختمانی" },
+      { name: "description", content: "انتخاب مدل سنگ مزار، مشاهدهٔ وضعیت قیمت و ثبت درخواست بررسی سفارش." },
+      { property: "og:title", content: "سنگ مزار سفارشی و سنگ ساختمانی" },
+      { property: "og:description", content: "انتخاب مدل سنگ مزار، مشاهدهٔ وضعیت قیمت و ثبت درخواست بررسی سفارش." },
       { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "مهرآرا" },
       { name: "twitter:card", content: "summary" },
     ],
     links: [

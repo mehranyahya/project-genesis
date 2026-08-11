@@ -10,7 +10,7 @@ export const Route = createFileRoute("/guides/")({
     const hasContent = (loaderData?.length ?? 0) > 0;
     return {
       meta: [
-        { title: "راهنماها — مهرآرا" },
+        { title: "راهنماها" },
         ...(hasContent ? [] : [{ name: "robots", content: "noindex" }]),
       ],
       links: [{ rel: "canonical", href: canonicalHref("/guides") }],

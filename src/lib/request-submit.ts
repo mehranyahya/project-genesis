@@ -286,7 +286,7 @@ export async function submitRequest(input: {
 /* Tracking code memory                                                        */
 /* -------------------------------------------------------------------------- */
 
-export const TRACKING_STORAGE_KEY = "mehrara:last-tracking-code";
+export const TRACKING_STORAGE_KEY = "request:last-tracking-code";
 
 /** Stores the tracking code only. A storage failure never breaks success. */
 export function rememberTrackingCode(code: string): void {

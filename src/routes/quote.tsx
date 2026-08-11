@@ -32,10 +32,10 @@ export const Route = createFileRoute("/quote")({
   },
   head: () => ({
     meta: [
-      { title: "ثبت سفارش — مهرآرا" },
-      { name: "description", content: "ثبت درخواست بررسی سفارش در مهرآرا" },
-      { property: "og:title", content: "ثبت سفارش — مهرآرا" },
-      { property: "og:description", content: "ثبت درخواست بررسی سفارش در مهرآرا" },
+      { title: "ثبت سفارش" },
+      { name: "description", content: "ثبت درخواست بررسی سفارش سنگ" },
+      { property: "og:title", content: "ثبت سفارش" },
+      { property: "og:description", content: "ثبت درخواست بررسی سفارش سنگ" },
     ],
     links: [{ rel: "canonical", href: canonicalHref("/quote") }],
   }),

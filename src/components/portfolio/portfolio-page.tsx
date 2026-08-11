@@ -4,7 +4,7 @@ import type { PortfolioCard as PortfolioCardModel } from "@/lib/portfolio";
 
 export const PORTFOLIO_HEADING = "نمونه‌کارها";
 export const PORTFOLIO_INTRO =
-  "نمونه‌کارهای عمومی مهرآرا را بررسی کنید و برای استعلام اجرای مشابه، مرجع عمومی همان نمونه را همراه درخواست بفرستید.";
+  "نمونه‌کارهای عمومی را بررسی کنید و برای استعلام اجرای مشابه، مرجع عمومی همان نمونه را همراه درخواست بفرستید.";
 
 export function PortfolioPage({ cards }: { cards: readonly PortfolioCardModel[] }) {
   return (

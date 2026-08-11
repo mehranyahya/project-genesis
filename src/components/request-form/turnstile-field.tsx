@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 
-const SCRIPT_ID = "mehrara-turnstile-script";
+const SCRIPT_ID = "app-turnstile-script";
 const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 const ACTION = "submit_request";
 
