@@ -67,26 +67,7 @@ test("idempotent replay checks both fingerprint keys before consuming Turnstile"
 test("tracking prefix is brand-neutral, configurable and exact across Edge and storage", () => {
   assert.match(edgeSubmit, /TRACKING_PREFIX_PATTERN\.test\(value\)/);
   assert.match(edgeBusiness, /TRACKING_PREFIX_PATTERN\.test\(input\.trackingCodePrefix\)/);
-  assert.match(storageMigration, /p_tracking_code_prefix !~ '\^\[A-Z\]\[A-Z0-9\]\{1,9\}\
-  assert.match(
-    storageMigration,
-    /v_tracking_code := p_tracking_code_prefix \|\| '-' \|\| v_sequence_value::text/,
-  );
-  assert.match(storageMigration, /returning id into v_request_id/);
-  assert.match(storageMigration, /'request_id', v_request_id/);
-});
-
-test("catastrophic HTML is Persian, static and security-headered", () => {
-  const page = readFileSync(new URL("error-page.ts", import.meta.url), "utf8");
-  const server = readFileSync(new URL("../server.ts", import.meta.url), "utf8");
-  assert.match(page, /<html lang="fa" dir="rtl">/);
-  assert.match(page, /بارگذاری این صفحه انجام نشد/);
-  assert.doesNotMatch(page, /onclick=|<script/i);
-  assert.match(server, /content-security-policy/);
-  assert.match(server, /cache-control.*no-store/);
-  assert.match(server, /x-content-type-options.*nosniff/);
-});
-/);
+  assert.match(storageMigration, /p_tracking_code_prefix !~ '\^\[A-Z\]\[A-Z0-9\]\{1,9\}\$'/);
   assert.match(
     storageMigration,
     /v_tracking_code := p_tracking_code_prefix \|\| '-' \|\| v_sequence_value::text/,
