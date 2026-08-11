@@ -25,10 +25,7 @@ const payload = { submission_id: "sid-1", request_type: "contact" } as unknown a
 /* -------------------------------------------------------------------------- */
 
 test("1 the tracking code pattern is the official one", () => {
-  assert.equal(
-    TRACKING_CODE_PATTERN.source,
-    "^[A-Z][A-Z0-9]{1,9}-[1-9][0-9]{3,}$",
-  );
+  assert.equal(TRACKING_CODE_PATTERN.source, "^[A-Z][A-Z0-9]{1,9}-[1-9][0-9]{3,}$");
   assert.ok(isTrackingCode("REQ-1001"));
   assert.ok(isTrackingCode("MA-123456"));
   for (const bad of [
