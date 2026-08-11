@@ -79,12 +79,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "سنگ مزار سفارشی و سنگ ساختمانی" },
       {
         name: "description",
-        content: "انتخاب مدل سنگ مزار، مشاهدهٔ وضعیت قیمت و ثبت درخواست بررسی سفارش.",
+        content: "انتخاب مدل سنگ مزار، مشاهدهٔ گزینه‌ها و ثبت درخواست بررسی سفارش.",
       },
       { property: "og:title", content: "سنگ مزار سفارشی و سنگ ساختمانی" },
       {
         property: "og:description",
-        content: "انتخاب مدل سنگ مزار، مشاهدهٔ وضعیت قیمت و ثبت درخواست بررسی سفارش.",
+        content: "انتخاب مدل سنگ مزار، مشاهدهٔ گزینه‌ها و ثبت درخواست بررسی سفارش.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

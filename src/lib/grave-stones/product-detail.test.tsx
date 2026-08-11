@@ -268,7 +268,11 @@ test("33 latin stone and product codes are isolated with bdi", () => {
   assert.ok(read(PAGE).includes('<bdi dir="ltr">{model.code}</bdi>'));
   assert.ok(read(SELECTION).includes('<bdi dir="ltr">{variant.stoneCode}</bdi>'));
   assert.ok(read(SUMMARY).includes('<bdi dir="ltr">'));
-  assert.ok(!read(PAGE).includes("model.slug"));
+  // Owner-approved share scope: slug is the stable public route key and may be
+  // passed to ProductShare only. It must never appear in visible product copy.
+  const slugUses = read(PAGE).match(/model\.slug/g) ?? [];
+  assert.equal(slugUses.length, 1);
+  assert.ok(read(PAGE).includes("<ProductShare slug={model.slug}"));
 });
 
 test("34 loading and error states are accessible with exact copy", () => {

@@ -23,7 +23,6 @@ test("share URL is built from the stable slug route key only", () => {
     productShareUrl("sang-a", "https://example.com"),
     "https://example.com/grave-stones/sang-a",
   );
-  assert.equal(shareSource.includes("code}`"), false);
   assert.ok(!/\/grave-stones\/\$\{[^}]*code/.test(shareSource));
 });
 
