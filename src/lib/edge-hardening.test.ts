@@ -14,6 +14,10 @@ const edgeTurnstile = readFileSync(
   new URL("../../supabase/functions/_shared/turnstile.ts", import.meta.url),
   "utf8",
 );
+const edgeBusiness = readFileSync(
+  new URL("../../supabase/functions/_shared/request-business.ts", import.meta.url),
+  "utf8",
+);
 const edgeRest = readFileSync(
   new URL("../../supabase/functions/_shared/supabase-rest.ts", import.meta.url),
   "utf8",
@@ -60,10 +64,14 @@ test("idempotent replay checks both fingerprint keys before consuming Turnstile"
   assert.ok(inspectPosition >= 0 && turnstilePosition > inspectPosition);
 });
 
-test("tracking prefix and internal request id are exact across Edge and storage", () => {
-  assert.match(edgeSubmit, /return value === "MA"/);
-  assert.match(storageMigration, /p_tracking_code_prefix is distinct from 'MA'/);
-  assert.match(storageMigration, /v_tracking_code := 'MA-' \|\| v_sequence_value::text/);
+test("tracking prefix is brand-neutral, configurable and exact across Edge and storage", () => {
+  assert.match(edgeSubmit, /TRACKING_PREFIX_PATTERN\.test\(value\)/);
+  assert.match(edgeBusiness, /TRACKING_PREFIX_PATTERN\.test\(input\.trackingCodePrefix\)/);
+  assert.match(storageMigration, /p_tracking_code_prefix !~ '\^\[A-Z\]\[A-Z0-9\]\{1,9\}\$'/);
+  assert.match(
+    storageMigration,
+    /v_tracking_code := p_tracking_code_prefix \|\| '-' \|\| v_sequence_value::text/,
+  );
   assert.match(storageMigration, /returning id into v_request_id/);
   assert.match(storageMigration, /'request_id', v_request_id/);
 });

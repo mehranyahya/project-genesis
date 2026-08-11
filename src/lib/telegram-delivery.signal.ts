@@ -1,4 +1,4 @@
-const TRACKING_CODE_PATTERN = /^MA-[1-9][0-9]{3,}$/;
+const TRACKING_CODE_PATTERN = /^[A-Z][A-Z0-9]{1,9}-[1-9][0-9]{3,}$/;
 
 export const TELEGRAM_DELIVERY_SIGNAL_HEADER = "x-genesis-telegram-tracking-code";
 

@@ -11,6 +11,7 @@ import { supabaseRest, supabaseRpc } from "./supabase-rest.ts";
 import type { SupabaseServerConfig } from "./supabase-rest.ts";
 
 const HASH_PATTERN = /^[0-9a-f]{64}$/;
+const TRACKING_PREFIX_PATTERN = /^[A-Z][A-Z0-9]{1,9}$/;
 
 type PriceType = "fixed" | "estimate" | "review";
 
@@ -393,7 +394,7 @@ export async function prepareBusinessRequest(input: {
   readonly trackingCodePrefix: string;
   readonly nowIso: string;
 }): Promise<BusinessResult> {
-  if (input.trackingCodePrefix !== "MA") return temporaryUnavailable();
+  if (!TRACKING_PREFIX_PATTERN.test(input.trackingCodePrefix)) return temporaryUnavailable();
   const termsFailure = validateTerms(input.request);
   if (termsFailure !== null) return termsFailure;
 

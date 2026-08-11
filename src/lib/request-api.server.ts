@@ -11,7 +11,7 @@ const RATE_LIMIT_RETRY_SECONDS = 600;
 
 const HASH_PATTERN = /^[0-9a-f]{64}$/;
 const PHONE_PATTERN = /^\+989[0-9]{9}$/;
-const TRACKING_PATTERN = /^MA-[1-9][0-9]{3,}$/;
+const TRACKING_PATTERN = /^[A-Z][A-Z0-9]{1,9}-[1-9][0-9]{3,}$/;
 const PORTFOLIO_REFERENCE_PATTERN = /^pf-[0-9]{4,}$/;
 const SAFE_TEXT_ID = /^[^\s]{1,160}$/;
 

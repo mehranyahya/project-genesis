@@ -11,7 +11,7 @@ const requestIdSchema = z.string().uuid();
 const claimItemSchema = z
   .object({
     request_id: requestIdSchema,
-    tracking_code: z.string().regex(/^MA-[1-9][0-9]{3,}$/),
+    tracking_code: z.string().regex(/^[A-Z][A-Z0-9]{1,9}-[1-9][0-9]{3,}$/),
     request_type: z.enum(["grave_stone", "building_stone", "contact"]),
     customer_name: z.string().nullable(),
     phone: z.string().nullable(),
@@ -263,7 +263,7 @@ function appendLine(lines: string[], label: string, value: string | null): void 
 }
 
 export function formatTelegramAdminMessage(item: ClaimItem): string {
-  const lines: string[] = ["درخواست جدید مهرآرا"];
+  const lines: string[] = ["درخواست جدید"];
   appendLine(lines, "کد پیگیری", item.tracking_code);
   appendLine(lines, "نوع درخواست", item.request_type);
   appendLine(

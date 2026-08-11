@@ -8,7 +8,7 @@ const MAX_TELEGRAM_TEXT_LENGTH = 3_900;
 const MAX_FIELD_LENGTH = 600;
 const RECOVERY_CONCURRENCY = 5;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const TRACKING_PATTERN = /^MA-[1-9][0-9]{3,}$/;
+const TRACKING_PATTERN = /^[A-Z][A-Z0-9]{1,9}-[1-9][0-9]{3,}$/;
 
 interface TelegramConfig {
   readonly botToken: string;
@@ -199,7 +199,7 @@ function appendLine(lines: string[], label: string, value: string | null): void 
 }
 
 export function formatTelegramAdminMessage(item: ClaimItem): string {
-  const lines = ["درخواست جدید مهرآرا"];
+  const lines = ["درخواست جدید"];
   appendLine(lines, "کد پیگیری", item.tracking_code);
   appendLine(lines, "نوع درخواست", item.request_type);
   appendLine(
