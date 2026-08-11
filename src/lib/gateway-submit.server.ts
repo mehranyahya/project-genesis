@@ -9,7 +9,7 @@ const UPSTREAM_TIMEOUT_MS = 12_000;
 const RESPONSE_BODY_LIMIT = 16 * 1024;
 const REQUEST_BODY_LIMIT = 16 * 1024;
 const HASH_PATTERN = /^[0-9a-f]{64}$/;
-const TRACKING_PATTERN = /^MA-[1-9][0-9]{3,}$/;
+const TRACKING_PATTERN = /^[A-Z][A-Z0-9]{1,9}-[1-9][0-9]{3,}$/;
 const KEY_ID_PATTERN = /^[A-Za-z0-9._-]{1,64}$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
