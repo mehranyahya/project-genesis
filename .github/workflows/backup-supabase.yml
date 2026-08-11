@@ -47,7 +47,10 @@ jobs:
           set -euo pipefail
           umask 077
 
-          for secret_name in             SUPABASE_PROJECT_REF             SUPABASE_DB_SESSION_POOLER_URL             BACKUP_ENCRYPTION_RECIPIENT
+          for secret_name in \
+            SUPABASE_PROJECT_REF \
+            SUPABASE_DB_SESSION_POOLER_URL \
+            BACKUP_ENCRYPTION_RECIPIENT
           do
             if [[ -z "${!secret_name:-}" ]]; then
               echo "::error::Required backup secret is not configured: ${secret_name}"
@@ -73,7 +76,11 @@ jobs:
           esac
 
           r2_configured=0
-          for value in             "$R2_ACCOUNT_ID"             "$R2_ACCESS_KEY_ID"             "$R2_SECRET_ACCESS_KEY"             "$R2_BACKUP_BUCKET"
+          for value in \
+            "$R2_ACCOUNT_ID" \
+            "$R2_ACCESS_KEY_ID" \
+            "$R2_SECRET_ACCESS_KEY" \
+            "$R2_BACKUP_BUCKET"
           do
             if [[ -n "$value" ]]; then
               r2_configured=$((r2_configured + 1))
@@ -110,18 +117,51 @@ jobs:
           backup_dir="$backup_root/$stamp"
           mkdir -p "$backup_dir"
 
-          supabase db dump             --db-url "$SUPABASE_DB_SESSION_POOLER_URL"             -f "$backup_dir/roles.sql"             --role-only
-          supabase db dump             --db-url "$SUPABASE_DB_SESSION_POOLER_URL"             -f "$backup_dir/schema.sql"
-          supabase db dump             --db-url "$SUPABASE_DB_SESSION_POOLER_URL"             -f "$backup_dir/data.sql"             --use-copy             --data-only             -x "storage.buckets_vectors"             -x "storage.vector_indexes"
-          supabase db dump             --db-url "$SUPABASE_DB_SESSION_POOLER_URL"             -f "$backup_dir/history_schema.sql"             --schema supabase_migrations
-          supabase db dump             --db-url "$SUPABASE_DB_SESSION_POOLER_URL"             -f "$backup_dir/history_data.sql"             --use-copy             --data-only             --schema supabase_migrations
+          supabase db dump \
+            --db-url "$SUPABASE_DB_SESSION_POOLER_URL" \
+            -f "$backup_dir/roles.sql" \
+            --role-only
+          supabase db dump \
+            --db-url "$SUPABASE_DB_SESSION_POOLER_URL" \
+            -f "$backup_dir/schema.sql"
+          supabase db dump \
+            --db-url "$SUPABASE_DB_SESSION_POOLER_URL" \
+            -f "$backup_dir/data.sql" \
+            --use-copy \
+            --data-only \
+            -x "storage.buckets_vectors" \
+            -x "storage.vector_indexes"
+          supabase db dump \
+            --db-url "$SUPABASE_DB_SESSION_POOLER_URL" \
+            -f "$backup_dir/history_schema.sql" \
+            --schema supabase_migrations
+          supabase db dump \
+            --db-url "$SUPABASE_DB_SESSION_POOLER_URL" \
+            -f "$backup_dir/history_data.sql" \
+            --use-copy \
+            --data-only \
+            --schema supabase_migrations
 
           (
             cd "$backup_dir"
-            sha256sum               roles.sql               schema.sql               data.sql               history_schema.sql               history_data.sql               > SHA256SUMS
+            sha256sum \
+              roles.sql \
+              schema.sql \
+              data.sql \
+              history_schema.sql \
+              history_data.sql \
+              > SHA256SUMS
           )
 
-          jq -n             --arg project_ref "$SUPABASE_PROJECT_REF"             --arg created_at "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"             --arg repository "$GITHUB_REPOSITORY"             --arg git_sha "$GITHUB_SHA"             --arg run_id "$GITHUB_RUN_ID"             --arg run_attempt "$GITHUB_RUN_ATTEMPT"             --arg supabase_cli_version "$(supabase --version)"             '{
+          jq -n \
+            --arg project_ref "$SUPABASE_PROJECT_REF" \
+            --arg created_at "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg git_sha "$GITHUB_SHA" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
+            --arg supabase_cli_version "$(supabase --version)" \
+            '{
               project_ref: $project_ref,
               created_at: $created_at,
               repository: $repository,
@@ -135,7 +175,10 @@ jobs:
           encrypted="$archive.age"
           checksum="$encrypted.sha256"
           tar -C "$backup_root" -czf "$archive" "$stamp"
-          age --encrypt             --recipient "$BACKUP_ENCRYPTION_RECIPIENT"             --output "$encrypted"             "$archive"
+          age --encrypt \
+            --recipient "$BACKUP_ENCRYPTION_RECIPIENT" \
+            --output "$encrypted" \
+            "$archive"
           (
             cd "$backup_root"
             sha256sum "$(basename "$encrypted")" > "$(basename "$checksum")"
@@ -172,10 +215,25 @@ jobs:
           checksum="${{ steps.backup.outputs.checksum }}"
           object_key="${{ steps.backup.outputs.object_key }}"
 
-          aws s3 cp             "$encrypted"             "s3://$R2_BACKUP_BUCKET/$object_key"             --endpoint-url "$endpoint"             --no-progress             --only-show-errors
-          aws s3 cp             "$checksum"             "s3://$R2_BACKUP_BUCKET/$object_key.sha256"             --endpoint-url "$endpoint"             --no-progress             --only-show-errors
+          aws s3 cp \
+            "$encrypted" \
+            "s3://$R2_BACKUP_BUCKET/$object_key" \
+            --endpoint-url "$endpoint" \
+            --no-progress \
+            --only-show-errors
+          aws s3 cp \
+            "$checksum" \
+            "s3://$R2_BACKUP_BUCKET/$object_key.sha256" \
+            --endpoint-url "$endpoint" \
+            --no-progress \
+            --only-show-errors
 
-          remote_size="$(aws s3api head-object             --bucket "$R2_BACKUP_BUCKET"             --key "$object_key"             --endpoint-url "$endpoint"             --query ContentLength             --output text)"
+          remote_size="$(aws s3api head-object \
+            --bucket "$R2_BACKUP_BUCKET" \
+            --key "$object_key" \
+            --endpoint-url "$endpoint" \
+            --query ContentLength \
+            --output text)"
           local_size="$(stat -c '%s' "$encrypted")"
           if [[ "$remote_size" != "$local_size" ]]; then
             echo "::error::R2 backup size verification failed."
@@ -186,16 +244,17 @@ jobs:
         if: success() && env.HEALTHCHECKS_BACKUP_PING_URL != ''
         shell: bash
         run: |
-          curl             --fail             --silent             --show-error             --max-time 10             --retry 2             "$HEALTHCHECKS_BACKUP_PING_URL"             >/dev/null
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --max-time 10 \
+            --retry 2 \
+            "$HEALTHCHECKS_BACKUP_PING_URL" \
+            >/dev/null
 
       - name: Ping backup monitor on failure
         if: failure() && env.HEALTHCHECKS_BACKUP_PING_URL != ''
         shell: bash
         run: |
-          curl             --fail             --silent             --show-error             --max-time 10             --retry 2             "$HEALTHCHECKS_BACKUP_PING_URL/fail"             >/dev/null
-
-      - name: Remove runner backup files
-        if: always()
-        shell: bash
-        run: |
-          rm -rf "$RUNNER_TEMP/supabase-backup"
+          curl \
