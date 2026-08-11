@@ -4,19 +4,12 @@ import { isIP } from "node:net";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { handleSignedSubmitGateway } from "./lib/gateway-submit.server";
 import { handleSitemapRequest } from "./lib/sitemap.server";
-import {
-  processTelegramByTrackingCode,
-  processTelegramRecoveryBatch,
-} from "./lib/telegram-delivery.server";
-import { consumeTelegramDeliverySignal } from "./lib/telegram-delivery.signal";
+import { runSignedTelegramRecovery } from "./lib/telegram-recovery-gateway.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
-};
-
-type WorkerExecutionContext = {
-  waitUntil: (promise: Promise<unknown>) => void;
 };
 
 type WorkerScheduledController = {
@@ -32,6 +25,15 @@ export const TELEGRAM_RECOVERY_CRON = "0 * * * *";
 export const PUBLIC_SUBMIT_MAX_BODY_BYTES = 16 * 1024;
 export const SUBMIT_FLOOD_LIMIT_BINDING = "SUBMIT_FLOOD_LIMITER";
 export const PREVIEW_ROBOTS_HEADER = "noindex, nofollow, noarchive";
+
+const FATAL_HTML_HEADERS = {
+  "cache-control": "no-store, max-age=0",
+  "content-security-policy":
+    "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+  "content-type": "text/html; charset=utf-8",
+  "referrer-policy": "no-referrer",
+  "x-content-type-options": "nosniff",
+} as const;
 
 const PUBLIC_SUBMIT_PATH = "/api/submit-request";
 
@@ -59,7 +61,7 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   console.error(consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`));
   return new Response(renderErrorPage(), {
     status: 500,
-    headers: { "content-type": "text/html; charset=utf-8" },
+    headers: FATAL_HTML_HEADERS,
   });
 }
 
@@ -190,28 +192,6 @@ export async function enforcePublicSubmitBodyLimit(request: Request): Promise<Re
   }
 }
 
-function executionContext(value: unknown): WorkerExecutionContext | null {
-  if (value === null || typeof value !== "object") return null;
-  const candidate = value as { waitUntil?: unknown };
-  return typeof candidate.waitUntil === "function" ? (candidate as WorkerExecutionContext) : null;
-}
-
-function scheduleImmediateTelegramDelivery(
-  trackingCode: string | null,
-  env: unknown,
-  ctx: unknown,
-): void {
-  if (trackingCode === null) return;
-  const execution = executionContext(ctx);
-  if (execution === null) return;
-
-  execution.waitUntil(
-    processTelegramByTrackingCode(env, trackingCode).catch(() => {
-      console.error("Telegram delivery attempt failed");
-    }),
-  );
-}
-
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
@@ -230,18 +210,21 @@ export default {
         return applyDeploymentIndexingHeaders(bodyLimitResponse, env);
       }
 
+      const submitGatewayResponse = await handleSignedSubmitGateway(request, env);
+      if (submitGatewayResponse !== null) {
+        return applyDeploymentIndexingHeaders(submitGatewayResponse, env);
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       const normalized = await normalizeCatastrophicSsrResponse(response);
-      const consumed = consumeTelegramDeliverySignal(normalized);
-      scheduleImmediateTelegramDelivery(consumed.trackingCode, env, ctx);
-      return applyDeploymentIndexingHeaders(consumed.response, env);
+      return applyDeploymentIndexingHeaders(normalized, env);
     } catch (error) {
       console.error(error);
       return applyDeploymentIndexingHeaders(
         new Response(renderErrorPage(), {
           status: 500,
-          headers: { "content-type": "text/html; charset=utf-8" },
+          headers: FATAL_HTML_HEADERS,
         }),
         env,
       );
@@ -252,6 +235,6 @@ export default {
     if (controller.cron !== TELEGRAM_RECOVERY_CRON) return;
     void controller.scheduledTime;
     void ctx;
-    await processTelegramRecoveryBatch(env);
+    await runSignedTelegramRecovery(env);
   },
 };

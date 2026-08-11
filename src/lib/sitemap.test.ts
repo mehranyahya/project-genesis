@@ -5,7 +5,7 @@ import {
   buildSitemapXml,
   FIXED_SITEMAP_PATHS,
   handleSitemapRequest,
-  normalizePublicSiteOrigin,
+  normalizeSiteUrl,
   type SitemapProduct,
 } from "./sitemap.server";
 
@@ -28,9 +28,9 @@ const products: SitemapProduct[] = [
   },
 ];
 
-test("public site origin accepts only a clean HTTPS origin", () => {
-  assert.equal(normalizePublicSiteOrigin("https://example.com"), origin);
-  assert.equal(normalizePublicSiteOrigin("https://example.com/"), origin);
+test("SITE_URL accepts only a clean HTTPS origin", () => {
+  assert.equal(normalizeSiteUrl("https://example.com"), origin);
+  assert.equal(normalizeSiteUrl("https://example.com/"), origin);
 
   for (const invalid of [
     "http://example.com",
@@ -40,7 +40,7 @@ test("public site origin accepts only a clean HTTPS origin", () => {
     "https://example.com/#hash",
     "not-a-url",
   ]) {
-    assert.throws(() => normalizePublicSiteOrigin(invalid));
+    assert.throws(() => normalizeSiteUrl(invalid));
   }
 });
 
@@ -63,7 +63,7 @@ test("preview sitemap fails closed without loading operational content", async (
   let loads = 0;
   const response = await handleSitemapRequest(
     new Request("https://preview.example/sitemap.xml"),
-    { PUBLIC_INDEXING: "false" },
+    { PUBLIC_INDEXING: "false", SITE_URL: "https://preview.example" },
     {
       loadProducts: async () => {
         loads += 1;
@@ -77,7 +77,7 @@ test("preview sitemap fails closed without loading operational content", async (
   assert.equal(loads, 0);
 });
 
-test("production sitemap requires the configured public origin", async () => {
+test("production sitemap requires SITE_URL", async () => {
   const response = await handleSitemapRequest(
     new Request("https://worker.example/sitemap.xml"),
     { PUBLIC_INDEXING: "true" },
@@ -88,10 +88,10 @@ test("production sitemap requires the configured public origin", async () => {
   assert.equal(response.status, 503);
 });
 
-test("production sitemap emits XML using configured origin rather than request host", async () => {
+test("production sitemap emits XML using SITE_URL rather than request host", async () => {
   const response = await handleSitemapRequest(
     new Request("https://worker-preview-host.example/sitemap.xml"),
-    { PUBLIC_INDEXING: "true", PUBLIC_SITE_ORIGIN: origin },
+    { PUBLIC_INDEXING: "true", SITE_URL: origin },
     { loadProducts: async () => products },
   );
 
@@ -107,12 +107,14 @@ test("non-sitemap requests are ignored by the Worker sitemap handler", async () 
   assert.equal(
     await handleSitemapRequest(new Request("https://example.com/about"), {
       PUBLIC_INDEXING: "true",
+      SITE_URL: origin,
     }),
     null,
   );
   assert.equal(
     await handleSitemapRequest(new Request("https://example.com/sitemap.xml", { method: "POST" }), {
       PUBLIC_INDEXING: "true",
+      SITE_URL: origin,
     }),
     null,
   );

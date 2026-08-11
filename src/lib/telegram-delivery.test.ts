@@ -177,22 +177,43 @@ test("immediate delivery resolves the created tracking code to one exact request
   assert.deepEqual(calls[1]?.body, { p_limit: 1, p_request_id: requestId });
 });
 
-test("Worker source strips the signal, uses waitUntil, and exposes hourly recovery", () => {
+test("Worker signs recovery while Telegram credentials and delivery stay inside Edge", () => {
   const server = readFileSync(new URL("../server.ts", import.meta.url), "utf8");
-  const route = readFileSync(new URL("request-api.route.server.ts", import.meta.url), "utf8");
-  const delivery = readFileSync(new URL("telegram-delivery.server.ts", import.meta.url), "utf8");
+  const recoveryGateway = readFileSync(
+    new URL("telegram-recovery-gateway.server.ts", import.meta.url),
+    "utf8",
+  );
+  const edgeSubmit = readFileSync(
+    new URL("../../supabase/functions/submit-request/index.ts", import.meta.url),
+    "utf8",
+  );
+  const edgeDelivery = readFileSync(
+    new URL("../../supabase/functions/_shared/telegram-delivery.ts", import.meta.url),
+    "utf8",
+  );
+  const edgeRecovery = readFileSync(
+    new URL("../../supabase/functions/telegram-recovery/index.ts", import.meta.url),
+    "utf8",
+  );
   const envExample = readFileSync(new URL("../../.env.example", import.meta.url), "utf8");
 
-  assert.match(route, /attachTelegramDeliverySignal\(response\)/);
-  assert.match(server, /consumeTelegramDeliverySignal\(normalized\)/);
-  assert.match(server, /execution\.waitUntil\(/);
-  assert.match(server, /processTelegramByTrackingCode\(env, trackingCode\)/);
   assert.match(server, /TELEGRAM_RECOVERY_CRON = "0 \* \* \* \*"/);
-  assert.match(server, /await processTelegramRecoveryBatch\(env\)/);
-  assert.match(delivery, /p_limit: limit, p_request_id: requestId/);
-  assert.match(delivery, /claimNotifications\(config, dependencies, 25, null\)/);
-  assert.doesNotMatch(delivery, /console\.(log|info|warn|error)/);
-  assert.doesNotMatch(delivery, /parse_mode/);
+  assert.match(server, /await runSignedTelegramRecovery\(env\)/);
+  assert.doesNotMatch(server, /processTelegramByTrackingCode|processTelegramRecoveryBatch/);
+  assert.doesNotMatch(server, /SUPABASE_SERVICE_ROLE_KEY|TELEGRAM_BOT_TOKEN/);
+  assert.match(recoveryGateway, /x-cron-signature/);
+  assert.match(recoveryGateway, /redirect: "error"/);
+  assert.doesNotMatch(recoveryGateway, /SUPABASE_SERVICE_ROLE_KEY|TELEGRAM_BOT_TOKEN/);
+
+  assert.match(edgeSubmit, /processTelegramByRequestId\(supabase, requestId\)/);
+  assert.match(edgeSubmit, /EdgeRuntime/);
+  assert.match(edgeDelivery, /RECOVERY_CONCURRENCY = 5/);
+  assert.match(edgeDelivery, /claimNotifications\(supabase, 25, null\)/);
+  assert.match(edgeDelivery, /TELEGRAM_BOT_TOKEN/);
+  assert.match(edgeDelivery, /SUPABASEServerConfig|SupabaseServerConfig/);
+  assert.doesNotMatch(edgeDelivery, /parse_mode/);
+  assert.match(edgeRecovery, /verifyRecoveryCronRequest/);
+  assert.match(edgeRecovery, /processTelegramRecoveryBatch\(supabase\)/);
   assert.match(envExample, /^TELEGRAM_BOT_TOKEN=$/m);
   assert.match(envExample, /^TELEGRAM_ADMIN_CHAT_ID=$/m);
 });

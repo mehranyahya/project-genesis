@@ -160,7 +160,7 @@ test("client transport omits the proof header when Turnstile is unavailable", as
   assert.equal(Object.hasOwn(headers, "X-Turnstile-Token"), false);
 });
 
-test("client executes a fresh Turnstile challenge only after validation and immediately before transport", () => {
+test("client executes fresh proof before transport while Siteverify authority lives only in Edge", () => {
   const field = readFileSync(
     new URL("../components/request-form/turnstile-field.tsx", import.meta.url),
     "utf8",
@@ -171,8 +171,16 @@ test("client executes a fresh Turnstile challenge only after validation and imme
     "utf8",
   );
   const route = readFileSync(new URL("../routes/api/submit-request.ts", import.meta.url), "utf8");
-  const routeServer = readFileSync(
-    new URL("./request-api.route.server.ts", import.meta.url),
+  const workerGateway = readFileSync(
+    new URL("./gateway-submit.server.ts", import.meta.url),
+    "utf8",
+  );
+  const edgeTurnstile = readFileSync(
+    new URL("../../supabase/functions/_shared/turnstile.ts", import.meta.url),
+    "utf8",
+  );
+  const edgeSubmit = readFileSync(
+    new URL("../../supabase/functions/submit-request/index.ts", import.meta.url),
     "utf8",
   );
 
@@ -207,10 +215,23 @@ test("client executes a fresh Turnstile challenge only after validation and imme
   assert.ok(validationPosition >= 0 && executePosition > validationPosition);
   assert.ok(transportPosition > executePosition);
 
-  assert.match(route, /handleProtectedSubmitRequest/);
-  assert.match(routeServer, /unverified_no_token/);
-  assert.match(routeServer, /unverified_service_error/);
-  assert.match(routeServer, /turnstile_no_token/);
-  assert.match(routeServer, /turnstile_unavailable/);
+  assert.match(route, /TEMPORARILY_UNAVAILABLE/);
+  assert.equal(/handleProtectedSubmitRequest|verifyTurnstileRequest/.test(route), false);
   assert.equal(/TURNSTILE_SECRET_KEY|process\.env/.test(route), false);
+
+  assert.match(workerGateway, /turnstile_token: turnstileToken/);
+  assert.match(workerGateway, /x-turnstile-token/);
+  assert.equal(/challenges\.cloudflare\.com|TURNSTILE_SECRET_KEY/.test(workerGateway), false);
+
+  assert.match(edgeTurnstile, /challenges\.cloudflare\.com\/turnstile\/v0\/siteverify/);
+  assert.match(edgeTurnstile, /TURNSTILE_SECRET_KEY/);
+  assert.match(edgeTurnstile, /unverified_no_token/);
+  assert.match(edgeTurnstile, /unverified_service_error/);
+  assert.match(edgeTurnstile, /turnstile_no_token/);
+  assert.match(edgeTurnstile, /turnstile_unavailable/);
+  assert.match(edgeTurnstile, /idempotency_key/);
+
+  const inspectPosition = edgeSubmit.indexOf("inspect_request_idempotency");
+  const siteverifyPosition = edgeSubmit.indexOf("verifyTurnstile({");
+  assert.ok(inspectPosition >= 0 && siteverifyPosition > inspectPosition);
 });

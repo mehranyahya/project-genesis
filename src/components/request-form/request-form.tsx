@@ -39,6 +39,7 @@ const ACTION =
 type Phase = "editing" | "submitting" | "success";
 
 const PII_FREE_VALUES = EMPTY_REQUEST_FORM_VALUES;
+const DEFAULT_EXTENSION_FIELD_ID = (key: string) => buildingStoneFieldId(key);
 
 /** The type-safe slot an active extension renders into the shared form. */
 export interface RequestFormExtensionSlotState {
@@ -191,7 +192,7 @@ export function RequestForm({
       ? extension
       : null;
   const contract = binding === null ? null : binding.contract;
-  const extensionFieldId = binding?.fieldId ?? ((key: string) => buildingStoneFieldId(key));
+  const extensionFieldId = binding?.fieldId ?? DEFAULT_EXTENSION_FIELD_ID;
 
   const identity = sourceIdentity(source);
 
@@ -344,6 +345,7 @@ export function RequestForm({
     },
     [
       contract,
+      extensionFieldId,
       freshAttemptRequired,
       generation,
       onSuccess,

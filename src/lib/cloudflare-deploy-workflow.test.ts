@@ -5,90 +5,113 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 
-const workflow = readFileSync(
+const entryWorkflow = readFileSync(
   new URL("../../.github/workflows/deploy-cloudflare.yml", import.meta.url),
   "utf8",
 );
+const reusableWorkflow = readFileSync(
+  new URL("../../.github/workflows/deploy-cloudflare-reusable.yml", import.meta.url),
+  "utf8",
+);
+const workflow = `${entryWorkflow}\n${reusableWorkflow}`;
 const writerPath = new URL("../../scripts/write-cloudflare-secrets.mjs", import.meta.url);
 const writer = readFileSync(writerPath, "utf8");
 
-const runtimeSecretNames = [
-  "SUPABASE_URL",
+const workerSecretNames = [
+  "SUPABASE_FUNCTION_BASE_URL",
+  "EDGE_GATEWAY_KEYS_JSON",
+  "EDGE_GATEWAY_PRIMARY_KEY_ID",
+  "IP_HASH_SECRET",
+] as const;
+
+const forbiddenWorkerSecrets = [
   "SUPABASE_SERVICE_ROLE_KEY",
   "REQUEST_FINGERPRINT_KEY",
-  "REQUEST_FINGERPRINT_KEY_ID",
-  "IP_HASH_KEY",
+  "REQUEST_FINGERPRINT_KEYS_JSON",
   "TURNSTILE_SECRET_KEY",
-  "TURNSTILE_ALLOWED_HOSTNAMES",
   "TELEGRAM_BOT_TOKEN",
-  "TELEGRAM_ADMIN_CHAT_ID",
 ] as const;
 
 test("Cloudflare deployment is manual-only and production requires main plus exact confirmation", () => {
   assert.match(workflow, /workflow_dispatch:/);
-  assert.equal(/^\s*push:/m.test(workflow), false);
-  assert.equal(/^\s*pull_request:/m.test(workflow), false);
-  assert.match(workflow, /environment: \$\{\{ inputs\.target \}\}/);
+  assert.equal(/^\s*push:/m.test(entryWorkflow), false);
+  assert.equal(/^\s*pull_request:/m.test(entryWorkflow), false);
+  assert.equal(/^\s*environment:/m.test(workflow), false);
+  assert.match(workflow, /deploy_target:/);
   assert.match(workflow, /DEPLOY_TARGET: \$\{\{ inputs\.target \}\}/);
   assert.match(workflow, /GITHUB_REF.*refs\/heads\/main/);
   assert.match(workflow, /PRODUCTION_CONFIRMATION.*DEPLOY_PRODUCTION/);
+  assert.match(workflow, /CONTENT_CONFIRMATION.*CONTENT_FINALIZED/);
+  assert.match(workflow, /MIGRATION_CONFIRMATION.*MIGRATIONS_VERIFIED_AFTER_BACKUP/);
+  assert.match(reusableWorkflow, /bun run content:release-check/);
+});
+
+test("repository variables select SITE_URL, ALLOWED_ORIGINS and indexing without GitHub Environments", () => {
+  for (const name of [
+    "PREVIEW_SITE_URL",
+    "PRODUCTION_SITE_URL",
+    "PREVIEW_ALLOWED_ORIGINS",
+    "PRODUCTION_ALLOWED_ORIGINS",
+  ] as const) {
+    assert.match(workflow, new RegExp(`vars\\.${name}`));
+  }
+  assert.match(entryWorkflow, /site_url: \$\{\{ vars\.PREVIEW_SITE_URL \}\}/);
+  assert.match(entryWorkflow, /site_url: \$\{\{ vars\.PRODUCTION_SITE_URL \}\}/);
+  assert.match(entryWorkflow, /allowed_origins: \$\{\{ vars\.PREVIEW_ALLOWED_ORIGINS \}\}/);
+  assert.match(entryWorkflow, /allowed_origins: \$\{\{ vars\.PRODUCTION_ALLOWED_ORIGINS \}\}/);
+  assert.match(reusableWorkflow, /SITE_URL: \$\{\{ inputs\.site_url \}\}/);
+  assert.match(reusableWorkflow, /ALLOWED_ORIGINS: \$\{\{ inputs\.allowed_origins \}\}/);
+  assert.equal(/vars\.PUBLIC_SITE_ORIGIN/.test(workflow), false);
 });
 
 test("preview uploads a version while production alone uses wrangler deploy", () => {
-  assert.match(workflow, /if: \$\{\{ inputs\.target == 'preview' \}\}/);
-  assert.match(workflow, /npx --yes wrangler@4\.97\.0 versions upload/);
-  assert.match(workflow, /if: \$\{\{ inputs\.target == 'production' \}\}/);
-  assert.match(workflow, /npx --yes wrangler@4\.97\.0 deploy/);
+  assert.match(entryWorkflow, /inputs\.deploy_target == 'preview'/);
+  assert.match(reusableWorkflow, /bunx wrangler versions upload/);
+  assert.match(reusableWorkflow, /--preview-alias staging/);
+  assert.match(entryWorkflow, /inputs\.deploy_target == 'production'/);
+  assert.match(reusableWorkflow, /bunx wrangler deploy/);
+  assert.match(reusableWorkflow, /--dry-run/);
 
-  const deployOccurrences = workflow.match(/wrangler@4\.97\.0 deploy/g) ?? [];
-  assert.equal(deployOccurrences.length, 1);
-
-  for (const option of ["--secrets-file", "--keep-vars", "--strict"] as const) {
-    assert.equal(workflow.split(option).length - 1, 2, `${option} must protect both targets`);
+  for (const option of ["--secrets-file", "--keep-vars"] as const) {
+    assert.equal(
+      reusableWorkflow.split(option).length - 1,
+      2,
+      `${option} must protect both targets`,
+    );
   }
-  assert.match(workflow, /if: \$\{\{ always\(\) \}\}/);
-  assert.match(workflow, /rm -f .*cloudflare-runtime-secrets\.json/);
+  assert.equal(reusableWorkflow.split("--strict").length - 1, 3);
+  assert.match(reusableWorkflow, /if: \$\{\{ always\(\) \}\}/);
+  assert.match(reusableWorkflow, /rm -f .*cloudflare-runtime-secrets\.json/);
+  assert.match(reusableWorkflow, /actions\/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd/);
+  assert.match(reusableWorkflow, /setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6/);
 });
 
-test("workflow fails before build/deploy when required environment configuration is absent", () => {
-  assert.match(workflow, /VITE_TURNSTILE_SITE_KEY: \$\{\{ secrets\.VITE_TURNSTILE_SITE_KEY \}\}/);
-  assert.match(workflow, /CLOUDFLARE_ACCOUNT_ID: \$\{\{ secrets\.CLOUDFLARE_ACCOUNT_ID \}\}/);
-  assert.match(workflow, /CLOUDFLARE_API_TOKEN: \$\{\{ secrets\.CLOUDFLARE_API_TOKEN \}\}/);
-  assert.match(workflow, /Validate public build configuration/);
-  assert.match(workflow, /Validate Cloudflare CI credentials/);
-  assert.match(workflow, /node scripts\/prepare-cloudflare-deploy\.mjs/);
-  assert.match(workflow, /node scripts\/verify-cloudflare-deploy\.mjs/);
-});
-
-test("runtime secret writer emits only the approved server keys with restrictive permissions", () => {
+test("Worker secret file contains only narrow gateway credentials", () => {
   const directory = mkdtempSync(path.join(tmpdir(), "genesis-cloudflare-secrets-"));
   const output = path.join(directory, "runtime.json");
+  const gatewaySecret = "g".repeat(40);
 
   try {
     const result = spawnSync(process.execPath, [writerPath.pathname, output], {
       encoding: "utf8",
       env: {
         ...process.env,
-        SUPABASE_URL: "https://example.supabase.co",
-        SUPABASE_SERVICE_ROLE_KEY: "service-role-placeholder",
-        REQUEST_FINGERPRINT_KEY: "f".repeat(40),
-        REQUEST_FINGERPRINT_KEY_ID: "request-v1",
-        IP_HASH_KEY: "i".repeat(40),
-        TURNSTILE_SECRET_KEY: "turnstile-placeholder",
-        TURNSTILE_ALLOWED_HOSTNAMES: "example.com,www.example.com",
-        TELEGRAM_BOT_TOKEN: "telegram-placeholder",
-        TELEGRAM_ADMIN_CHAT_ID: "-1001234567890",
-        CLOUDFLARE_ACCOUNT_ID: "must-not-enter-worker-secret-file",
-        CLOUDFLARE_API_TOKEN: "must-not-enter-worker-secret-file",
+        SUPABASE_FUNCTION_BASE_URL: "https://example.supabase.co/functions/v1",
+        EDGE_GATEWAY_KEYS_JSON: JSON.stringify({ "gateway-v1": gatewaySecret }),
+        EDGE_GATEWAY_PRIMARY_KEY_ID: "gateway-v1",
+        IP_HASH_SECRET: "i".repeat(40),
+        SUPABASE_SERVICE_ROLE_KEY: "must-not-enter-worker-secret-file",
+        REQUEST_FINGERPRINT_KEY: "must-not-enter-worker-secret-file",
+        TURNSTILE_SECRET_KEY: "must-not-enter-worker-secret-file",
+        TELEGRAM_BOT_TOKEN: "must-not-enter-worker-secret-file",
         SMS_API_KEY: "must-not-enter-worker-secret-file",
       },
     });
 
     assert.equal(result.status, 0, `${result.stderr}\n${result.stdout}`);
     const parsed = JSON.parse(readFileSync(output, "utf8")) as Record<string, string>;
-    assert.deepEqual(Object.keys(parsed).sort(), [...runtimeSecretNames].sort());
-    assert.equal("CLOUDFLARE_API_TOKEN" in parsed, false);
-    assert.equal("CLOUDFLARE_ACCOUNT_ID" in parsed, false);
+    assert.deepEqual(Object.keys(parsed).sort(), [...workerSecretNames].sort());
+    for (const name of forbiddenWorkerSecrets) assert.equal(name in parsed, false, name);
     assert.equal("SMS_API_KEY" in parsed, false);
 
     if (process.platform !== "win32") {
@@ -99,11 +122,52 @@ test("runtime secret writer emits only the approved server keys with restrictive
   }
 });
 
-test("deployment source contains no SMS provider dependency", () => {
-  assert.equal(/SMS_[A-Z0-9_]+/.test(workflow), false);
-  assert.equal(/SMS_[A-Z0-9_]+/.test(writer), false);
-  for (const name of runtimeSecretNames) {
+test("workflow never injects privileged Edge Function secrets into Cloudflare", () => {
+  for (const name of workerSecretNames) {
     assert.match(workflow, new RegExp(`secrets\\.${name}`));
     assert.match(writer, new RegExp(`\\b${name}\\b`));
+  }
+  for (const name of forbiddenWorkerSecrets) {
+    assert.equal(new RegExp(`secrets\\.${name}`).test(workflow), false, name);
+  }
+  assert.equal(/SMS_[A-Z0-9_]+/.test(workflow), false);
+  assert.equal(/SMS_[A-Z0-9_]+/.test(writer), false);
+});
+
+test("entry workflow isolates preview and production credentials", () => {
+  for (const target of ["PREVIEW", "PRODUCTION"] as const) {
+    for (const name of [
+      "CLOUDFLARE_ACCOUNT_ID",
+      "CLOUDFLARE_API_TOKEN",
+      "VITE_TURNSTILE_SITE_KEY",
+      ...workerSecretNames,
+    ] as const) {
+      assert.match(entryWorkflow, new RegExp(`secrets\\.${target}_${name}`));
+    }
+  }
+});
+
+test("Worker secret writer rejects non-canonical or duplicate gateway key maps", () => {
+  const directory = mkdtempSync(path.join(tmpdir(), "genesis-cloudflare-invalid-secrets-"));
+  const output = path.join(directory, "runtime.json");
+  const common = {
+    ...process.env,
+    SUPABASE_FUNCTION_BASE_URL: "https://example.supabase.co/functions/v1",
+    EDGE_GATEWAY_PRIMARY_KEY_ID: "gateway-v1",
+    IP_HASH_SECRET: "i".repeat(40),
+  };
+  try {
+    for (const raw of [
+      `{ "gateway-v1": "${"g".repeat(40)}" }`,
+      `{"gateway-v1":"${"g".repeat(40)}","gateway-v1":"${"h".repeat(40)}"}`,
+    ]) {
+      const result = spawnSync(process.execPath, [writerPath.pathname, output], {
+        encoding: "utf8",
+        env: { ...common, EDGE_GATEWAY_KEYS_JSON: raw },
+      });
+      assert.notEqual(result.status, 0);
+    }
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
   }
 });

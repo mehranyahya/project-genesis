@@ -16,12 +16,12 @@ if (deployTarget !== "" && deployTarget !== "preview" && deployTarget !== "produ
   throw new Error("DEPLOY_TARGET must be preview or production when provided");
 }
 
-function normalizePublicSiteOrigin(value) {
+function normalizeOrigin(value, label) {
   let parsed;
   try {
     parsed = new URL(value);
   } catch {
-    throw new Error("PUBLIC_SITE_ORIGIN must be a valid URL");
+    throw new Error(`${label} must be a valid URL`);
   }
 
   if (
@@ -32,19 +32,37 @@ function normalizePublicSiteOrigin(value) {
     parsed.search !== "" ||
     parsed.hash !== ""
   ) {
-    throw new Error(
-      "PUBLIC_SITE_ORIGIN must be an HTTPS origin without credentials, path, query or hash",
-    );
+    throw new Error(`${label} must be a clean HTTPS origin`);
   }
 
   return parsed.origin;
 }
 
-let publicSiteOrigin = null;
-if (deployTarget === "production") {
-  const rawOrigin = process.env["PUBLIC_SITE_ORIGIN"]?.trim() ?? "";
-  if (rawOrigin === "") throw new Error("PUBLIC_SITE_ORIGIN is required for production");
-  publicSiteOrigin = normalizePublicSiteOrigin(rawOrigin);
+function normalizeAllowedOrigins(value) {
+  const origins = value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item, index) => normalizeOrigin(item, `ALLOWED_ORIGINS[${index}]`));
+  if (origins.length === 0) throw new Error("ALLOWED_ORIGINS must not be empty");
+  if (new Set(origins).size !== origins.length) {
+    throw new Error("ALLOWED_ORIGINS must not contain duplicates");
+  }
+  return origins.join(",");
+}
+
+let siteUrl = null;
+let allowedOrigins = null;
+if (deployTarget !== "") {
+  const rawSiteUrl = process.env["SITE_URL"]?.trim() ?? "";
+  const rawAllowedOrigins = process.env["ALLOWED_ORIGINS"]?.trim() ?? "";
+  if (rawSiteUrl === "") throw new Error("SITE_URL is required for deployment");
+  if (rawAllowedOrigins === "") throw new Error("ALLOWED_ORIGINS is required for deployment");
+  siteUrl = normalizeOrigin(rawSiteUrl, "SITE_URL");
+  allowedOrigins = normalizeAllowedOrigins(rawAllowedOrigins);
+  if (!allowedOrigins.split(",").includes(siteUrl)) {
+    throw new Error("ALLOWED_ORIGINS must include SITE_URL");
+  }
 }
 
 const raw = await readFile(CONFIG_PATH, "utf8");
@@ -85,7 +103,7 @@ const rateLimits = Array.isArray(config.ratelimits)
   : [];
 config.ratelimits = [...rateLimits, SUBMIT_FLOOD_LIMITER];
 
-if (deployTarget !== "") {
+if (deployTarget !== "" && siteUrl !== null && allowedOrigins !== null) {
   const vars =
     typeof config.vars === "object" && config.vars !== null && !Array.isArray(config.vars)
       ? { ...config.vars }
@@ -94,8 +112,9 @@ if (deployTarget !== "") {
   config.vars = {
     ...vars,
     DEPLOY_TARGET: deployTarget,
+    SITE_URL: siteUrl,
+    ALLOWED_ORIGINS: allowedOrigins,
     PUBLIC_INDEXING: deployTarget === "production" ? "true" : "false",
-    ...(publicSiteOrigin === null ? {} : { PUBLIC_SITE_ORIGIN: publicSiteOrigin }),
   };
 }
 

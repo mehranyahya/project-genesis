@@ -213,18 +213,34 @@ test("RPC outcomes map to the exact public HTTP contract", async () => {
   }
 });
 
-test("server route is POST-only and isolates all backend code from the UI", () => {
+test("TanStack submit route is POST-only fail-closed while Worker owns the signed gateway", () => {
   const route = readFileSync(new URL("../routes/api/submit-request.ts", import.meta.url), "utf8");
+  const server = readFileSync(new URL("../server.ts", import.meta.url), "utf8");
+  const gateway = readFileSync(new URL("./gateway-submit.server.ts", import.meta.url), "utf8");
+
   assert.match(route, /createFileRoute\("\/api\/submit-request"\)/);
   assert.match(route, /POST:/);
   assert.equal(/GET:|PUT:|PATCH:|DELETE:/.test(route), false);
-  assert.match(route, /request-api\.route\.server/);
-  assert.equal(/request-api\.server["']/.test(route), false);
+  assert.match(route, /TEMPORARILY_UNAVAILABLE/);
+  assert.equal(/request-api\.(route\.)?server/.test(route), false);
   assert.equal(/SUPABASE|SERVICE_ROLE|process\.env|console\./.test(route), false);
   assert.equal(/component\s*:/.test(route), false);
+
+  assert.match(server, /handleSignedSubmitGateway\(request, env\)/);
+  const gatewayPosition = server.indexOf("handleSignedSubmitGateway(request, env)");
+  const tanstackPosition = server.indexOf("const handler = await getServerEntry()");
+  assert.ok(gatewayPosition >= 0 && tanstackPosition > gatewayPosition);
+
+  assert.match(gateway, /SUPABASE_FUNCTION_BASE_URL/);
+  assert.match(gateway, /EDGE_GATEWAY_KEYS_JSON/);
+  assert.match(gateway, /EDGE_GATEWAY_PRIMARY_KEY_ID/);
+  assert.match(gateway, /IP_HASH_SECRET/);
+  assert.equal(/SUPABASE_SERVICE_ROLE_KEY/.test(gateway), false);
+  assert.equal(/TURNSTILE_SECRET_KEY/.test(gateway), false);
+  assert.equal(/TELEGRAM_BOT_TOKEN/.test(gateway), false);
 });
 
-test("request API server module never logs or persists a raw connecting IP", () => {
+test("legacy request API module never logs or persists a raw connecting IP", () => {
   const source = readFileSync(new URL("./request-api.server.ts", import.meta.url), "utf8");
   assert.equal(/console\.(log|info|warn|error)/.test(source), false);
   assert.equal(/x-forwarded-for/i.test(source), false);

@@ -1,30 +1,32 @@
 export function renderErrorPage(): string {
   return `<!doctype html>
-<html lang="en">
+<html lang="fa" dir="rtl">
   <head>
     <meta charset="utf-8" />
-    <title>This page didn't load</title>
+    <title>بارگذاری صفحه انجام نشد — مهرآرا</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
-      body { font: 15px/1.5 system-ui, -apple-system, sans-serif; background: var(--color-canvas, Canvas); color: var(--color-text-primary, CanvasText); display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
-      .card { max-width: 28rem; width: 100%; text-align: center; padding: 2rem; }
+      * { box-sizing: border-box; }
+      body { font: 15px/1.9 system-ui, sans-serif; background: Canvas; color: CanvasText; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1.5rem; }
+      main { max-width: 30rem; width: 100%; text-align: center; padding: 2rem; border: 1px solid GrayText; }
       h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
-      p { color: var(--color-text-secondary, GrayText); margin: 0 0 1.5rem; }
+      p { color: GrayText; margin: 0 0 1.5rem; }
       .actions { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
-      a, button { padding: 0.5rem 1rem; border-radius: 0; font: inherit; cursor: pointer; text-decoration: none; border: 1px solid transparent; }
-      .primary { background: var(--color-action-primary, ButtonText); color: var(--color-text-inverse, Canvas); }
-      .secondary { background: var(--color-surface, Canvas); color: var(--color-text-primary, CanvasText); border-color: var(--color-border-subtle, GrayText); }
+      a { min-height: 2.75rem; padding: 0.5rem 1rem; border-radius: 2px; font: inherit; text-decoration: none; border: 1px solid GrayText; display: inline-flex; align-items: center; }
+      a:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+      .primary { background: ButtonText; color: ButtonFace; border-color: ButtonText; }
+      .secondary { background: Canvas; color: CanvasText; }
     </style>
   </head>
   <body>
-    <div class="card">
-      <h1>This page didn't load</h1>
-      <p>Something went wrong on our end. You can try refreshing or head back home.</p>
+    <main>
+      <h1>بارگذاری این صفحه انجام نشد</h1>
+      <p>مشکلی پیش آمد. می‌توانید دوباره تلاش کنید یا به صفحهٔ اصلی برگردید.</p>
       <div class="actions">
-        <button class="primary" onclick="location.reload()">Try again</button>
-        <a class="secondary" href="/">Go home</a>
+        <a class="primary" href="">تلاش دوباره</a>
+        <a class="secondary" href="/">بازگشت به خانه</a>
       </div>
-    </div>
+    </main>
   </body>
 </html>`;
 }

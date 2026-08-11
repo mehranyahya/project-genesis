@@ -21,6 +21,10 @@ const deployWorkflow = readFileSync(
   new URL("../../.github/workflows/deploy-cloudflare.yml", import.meta.url),
   "utf8",
 );
+const reusableDeployWorkflow = readFileSync(
+  new URL("../../.github/workflows/deploy-cloudflare-reusable.yml", import.meta.url),
+  "utf8",
+);
 
 test("indexing fails closed unless PUBLIC_INDEXING is exactly true", async () => {
   const missing = applyDeploymentIndexingHeaders(new Response("missing"), {});
@@ -62,37 +66,38 @@ test("repository robots policy remains production-safe before target-specific pr
   assert.equal(sourceRobots, "User-agent: *\nAllow: /\nDisallow: /api/\n");
 });
 
-test("deployment indexing script closes preview and requires a real production sitemap origin", () => {
+test("deployment indexing script closes preview and requires production SITE_URL", () => {
   assert.match(prepareIndexing, /target !== "preview" && target !== "production"/);
   assert.match(prepareIndexing, /"User-agent: \*\\nDisallow: \/\\n"/);
   assert.match(prepareIndexing, /rm\(sitemapPath, \{ force: true \}\)/);
-  assert.match(prepareIndexing, /PUBLIC_SITE_ORIGIN is required for production/);
+  assert.match(prepareIndexing, /SITE_URL is required for production/);
   assert.match(prepareIndexing, /Sitemap: \$\{origin\}\/sitemap\.xml/);
-  assert.equal(prepareIndexing.includes("http://"), false);
+  assert.equal(prepareIndexing.includes("PUBLIC_SITE_ORIGIN"), false);
 });
 
-test("Wrangler target bindings expose sitemap only for a configured production origin", () => {
+test("Wrangler target bindings expose SITE_URL, origin allowlist and exact indexing mode", () => {
   assert.match(prepareCloudflare, /DEPLOY_TARGET/);
   assert.match(prepareCloudflare, /PUBLIC_INDEXING/);
-  assert.match(prepareCloudflare, /PUBLIC_SITE_ORIGIN/);
+  assert.match(prepareCloudflare, /SITE_URL/);
+  assert.match(prepareCloudflare, /ALLOWED_ORIGINS/);
   assert.match(prepareCloudflare, /deployTarget === "production" \? "true" : "false"/);
   assert.match(prepareCloudflare, /run_worker_first: \["\/api\/\*", "\/sitemap\.xml"\]/);
   assert.match(verifyCloudflare, /expectedIndexing/);
-  assert.match(verifyCloudflare, /config\.vars\?\.PUBLIC_INDEXING/);
-  assert.match(verifyCloudflare, /config\.vars\?\.PUBLIC_SITE_ORIGIN/);
-  assert.match(verifyCloudflare, /Preview deployment must not expose PUBLIC_SITE_ORIGIN/);
+  assert.match(verifyCloudflare, /config\.vars\?\.SITE_URL/);
+  assert.match(verifyCloudflare, /config\.vars\?\.ALLOWED_ORIGINS/);
+  assert.match(verifyCloudflare, /Legacy PUBLIC_SITE_ORIGIN binding must not be emitted/);
 
-  assert.match(deployWorkflow, /Prepare deployment indexing policy/);
-  assert.match(deployWorkflow, /node scripts\/prepare-deploy-indexing\.mjs "\$DEPLOY_TARGET"/);
-  assert.match(deployWorkflow, /PUBLIC_SITE_ORIGIN: \$\{\{ vars\.PUBLIC_SITE_ORIGIN \}\}/);
-  assert.equal(/secrets\.PUBLIC_SITE_ORIGIN/.test(deployWorkflow), false);
+  assert.match(reusableDeployWorkflow, /Prepare deployment indexing policy/);
+  assert.match(
+    reusableDeployWorkflow,
+    /node scripts\/prepare-deploy-indexing\.mjs "\$DEPLOY_TARGET"/,
+  );
+  assert.match(deployWorkflow, /site_url: \$\{\{ vars\.PREVIEW_SITE_URL \}\}/);
+  assert.match(deployWorkflow, /site_url: \$\{\{ vars\.PRODUCTION_SITE_URL \}\}/);
+  assert.match(deployWorkflow, /allowed_origins: \$\{\{ vars\.PREVIEW_ALLOWED_ORIGINS \}\}/);
+  assert.match(deployWorkflow, /allowed_origins: \$\{\{ vars\.PRODUCTION_ALLOWED_ORIGINS \}\}/);
+  assert.equal(/secrets\.SITE_URL/.test(deployWorkflow), false);
+  assert.equal(/secrets\.ALLOWED_ORIGINS/.test(deployWorkflow), false);
   assert.equal(/secrets\.PUBLIC_INDEXING/.test(deployWorkflow), false);
-  assert.equal(/secrets\.DEPLOY_TARGET/.test(deployWorkflow), false);
-
-  const targetEnvOccurrences =
-    deployWorkflow.match(/DEPLOY_TARGET: \$\{\{ inputs\.target \}\}/g) ?? [];
-  assert.ok(targetEnvOccurrences.length >= 3);
-  const originVarOccurrences =
-    deployWorkflow.match(/PUBLIC_SITE_ORIGIN: \$\{\{ vars\.PUBLIC_SITE_ORIGIN \}\}/g) ?? [];
-  assert.ok(originVarOccurrences.length >= 3);
+  assert.equal(/^\s*environment:/m.test(`${deployWorkflow}\n${reusableDeployWorkflow}`), false);
 });

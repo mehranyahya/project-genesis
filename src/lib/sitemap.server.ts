@@ -30,12 +30,12 @@ function envString(env: unknown, name: string): string | null {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
 }
 
-export function normalizePublicSiteOrigin(value: string): string {
+export function normalizeSiteUrl(value: string): string {
   let parsed: URL;
   try {
     parsed = new URL(value);
   } catch {
-    throw new Error("PUBLIC_SITE_ORIGIN must be a valid URL");
+    throw new Error("SITE_URL must be a valid URL");
   }
 
   if (
@@ -46,9 +46,7 @@ export function normalizePublicSiteOrigin(value: string): string {
     parsed.search !== "" ||
     parsed.hash !== ""
   ) {
-    throw new Error(
-      "PUBLIC_SITE_ORIGIN must be an HTTPS origin without credentials, path, query or hash",
-    );
+    throw new Error("SITE_URL must be an HTTPS origin without credentials, path, query or hash");
   }
 
   return parsed.origin;
@@ -69,7 +67,7 @@ function normalizedLastModified(value: string): string | null {
 }
 
 export function buildSitemapXml(origin: string, products: readonly SitemapProduct[]): string {
-  const normalizedOrigin = normalizePublicSiteOrigin(origin);
+  const normalizedOrigin = normalizeSiteUrl(origin);
   const entries = new Map<string, string | null>();
 
   for (const path of FIXED_SITEMAP_PATHS) entries.set(path, null);
@@ -138,12 +136,12 @@ export async function handleSitemapRequest(
     return plainResponse("Not Found", 404);
   }
 
-  const rawOrigin = envString(env, "PUBLIC_SITE_ORIGIN");
+  const rawOrigin = envString(env, "SITE_URL");
   if (rawOrigin === null) return plainResponse("Service Unavailable", 503);
 
   let origin: string;
   try {
-    origin = normalizePublicSiteOrigin(rawOrigin);
+    origin = normalizeSiteUrl(rawOrigin);
   } catch {
     return plainResponse("Service Unavailable", 503);
   }
