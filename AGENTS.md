@@ -1,5 +1,5 @@
-<!-- V23.3-EXEC-01 · Mehrara-Launch-Core-Final-v23.3 -->
-# Mehrara agent contract
+<!-- V23.3-EXEC-02 · Project-Genesis-Launch-Core-v23.3 -->
+# Project Genesis agent contract
 
 ## Product identity
 
@@ -8,7 +8,7 @@
 ## Execution control
 
 - حالت پیش‌فرض `STOP` است. هر Prompt فقط Scope خودش را اجرا می‌کند و مرحلهٔ بعد، Retry یا Fix تازه بدون اجازهٔ مالک ممنوع است.
-- شناسهٔ فعال فقط `V23.3-EXEC-01` است. هر دستور نسخهٔ ۲۳٫۲ یا قدیمی‌تر منسوخ است. قراردادهای Backend، Database، Security و Routing تثبیت‌شده در V23.2 بدون کاهش یا بازطراحی حفظ می‌شوند؛ V23.3 قرارداد بصری و Delivery Gateها را یکپارچه می‌کند.
+- شناسهٔ فعال فقط `V23.3-EXEC-02` است. هر دستور نسخهٔ ۲۳٫۲ یا قدیمی‌تر منسوخ است. قراردادهای Backend، Database، Security و Routing تثبیت‌شده در V23.2 بدون کاهش یا بازطراحی حفظ می‌شوند؛ V23.3 قرارداد بصری و Delivery Gateها را یکپارچه می‌کند.
 - `Bootstrap 00` فقط پس از Workspace Knowledge خالی، Workspace Skill صفر، Default access برابر Workspace، People تأییدشده و `Enable Cloud = Never allow` اجرا می‌شود. Orchestration بیرونی چهار Upload/File ID و Knowledge attachment صفر، Create با `wait=false` و Set/Get فوری `visibility=private` پیش از Widget/Preview/Poll دارد؛ در Pro این مقدار Workspace-private است، نه Restricted فقط‌مالک، و Share preview link عمومی ساخته نمی‌شود. initial_message فقط همین `AGENTS.md` و سه Asset فونت/OFL را byte-for-byte نصب می‌کند و Feature، Route، Package، Backend، Integration و Publish در آن ممنوع‌اند. Prompt ۱ فقط پس از `BOOTSTRAP 00 PASS` و Get-empty/Set/Get دقیق Project Knowledge اجرا می‌شود و هیچ خروجی UI قبلی فرض نمی‌کند. از Prompt ۲ به بعد Gate مرحلهٔ قبل باید ثبت شده باشد.
 - Lovable فقط UI Scaffold را می‌سازد. Backend، Migration، Deploy، GitHub Workflow، Content واقعی و عملیات خارج از Promptهای Lovable هستند.
 - Availability کاتالوگ Workspace برای Cloud/Supabase اتصال پروژه نیست. پیش از Prompt ۱ باید `get_database_status.enabled=false`، `get_project.is_published=false`، Screenshot نبود Supabase خارجی متصل و نبود Package/Import/Client/URL/Key پیکربندی‌شدهٔ Supabase در Source/Dependency/Env ثبت شده باشد.
@@ -24,7 +24,7 @@
 ## UI contract
 
 - شخصیت کل سیستم `Quiet Material Intelligence` است: آرام، معماری‌محور، دقیق، قابل‌اعتماد و متریال‌محور. `Quiet Monumental Luxury` فقط لحن زیرشاخهٔ سنگ مزار است و Theme، Token set یا Fork جداگانه نمی‌سازد.
-- فارسی، `lang="fa"`, `dir="rtl"`, Mobile-first و Vazirmatn محلی وزن ۴۰۰/۷۰۰ با Fixture `۱۲۰×۶۰ «مهرآرا»… MA-1001` اجباری است. `letter-spacing: normal` و line-height متن بدنه دقیقاً `1.9` است.
+- فارسی، `lang="fa"`, `dir="rtl"`, Mobile-first و Vazirmatn محلی وزن ۴۰۰/۷۰۰ با Fixture `۱۲۰×۶۰ «نام برند»… REQ-1001` اجباری است. `letter-spacing: normal` و line-height متن بدنه دقیقاً `1.9` است.
 - فاز اول Light-first است. Dark Mode، Toggle، ذخیرهٔ ترجیح و تغییر خودکار سیستم ممنوع است؛ Componentها فقط Token معنایی مصرف می‌کنند.
 - Primitiveهای مجاز فقط `#F3F1EB`, `#FCFBF8`, `#F2F2F0`, `#171918`, `#5C605B`, `#D8D3C9`, `#6B706A`, `#173F3A`, `#8F4C2F`, `#111413` هستند. Raw Color بیرون فایل Token/Test ممنوع است و `#D8D3C9` مرز تعاملی نیست.
 - کارت و قاب محتوا radius صفر دارند. Input و دکمهٔ استاندارد حداکثر `2px` و Border استاندارد `1px` است. Gradient، Carousel خودکار، Spinner، Parallax و Animation library ممنوع‌اند.
@@ -49,7 +49,7 @@ Registry شرایط فقط Server/Build است. JSON/Markdown مستقیم دا�
 - تقدم وضعیت قیمت `review > estimate > fixed` است. مبلغ Client هرگز مبنای ثبت نیست.
 - سنگ ساختمانی فقط نوع‌های `marble|granite|travertine|crystal` و کاربردهای `facade|flooring|stairs|interior_wall|countertop|other` دارد؛ `area_m2` اختیاری/عددی است، `area_estimate` ممنوع و کل درخواست در فاز اول `review` است. برای `application=other` توضیح Trim‌شدهٔ ۱۰–۵۰۰ نویسه در `customer_note` اجباری است و داخل Snapshot گزینه‌ها قرار نمی‌گیرد.
 - Option شناخته‌شدهٔ غیرفعال/ناسازگار: `409 SELECTION_UNAVAILABLE`. شناسهٔ ناشناخته/Payload بدشکل: `422 VALIDATION_ERROR`.
-- Success فقط پس از پاسخ معتبر `REQUEST_CREATED|REQUEST_REPLAYED` و کد مطابق `^MA-[1-9][0-9]{3,}$` نمایش داده می‌شود. Timeout یا خطا Success جعلی نمی‌سازد و State فرم را پاک نمی‌کند.
+- Success فقط پس از پاسخ معتبر `REQUEST_CREATED|REQUEST_REPLAYED` و کد مطابق `^[A-Z][A-Z0-9]{1,9}-[1-9][0-9]{3,}$` نمایش داده می‌شود. Timeout یا خطا Success جعلی نمی‌سازد و State فرم را پاک نمی‌کند.
 - نام، موبایل، شهر، محل و توضیح در URL، Query، Storage پایدار یا Log قرار نمی‌گیرند. Request Draft پیش از فرم فاقد PII است.
 
 ## Verification
