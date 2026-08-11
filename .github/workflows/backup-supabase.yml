@@ -1,0 +1,201 @@
+name: Supabase database backup
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 2 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-database-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Encrypted logical backup
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_SESSION_POOLER_URL: ${{ secrets.SUPABASE_DB_SESSION_POOLER_URL }}
+      BACKUP_ENCRYPTION_RECIPIENT: ${{ secrets.BACKUP_ENCRYPTION_RECIPIENT }}
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BACKUP_BUCKET: ${{ secrets.R2_BACKUP_BUCKET }}
+      HEALTHCHECKS_BACKUP_PING_URL: ${{ secrets.HEALTHCHECKS_BACKUP_PING_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      AWS_EC2_METADATA_DISABLED: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@aa3515eac405eac768fa4a72147c22d88a283c7b # v3
+        with:
+          version: 2.84.2
+
+      - name: Validate backup configuration
+        id: preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+
+          for secret_name in             SUPABASE_PROJECT_REF             SUPABASE_DB_SESSION_POOLER_URL             BACKUP_ENCRYPTION_RECIPIENT
+          do
+            if [[ -z "${!secret_name:-}" ]]; then
+              echo "::error::Required backup secret is not configured: ${secret_name}"
+              exit 1
+            fi
+          done
+
+          if [[ "$SUPABASE_DB_SESSION_POOLER_URL" != postgresql://* ]]; then
+            echo "::error::SUPABASE_DB_SESSION_POOLER_URL must be a PostgreSQL connection URL."
+            exit 1
+          fi
+          if [[ "$SUPABASE_DB_SESSION_POOLER_URL" != *"$SUPABASE_PROJECT_REF"* ]]; then
+            echo "::error::The database URL does not match SUPABASE_PROJECT_REF."
+            exit 1
+          fi
+
+          case "$BACKUP_ENCRYPTION_RECIPIENT" in
+            age1*|ssh-*) ;;
+            *)
+              echo "::error::BACKUP_ENCRYPTION_RECIPIENT must be an age or SSH recipient."
+              exit 1
+              ;;
+          esac
+
+          r2_configured=0
+          for value in             "$R2_ACCOUNT_ID"             "$R2_ACCESS_KEY_ID"             "$R2_SECRET_ACCESS_KEY"             "$R2_BACKUP_BUCKET"
+          do
+            if [[ -n "$value" ]]; then
+              r2_configured=$((r2_configured + 1))
+            fi
+          done
+
+          if (( r2_configured != 0 && r2_configured != 4 )); then
+            echo "::error::Configure all four R2 backup secrets or leave all four empty."
+            exit 1
+          fi
+          if (( r2_configured == 4 )); then
+            echo "r2_enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "r2_enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::R2 is not configured; only the encrypted 7-day Actions artifact will be retained."
+          fi
+
+      - name: Install age
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends age
+
+      - name: Dump, checksum and encrypt
+        id: backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+
+          backup_root="$RUNNER_TEMP/supabase-backup"
+          stamp="$(date -u +'%Y%m%dT%H%M%SZ')"
+          backup_dir="$backup_root/$stamp"
+          mkdir -p "$backup_dir"
+
+          supabase db dump             --db-url "$SUPABASE_DB_SESSION_POOLER_URL"             -f "$backup_dir/roles.sql"             --role-only
+          supabase db dump             --db-url "$SUPABASE_DB_SESSION_POOLER_URL"             -f "$backup_dir/schema.sql"
+          supabase db dump             --db-url "$SUPABASE_DB_SESSION_POOLER_URL"             -f "$backup_dir/data.sql"             --use-copy             --data-only             -x "storage.buckets_vectors"             -x "storage.vector_indexes"
+          supabase db dump             --db-url "$SUPABASE_DB_SESSION_POOLER_URL"             -f "$backup_dir/history_schema.sql"             --schema supabase_migrations
+          supabase db dump             --db-url "$SUPABASE_DB_SESSION_POOLER_URL"             -f "$backup_dir/history_data.sql"             --use-copy             --data-only             --schema supabase_migrations
+
+          (
+            cd "$backup_dir"
+            sha256sum               roles.sql               schema.sql               data.sql               history_schema.sql               history_data.sql               > SHA256SUMS
+          )
+
+          jq -n             --arg project_ref "$SUPABASE_PROJECT_REF"             --arg created_at "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"             --arg repository "$GITHUB_REPOSITORY"             --arg git_sha "$GITHUB_SHA"             --arg run_id "$GITHUB_RUN_ID"             --arg run_attempt "$GITHUB_RUN_ATTEMPT"             --arg supabase_cli_version "$(supabase --version)"             '{
+              project_ref: $project_ref,
+              created_at: $created_at,
+              repository: $repository,
+              git_sha: $git_sha,
+              run_id: $run_id,
+              run_attempt: $run_attempt,
+              supabase_cli_version: $supabase_cli_version
+            }' > "$backup_dir/METADATA.json"
+
+          archive="$backup_root/supabase-$SUPABASE_PROJECT_REF-$stamp.tar.gz"
+          encrypted="$archive.age"
+          checksum="$encrypted.sha256"
+          tar -C "$backup_root" -czf "$archive" "$stamp"
+          age --encrypt             --recipient "$BACKUP_ENCRYPTION_RECIPIENT"             --output "$encrypted"             "$archive"
+          (
+            cd "$backup_root"
+            sha256sum "$(basename "$encrypted")" > "$(basename "$checksum")"
+          )
+
+          rm -f "$archive"
+          rm -rf "$backup_dir"
+
+          object_key="supabase/$SUPABASE_PROJECT_REF/$stamp/$(basename "$encrypted")"
+          echo "encrypted=$encrypted" >> "$GITHUB_OUTPUT"
+          echo "checksum=$checksum" >> "$GITHUB_OUTPUT"
+          echo "object_key=$object_key" >> "$GITHUB_OUTPUT"
+
+      - name: Upload encrypted Actions artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: supabase-backup-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ steps.backup.outputs.encrypted }}
+            ${{ steps.backup.outputs.checksum }}
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+      - name: Upload durable copy to R2
+        if: steps.preflight.outputs.r2_enabled == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v aws >/dev/null
+
+          endpoint="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+          encrypted="${{ steps.backup.outputs.encrypted }}"
+          checksum="${{ steps.backup.outputs.checksum }}"
+          object_key="${{ steps.backup.outputs.object_key }}"
+
+          aws s3 cp             "$encrypted"             "s3://$R2_BACKUP_BUCKET/$object_key"             --endpoint-url "$endpoint"             --no-progress             --only-show-errors
+          aws s3 cp             "$checksum"             "s3://$R2_BACKUP_BUCKET/$object_key.sha256"             --endpoint-url "$endpoint"             --no-progress             --only-show-errors
+
+          remote_size="$(aws s3api head-object             --bucket "$R2_BACKUP_BUCKET"             --key "$object_key"             --endpoint-url "$endpoint"             --query ContentLength             --output text)"
+          local_size="$(stat -c '%s' "$encrypted")"
+          if [[ "$remote_size" != "$local_size" ]]; then
+            echo "::error::R2 backup size verification failed."
+            exit 1
+          fi
+
+      - name: Ping backup monitor
+        if: success() && env.HEALTHCHECKS_BACKUP_PING_URL != ''
+        shell: bash
+        run: |
+          curl             --fail             --silent             --show-error             --max-time 10             --retry 2             "$HEALTHCHECKS_BACKUP_PING_URL"             >/dev/null
+
+      - name: Ping backup monitor on failure
+        if: failure() && env.HEALTHCHECKS_BACKUP_PING_URL != ''
+        shell: bash
+        run: |
+          curl             --fail             --silent             --show-error             --max-time 10             --retry 2             "$HEALTHCHECKS_BACKUP_PING_URL/fail"             >/dev/null
+
+      - name: Remove runner backup files
+        if: always()
+        shell: bash
+        run: |
+          rm -rf "$RUNNER_TEMP/supabase-backup"
