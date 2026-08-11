@@ -72,7 +72,8 @@ begin
      or jsonb_typeof(p_risk_flags) <> 'array'
      or not (p_risk_flags <@ '["shared_ip_volume","turnstile_no_token","turnstile_unavailable","fast_submit_signal","repeat_phone_short_window"]'::jsonb)
      or (p_ip_hash is not null and p_ip_hash !~ '^[0-9a-f]{64}$')
-     or p_tracking_code_prefix is distinct from 'MA'
+     or p_tracking_code_prefix is null
+     or p_tracking_code_prefix !~ '^[A-Z][A-Z0-9]{1,9}$'
      or p_configuration_snapshot is null
      or jsonb_typeof(p_configuration_snapshot) <> 'object'
      or not (p_configuration_snapshot ?& array['content_schema_version','tracking_code_prefix'])
@@ -267,7 +268,7 @@ begin
     );
 
   v_sequence_value := nextval('public.request_code_seq'::regclass);
-  v_tracking_code := 'MA-' || v_sequence_value::text;
+  v_tracking_code := p_tracking_code_prefix || '-' || v_sequence_value::text;
 
   begin
     insert into public.requests (
