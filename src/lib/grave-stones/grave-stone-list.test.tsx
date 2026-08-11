@@ -133,9 +133,14 @@ test("no price, price status or contact surface exists", () => {
   }
 });
 
-test("no media, image or placeholder surface exists", () => {
-  for (const banned of ["mediaKey", "<img", "backgroundImage", "placeholder", "aspect-"]) {
-    assert.ok(!ALL_CODE.includes(banned), `banned media token: ${banned}`);
+test("approved media uses the shared 4:5 responsive surface without private fields", () => {
+  const card = read(CARD);
+  assert.ok(card.includes("ResponsiveImage"));
+  assert.ok(card.includes("aspect-[4/5]"));
+  assert.ok(card.includes("media={item.media}"));
+  assert.ok(card.includes('fit="contain"'));
+  for (const banned of ["mediaKey", "consentReference", "privacyCleared", "backgroundImage"]) {
+    assert.ok(!ALL_CODE.includes(banned), `private media token: ${banned}`);
   }
 });
 

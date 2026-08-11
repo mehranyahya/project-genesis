@@ -20,6 +20,11 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Trusted build outputs. The canonical empty TypeScript artifact remains tracked.
+public/media/catalog/
+public/media/.catalog-build-*/
+src/data/catalog/catalog.generated.ts.tmp-*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

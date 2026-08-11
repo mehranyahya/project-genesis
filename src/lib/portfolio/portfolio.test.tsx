@@ -111,14 +111,18 @@ test("16-18 quote route, request-form files and the helper are unchanged by this
   assert.ok(!form.includes("buildPortfolioModel"));
 });
 
-test("19-23 media keys, captions, consent and any image surface are absent", () => {
+test("19-23 only browser-safe responsive media reaches the portfolio surface", () => {
   const code = COMPONENT_CODE.replaceAll("text-text-caption", "");
+  const card = read(CARD);
+  assert.ok(card.includes("ResponsiveImage"));
+  assert.ok(card.includes("media={card.media}"));
+  assert.ok(card.includes('fit="cover"'));
+  assert.ok(card.includes("aspect-[4/5]"));
   for (const banned of [
     "mediaKey",
     "caption",
     "consentReference",
-    "<img",
-    "<picture",
+    "privacyCleared",
     "<video",
     "background-image",
     "bg-[url",

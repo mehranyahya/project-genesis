@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { SIZE_FILTER_OPTIONS, TYPE_FILTER_OPTIONS } from "./grave-stone-filter";
+import { ResponsiveImage } from "@/components/media/responsive-image";
 import type { GraveStoneListItem } from "@/lib/grave-stone-list";
 
 export const CARD_CTA_LABEL = "مشاهده و انتخاب";
@@ -12,6 +13,15 @@ export function GraveStoneCard({ item }: { item: GraveStoneListItem }) {
   return (
     <li className="col-span-4 md:col-span-4 lg:col-span-4">
       <article className="flex h-full flex-col gap-3 border border-border-subtle bg-surface p-4">
+        {item.media ? (
+          <div className="aspect-[4/5] w-full overflow-hidden bg-surface-media">
+            <ResponsiveImage
+              media={item.media}
+              fit="contain"
+              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+            />
+          </div>
+        ) : null}
         <h3 className="text-base font-bold text-text-primary">{item.title}</h3>
 
         {item.summary ? <p className="text-sm text-text-secondary">{item.summary}</p> : null}

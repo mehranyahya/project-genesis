@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { ResponsiveImage } from "@/components/media/responsive-image";
 import type { ProductDetailMedia } from "@/lib/product-detail";
 
 export const MEDIA_EMPTY_TEXT = "رسانهٔ تأییدشده‌ای برای این محصول ثبت نشده است.";
@@ -12,8 +13,8 @@ const CONTROL =
   "inline-flex min-h-11 min-w-11 items-center justify-center border border-border-control bg-surface px-4 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] enabled:hover:bg-surface-media disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 /**
- * Neutral 4:5 stage. Structural only: no image element, no media key, no URL
- * resolution, no filter, tint or blend. Locked to the product page (M4).
+ * Neutral 4:5 stage. The first ordered item is the full stone (contain);
+ * subsequent ordered items are details (cover). No filter, tint or blend.
  */
 export function ProductMediaStage({ media }: { media: readonly ProductDetailMedia[] }) {
   const [index, setIndex] = useState(0);
@@ -22,16 +23,16 @@ export function ProductMediaStage({ media }: { media: readonly ProductDetailMedi
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="aspect-[4/5] w-full border border-border-subtle bg-surface-media p-4">
+      <div className="aspect-[4/5] w-full overflow-hidden border border-border-subtle bg-surface-media">
         {current ? (
-          <div className="flex h-full flex-col justify-end gap-2">
-            <p className="text-sm text-text-primary">{current.alt}</p>
-            {current.caption ? (
-              <p className="text-sm text-text-caption">{current.caption}</p>
-            ) : null}
-          </div>
+          <ResponsiveImage
+            media={current}
+            fit={index === 0 ? "contain" : "cover"}
+            sizes="(min-width: 1024px) 58vw, 100vw"
+            priority={index === 0}
+          />
         ) : (
-          <div className="flex h-full items-end">
+          <div className="flex h-full items-end p-4">
             <p className="text-sm text-text-secondary">{MEDIA_EMPTY_TEXT}</p>
           </div>
         )}

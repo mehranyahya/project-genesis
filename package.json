@@ -7,16 +7,27 @@
   "engines": {
     "bun": "1.3.14"
   },
+  "overrides": {
+    "brace-expansion": "1.1.18",
+    "js-yaml": "4.3.1",
+    "sharp": "0.35.3",
+    "undici": "7.29.0",
+    "ws": "8.21.0"
+  },
   "scripts": {
     "dev": "vite dev",
-    "build": "bun run content:check && vite build",
-    "build:dev": "bun run content:check && vite build --mode development",
+    "build": "bun run content:check && bun run catalog:validate && vite build",
+    "build:dev": "bun run content:check && bun run catalog:validate && vite build --mode development",
     "preview": "wrangler dev --config .output/server/wrangler.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "content:generate": "node scripts/generate-content-pages.mjs",
     "content:check": "node scripts/generate-content-pages.mjs --check",
     "content:release-check": "node scripts/generate-content-pages.mjs --release-check",
+    "catalog:build": "node scripts/build-catalog.mjs --build",
+    "catalog:check": "node scripts/build-catalog.mjs --check",
+    "catalog:validate": "node scripts/build-catalog.mjs --validate",
+    "catalog:release-check": "node scripts/build-catalog.mjs --release-check",
     "edge:check": "deno check supabase/functions/submit-request/index.ts supabase/functions/telegram-recovery/index.ts"
   },
   "dependencies": {
@@ -87,11 +98,12 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
-    "nitro": "3.0.260603-beta",
+    "nitro": "3.0.260610-beta",
     "prettier": "^3.7.3",
+    "sharp": "0.35.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.1.5",
-    "wrangler": "4.97.0"
+    "vite": "^8.2.1",
+    "wrangler": "4.120.0"
   }
 }

@@ -2,7 +2,21 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { buildHomeViewModel } from "./home";
-import type { Guide, PortfolioItem, Product } from "./content/types";
+import type { Guide, Media, PortfolioItem, Product } from "./content/types";
+
+function media(seed = "a"): Media {
+  const hash = seed.repeat(64).slice(0, 64);
+  return {
+    src: `/media/catalog/${hash}-800.webp`,
+    srcSet: {
+      avif: `/media/catalog/${hash}-480.avif 480w, /media/catalog/${hash}-800.avif 800w`,
+      webp: `/media/catalog/${hash}-480.webp 480w, /media/catalog/${hash}-800.webp 800w`,
+    },
+    width: 800,
+    height: 1000,
+    alt: "نمای سنگ",
+  };
+}
 
 function product(slug: string, isActive = true): Product {
   return {
@@ -23,7 +37,7 @@ function product(slug: string, isActive = true): Product {
 }
 
 function portfolioItem(id: string): PortfolioItem {
-  return { publicReferenceId: id, media: [] };
+  return { publicReferenceId: id, media: [media("b")] };
 }
 
 function guide(slug: string, summary: string | null = null): Guide {
@@ -45,6 +59,7 @@ test("empty adapter results hide every optional section", () => {
   assert.equal(model.showPortfolio, false);
   assert.equal(model.showGuide, false);
   assert.equal(model.guide, null);
+  assert.equal(model.heroMedia, null);
   assert.deepEqual([...model.products], []);
 });
 
@@ -91,6 +106,16 @@ test("empty summaries are normalised to null", () => {
     products: [withBlank, product("b"), product("c")],
   });
   assert.equal(model.products[0]?.summary, null);
+});
+
+test("the first approved product image becomes hero media", () => {
+  const firstMedia = media("c");
+  const model = buildHomeViewModel({
+    ...EMPTY,
+    products: [product("a"), { ...product("b"), media: [firstMedia] }, product("c")],
+  });
+  assert.deepEqual(model.heroMedia, firstMedia);
+  assert.equal(model.products[1]?.media, firstMedia);
 });
 
 test("portfolio section needs at least one valid item", () => {

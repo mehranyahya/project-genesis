@@ -1,4 +1,5 @@
 import type { PortfolioCard as PortfolioCardModel } from "@/lib/portfolio";
+import { ResponsiveImage } from "@/components/media/responsive-image";
 
 export const PORTFOLIO_CARD_TITLE = "نمونه‌کار";
 export const PORTFOLIO_CTA_LABEL = "مشابه این را می‌خواهم";
@@ -8,7 +9,14 @@ export const SIZE_LABEL = "اندازه";
 export function PortfolioCard({ card }: { card: PortfolioCardModel }) {
   return (
     <li className="col-span-4 md:col-span-4 lg:col-span-4">
-      <article className="flex h-full min-h-0 flex-col gap-3 border border-border-subtle bg-surface p-4 aspect-[4/5] [block-size:auto]">
+      <article className="flex h-full min-h-0 flex-col gap-3 border border-border-subtle bg-surface p-4">
+        <div className="aspect-[4/5] w-full shrink-0 overflow-hidden bg-surface-media">
+          <ResponsiveImage
+            media={card.media}
+            fit="cover"
+            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+          />
+        </div>
         <h3 className="text-base font-bold text-text-primary">
           {PORTFOLIO_CARD_TITLE} <bdi dir="ltr">{card.publicReferenceId}</bdi>
         </h3>

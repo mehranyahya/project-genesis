@@ -11,6 +11,7 @@ import {
   serverFocusDomId,
   sourceIdentity,
 } from "../../components/request-form/request-form";
+import { whatsappHref, whatsappMessage } from "../../components/request-form/request-success";
 import { fieldId } from "../../components/request-form/request-form-fields";
 import type { BuildingStoneValues } from "../building-stone";
 import {
@@ -62,12 +63,32 @@ test("1 no direct JSON, markdown, fixture or asset import exists", () => {
 });
 
 test("2 no absolute URL, secret or backend key appears in the form surface", () => {
-  // The single allowed absolute URL is the WhatsApp deep link built from the
-  // site adapter contact value; no backend URL or key may appear anywhere.
-  for (const match of ALL_CODE.match(/https?:\/\/[^\s`"']*/g) ?? []) {
-    assert.ok(match.startsWith("https://wa.me/"), `unexpected absolute URL ${match}`);
-  }
+  assert.deepEqual(ALL_CODE.match(/https?:\/\/[^\s`"']*/g) ?? [], []);
   assert.ok(!/supabase|api[_-]?key|secret|token\s*=/i.test(ALL_CODE));
+});
+
+test("2a WhatsApp success links accept only canonical adapter URLs", () => {
+  const trackingCode = "MA-1001";
+  const result = whatsappHref("https://wa.me/989123456789", trackingCode);
+  assert.ok(result);
+  const url = new URL(result);
+  assert.equal(url.origin, "https://wa.me");
+  assert.equal(url.pathname, "/989123456789");
+  assert.equal(url.searchParams.get("text"), whatsappMessage(trackingCode));
+
+  for (const bad of [
+    null,
+    "http://wa.me/989123456789",
+    "https://example.com/989123456789",
+    "https://user@wa.me/989123456789",
+    "https://wa.me:444/989123456789",
+    "https://wa.me/123",
+    "https://wa.me/989123456789?x=1",
+    "https://wa.me/989123456789#x",
+  ]) {
+    assert.equal(whatsappHref(bad, trackingCode), null);
+  }
+  assert.equal(whatsappHref("https://wa.me/989123456789", "invalid"), null);
 });
 
 test("3 the submit endpoint is same-origin and used only through the shared module", () => {

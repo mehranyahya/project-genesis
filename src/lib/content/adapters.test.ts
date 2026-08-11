@@ -115,12 +115,9 @@ type _SeoRequired = Expect<
 >;
 
 type _MediaRequired = Expect<
-  Equals<
-    RequiredKeys<Media>,
-    "mediaKey" | "alt" | "caption" | "privacyCleared" | "consentReference"
-  >
+  Equals<RequiredKeys<Media>, "src" | "srcSet" | "width" | "height" | "alt">
 >;
-type _MediaOptional = Expect<Equals<OptionalKeys<Media>, "width" | "height">>;
+type _MediaOptional = Expect<Equals<OptionalKeys<Media>, never>>;
 
 type _GuideRequired = Expect<
   Equals<RequiredKeys<Guide>, "slug" | "title" | "summary" | "body" | "seo" | "updatedAt">
@@ -187,12 +184,13 @@ test("guide adapters remain content-blocked until their Git repository is wired"
   assert.equal(await adapters.getGuide("any"), null);
 });
 
-test("structured content remains an explicit empty scaffold without Worker service-role access", () => {
+test("structured content reads only the generated public artifact without runtime Supabase access", () => {
   const source = readFileSync(new URL("./supabase.server.ts", import.meta.url), "utf8");
-  assert.match(source, /CONTENT_LATER_SCAFFOLD/);
-  assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY|SUPABASE_URL|process\.env|fetch\(/);
-  assert.match(source, /return \[\];/);
-  assert.match(source, /return null;/);
+  assert.match(source, /catalog\.generated/);
+  assert.doesNotMatch(
+    source,
+    /SUPABASE_SERVICE_ROLE_KEY|CONTENT_SUPABASE_SECRET_KEY|SUPABASE_URL|process\.env|fetch\(/,
+  );
 });
 
 test("content adapters cross only approved TanStack server-function boundaries", () => {

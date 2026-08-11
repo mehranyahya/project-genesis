@@ -36,6 +36,10 @@ on:
         required: true
       IP_HASH_SECRET:
         required: true
+      CONTENT_SUPABASE_URL:
+        required: true
+      CONTENT_SUPABASE_SECRET_KEY:
+        required: true
 
 permissions:
   contents: read
@@ -101,8 +105,17 @@ jobs:
       - name: Verify generated content artifact
         run: bun run content:check
 
+      - name: Verify canonical public catalog placeholder
+        run: bun run catalog:check
+
+      - name: Build trusted public catalog and media
+        env:
+          CONTENT_SUPABASE_URL: ${{ secrets.CONTENT_SUPABASE_URL }}
+          CONTENT_SUPABASE_SECRET_KEY: ${{ secrets.CONTENT_SUPABASE_SECRET_KEY }}
+        run: bun run catalog:build
+
       - name: Enforce release content gate
-        run: bun run content:release-check
+        run: bun run content:release-check && bun run catalog:release-check
 
       - name: Lint
         run: bun run lint

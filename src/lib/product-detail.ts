@@ -10,7 +10,9 @@ import type {
   Product,
   ProductType,
   ProductVariant,
+  Media,
 } from "./content/types";
+import { isPublicMedia } from "./content/media";
 import { GRAVE_STONE_SIZE_ORDER } from "./grave-stone-list";
 
 /** Locked M5 size order, imported read-only from the Prompt 04 contract. */
@@ -44,10 +46,7 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const amountFormatter = new Intl.NumberFormat("fa-IR");
 const dateFormatter = new Intl.DateTimeFormat("fa-IR", { dateStyle: "long", timeZone: "UTC" });
 
-export interface ProductDetailMedia {
-  readonly alt: string;
-  readonly caption: string | null;
-}
+export type ProductDetailMedia = Media;
 
 export interface ProductDetailOption {
   readonly id: string;
@@ -206,15 +205,7 @@ function normalizeVariants(product: Product): readonly ProductDetailVariant[] {
 }
 
 function normalizeMedia(product: Product): readonly ProductDetailMedia[] {
-  const out: ProductDetailMedia[] = [];
-  for (const media of product.media ?? []) {
-    if (media?.privacyCleared !== true) continue;
-    const alt = cleanText(media.alt);
-    if (alt === null) continue;
-    // mediaKey is deliberately dropped: it never reaches the display model.
-    out.push({ alt, caption: cleanText(media.caption) });
-  }
-  return out;
+  return (product.media ?? []).filter((media) => isPublicMedia(media));
 }
 
 export function buildProductDetailModel(

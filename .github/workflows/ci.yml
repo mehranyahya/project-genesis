@@ -28,6 +28,9 @@ jobs:
       - name: Verify generated content artifact
         run: bun run content:check
 
+      - name: Verify canonical public catalog placeholder
+        run: bun run catalog:check
+
       - name: Lint
         run: bun run lint
 

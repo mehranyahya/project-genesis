@@ -43,7 +43,28 @@ test("Cloudflare deployment is manual-only and production requires main plus exa
   assert.match(workflow, /PRODUCTION_CONFIRMATION.*DEPLOY_PRODUCTION/);
   assert.match(workflow, /CONTENT_CONFIRMATION.*CONTENT_FINALIZED/);
   assert.match(workflow, /MIGRATION_CONFIRMATION.*MIGRATIONS_VERIFIED_AFTER_BACKUP/);
-  assert.match(reusableWorkflow, /bun run content:release-check/);
+  assert.match(reusableWorkflow, /bun run content:release-check && bun run catalog:release-check/);
+});
+
+test("trusted catalog generation precedes release checks and never becomes a Worker secret", () => {
+  const canonicalCheck = reusableWorkflow.indexOf("bun run catalog:check");
+  const catalogBuild = reusableWorkflow.indexOf("bun run catalog:build");
+  const releaseCheck = reusableWorkflow.indexOf("bun run catalog:release-check");
+  const applicationBuild = reusableWorkflow.indexOf("bun run build");
+  assert.ok(canonicalCheck >= 0 && canonicalCheck < catalogBuild);
+  assert.ok(catalogBuild < releaseCheck && releaseCheck < applicationBuild);
+
+  for (const name of ["CONTENT_SUPABASE_URL", "CONTENT_SUPABASE_SECRET_KEY"] as const) {
+    assert.match(entryWorkflow, new RegExp(`secrets\\.PREVIEW_${name}`));
+    assert.match(entryWorkflow, new RegExp(`secrets\\.PRODUCTION_${name}`));
+    assert.equal(writer.includes(name), false);
+  }
+
+  const workerSecretStep = reusableWorkflow.slice(
+    reusableWorkflow.indexOf("- name: Write narrow Worker secret file"),
+    reusableWorkflow.indexOf("- name: Validate Cloudflare CI credentials"),
+  );
+  assert.doesNotMatch(workerSecretStep, /CONTENT_SUPABASE/);
 });
 
 test("repository variables select SITE_URL, ALLOWED_ORIGINS and indexing without GitHub Environments", () => {
@@ -141,6 +162,8 @@ test("entry workflow isolates preview and production credentials", () => {
       "CLOUDFLARE_API_TOKEN",
       "VITE_TURNSTILE_SITE_KEY",
       ...workerSecretNames,
+      "CONTENT_SUPABASE_URL",
+      "CONTENT_SUPABASE_SECRET_KEY",
     ] as const) {
       assert.match(entryWorkflow, new RegExp(`secrets\\.${target}_${name}`));
     }

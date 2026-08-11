@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 
 import type { Site } from "@/lib/content/types";
+import { isTrackingCode } from "@/lib/request-submit";
 
 export const SUCCESS_ACTIONS = {
   whatsapp: "ارسال کد در واتساپ",
@@ -26,6 +27,30 @@ function digitsOnly(value: string): string {
   return value.replace(/[^0-9+]/g, "");
 }
 
+export function whatsappHref(baseUrl: string | null, trackingCode: string): string | null {
+  if (baseUrl === null || !isTrackingCode(trackingCode)) return null;
+  let parsed;
+  try {
+    parsed = new URL(baseUrl);
+  } catch {
+    return null;
+  }
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.hostname !== "wa.me" ||
+    parsed.username !== "" ||
+    parsed.password !== "" ||
+    parsed.port !== "" ||
+    !/^\/[1-9][0-9]{7,15}$/.test(parsed.pathname) ||
+    parsed.search !== "" ||
+    parsed.hash !== ""
+  ) {
+    return null;
+  }
+  parsed.searchParams.set("text", whatsappMessage(trackingCode));
+  return parsed.href;
+}
+
 export function RequestSuccess({
   trackingCode,
   site,
@@ -33,9 +58,10 @@ export function RequestSuccess({
   trackingCode: string;
   site: Site | null;
 }): ReactNode {
-  const whatsapp = site?.whatsapp ?? null;
+  if (!isTrackingCode(trackingCode)) return null;
+
+  const whatsapp = whatsappHref(site?.whatsapp ?? null, trackingCode);
   const phone = site?.phone ?? null;
-  const message = encodeURIComponent(whatsappMessage(trackingCode));
 
   return (
     <section
@@ -53,12 +79,7 @@ export function RequestSuccess({
 
       <div className="flex flex-wrap gap-3">
         {whatsapp ? (
-          <a
-            className={LINK}
-            href={`https://wa.me/${digitsOnly(whatsapp).replace(/^\+/, "")}?text=${message}`}
-            rel="noreferrer noopener"
-            target="_blank"
-          >
+          <a className={LINK} href={whatsapp} rel="noreferrer noopener" target="_blank">
             {SUCCESS_ACTIONS.whatsapp}
           </a>
         ) : null}

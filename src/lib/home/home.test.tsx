@@ -35,6 +35,17 @@ test("hero CTAs and destinations are exact", () => {
   assert.ok(hero.includes('to="/portfolio"'));
 });
 
+test("approved hero media uses a 5/7 split with no text overlay", () => {
+  const hero = read("components/home/home-hero.tsx");
+  assert.ok(hero.includes("ResponsiveImage"));
+  assert.ok(hero.includes("media={media}"));
+  assert.ok(hero.includes("priority"));
+  assert.ok(hero.includes("lg:col-span-5"));
+  assert.ok(hero.includes("lg:col-span-7"));
+  assert.ok(hero.includes("aspect-[4/5]"));
+  assert.ok(!/absolute|background-image|bg-\[url|mediaKey/.test(hero));
+});
+
 test("three choice paths are exact", () => {
   assert.deepEqual(
     CHOICE_PATHS.map((item) => [item.label, item.to]),

@@ -6,11 +6,14 @@ import { buildPortfolioModel } from "./portfolio";
 import { SIZE_LABELS } from "./product-detail";
 
 const media = (overrides: Partial<Media> = {}): Media => ({
-  mediaKey: "media/pf-1001-a.webp",
+  src: `/media/catalog/${"a".repeat(64)}-800.webp`,
+  srcSet: {
+    avif: `/media/catalog/${"a".repeat(64)}-480.avif 480w, /media/catalog/${"a".repeat(64)}-800.avif 800w`,
+    webp: `/media/catalog/${"a".repeat(64)}-480.webp 480w, /media/catalog/${"a".repeat(64)}-800.webp 800w`,
+  },
+  width: 800,
+  height: 1000,
   alt: "نمای نمونه‌کار",
-  caption: "کپشن داخلی",
-  privacyCleared: true,
-  consentReference: "consent-1",
   ...overrides,
 });
 
@@ -83,17 +86,24 @@ test("8 an item without media is dropped", () => {
   assert.deepEqual(buildPortfolioModel([item({ media: [] })]), []);
 });
 
-test("9 privacyCleared=false drops the item", () => {
-  assert.deepEqual(buildPortfolioModel([item({ media: [media({ privacyCleared: false })] })]), []);
+test("9 a non-public media path drops the item", () => {
+  assert.deepEqual(
+    buildPortfolioModel([item({ media: [media({ src: "/private/file.webp" })] })]),
+    [],
+  );
 });
 
-test("10 an empty consent reference drops the item", () => {
-  assert.deepEqual(buildPortfolioModel([item({ media: [media({ consentReference: " " })] })]), []);
-  assert.deepEqual(buildPortfolioModel([item({ media: [media({ consentReference: null })] })]), []);
+test("10 a malformed srcSet drops the item", () => {
+  assert.deepEqual(
+    buildPortfolioModel([
+      item({ media: [media({ srcSet: { avif: "invalid", webp: "invalid" } })] }),
+    ]),
+    [],
+  );
 });
 
-test("11 an empty media key drops the item", () => {
-  assert.deepEqual(buildPortfolioModel([item({ media: [media({ mediaKey: "  " })] })]), []);
+test("11 a mismatched intrinsic width drops the item", () => {
+  assert.deepEqual(buildPortfolioModel([item({ media: [media({ width: 1200 })] })]), []);
 });
 
 test("12 an empty alt drops the item", () => {
@@ -101,25 +111,16 @@ test("12 an empty alt drops the item", () => {
 });
 
 test("13 one approved media entry makes the item publishable", () => {
-  const cards = buildPortfolioModel([item({ media: [media({ privacyCleared: false }), media()] })]);
+  const cards = buildPortfolioModel([
+    item({ media: [media({ src: "/private/file.webp" }), media()] }),
+  ]);
   assert.equal(cards.length, 1);
 });
 
-test("14 the media key never reaches the view-model", () => {
+test("14 internal publication fields never reach the view-model", () => {
   const serialized = JSON.stringify(buildPortfolioModel([item()]));
-  assert.ok(!serialized.includes("media/pf-1001-a.webp"));
   assert.ok(!serialized.includes("mediaKey"));
-});
-
-test("15 the caption never reaches the view-model", () => {
-  const serialized = JSON.stringify(buildPortfolioModel([item()]));
-  assert.ok(!serialized.includes("کپشن داخلی"));
   assert.ok(!serialized.includes("caption"));
-});
-
-test("16 the consent reference never reaches the view-model", () => {
-  const serialized = JSON.stringify(buildPortfolioModel([item()]));
-  assert.ok(!serialized.includes("consent-1"));
   assert.ok(!serialized.includes("consentReference"));
 });
 
@@ -170,17 +171,18 @@ test("24 the quote path carries exactly source and reference", () => {
   assert.equal(url.searchParams.get("reference"), "pf-20304");
 });
 
-test("25 the caption and media key never appear in the quote path", () => {
+test("25 media and alt text never appear in the quote path", () => {
   const card = first(buildPortfolioModel([item()]));
   assert.ok(!card.quotePath.includes("media"));
-  assert.ok(!card.quotePath.includes("کپشن"));
+  assert.ok(!card.quotePath.includes("نمای"));
 });
 
-test("26 the view-model exposes only the six approved keys", () => {
+test("26 the view-model exposes only the seven approved keys", () => {
   const card = first(
     buildPortfolioModel([item({ stoneCode: "ST-1", sizeCode: "120x60", summary: "متن" })]),
   );
   assert.deepEqual(Object.keys(card).sort(), [
+    "media",
     "publicReferenceId",
     "quotePath",
     "sizeCode",

@@ -13,7 +13,7 @@ import type { HomeViewModel } from "@/lib/home";
 export function HomePage({ model }: { model: HomeViewModel }) {
   return (
     <>
-      <HomeHero />
+      <HomeHero media={model.heroMedia} />
       <HomeChoicePaths />
       <HomeProcess />
       {model.showProducts ? <HomeFeaturedProducts products={model.products} /> : null}

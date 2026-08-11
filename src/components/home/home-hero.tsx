@@ -1,10 +1,15 @@
 import { Link } from "@tanstack/react-router";
 
-/** Structural hero on a solid surface. No media, no overlay text. */
-export function HomeHero() {
+import { ResponsiveImage } from "@/components/media/responsive-image";
+import type { Media } from "@/lib/content/types";
+
+/** Light hero with a separate media stage; text is never placed over the image. */
+export function HomeHero({ media }: { media: Media | null }) {
   return (
     <section className="mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-12 md:grid-cols-8 lg:grid-cols-12">
-      <div className="col-span-4 border border-border-subtle bg-surface p-6 md:col-span-8 lg:col-span-12 lg:p-10">
+      <div
+        className={`col-span-4 border border-border-subtle bg-surface p-6 md:col-span-8 ${media ? "lg:col-span-5" : "lg:col-span-12"} lg:p-10`}
+      >
         <h1 className="max-w-[36ch] text-2xl font-bold text-text-primary lg:text-3xl">
           انتخاب و اجرای سنگ مزار با طراحی دقیق و متریال ماندگار
         </h1>
@@ -23,6 +28,16 @@ export function HomeHero() {
           </Link>
         </div>
       </div>
+      {media ? (
+        <div className="col-span-4 aspect-[4/5] overflow-hidden bg-surface-media md:col-span-8 lg:col-span-7">
+          <ResponsiveImage
+            media={media}
+            fit="contain"
+            sizes="(min-width: 1024px) 58vw, 100vw"
+            priority
+          />
+        </div>
+      ) : null}
     </section>
   );
 }

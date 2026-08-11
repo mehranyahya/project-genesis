@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { HomeLinkCard } from "./home-link-card";
+import { ResponsiveImage } from "@/components/media/responsive-image";
 import type { HomeGuideItem, HomeProductItem } from "@/lib/home";
 
 const SECTION_GRID =
@@ -71,8 +72,17 @@ export function HomeFeaturedProducts({ products }: { products: readonly HomeProd
             <Link
               to="/grave-stones/$slug"
               params={{ slug: product.slug }}
-              className="flex min-h-11 flex-col gap-2 border border-border-subtle bg-surface px-4 py-5 transition-colors duration-[180ms] hover:border-border-control hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+              className="flex min-h-11 flex-col gap-3 border border-border-subtle bg-surface p-4 transition-colors duration-[180ms] hover:border-border-control hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
             >
+              {product.media ? (
+                <span className="aspect-[4/5] w-full overflow-hidden bg-surface-media">
+                  <ResponsiveImage
+                    media={product.media}
+                    fit="contain"
+                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                  />
+                </span>
+              ) : null}
               <span className="text-base font-bold text-text-primary">{product.title}</span>
               {product.summary ? (
                 <span className="text-sm text-text-secondary">{product.summary}</span>

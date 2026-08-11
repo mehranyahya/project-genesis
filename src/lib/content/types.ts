@@ -44,14 +44,18 @@ export interface SeoMeta {
   robots: string | null;
 }
 
+export interface MediaSrcSet {
+  avif: string;
+  webp: string;
+}
+
+/** Browser-safe, same-origin media produced by the trusted build pipeline. */
 export interface Media {
-  mediaKey: string;
+  src: string;
+  srcSet: MediaSrcSet;
+  width: number;
+  height: number;
   alt: string;
-  caption: string | null;
-  privacyCleared: boolean;
-  consentReference: string | null;
-  width?: number;
-  height?: number;
 }
 
 export interface ProductOption {
@@ -125,6 +129,15 @@ export interface Site {
   address: string | null;
   workingHours: string | null;
   links: SiteLinks;
+}
+
+export interface CatalogArtifact {
+  schemaVersion: 1;
+  /** Untrusted artifact text until the server adapter validates and brands it. */
+  catalogVersion: string | null;
+  products: Product[];
+  portfolioItems: PortfolioItem[];
+  site: Site | null;
 }
 
 export interface Page {

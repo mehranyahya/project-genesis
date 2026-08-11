@@ -75,21 +75,26 @@ test("8 the media stage uses the exact 4:5 ratio", () => {
   assert.ok(read(STATES).includes("aspect-[4/5]"));
 });
 
-test("9 the stage exists only in product components", () => {
-  assert.ok(!read("components/grave-stones/grave-stone-card.tsx").includes("aspect-["));
+test("9 the product and list media surfaces both keep the exact 4:5 ratio", () => {
+  assert.ok(read("components/grave-stones/grave-stone-card.tsx").includes("aspect-[4/5]"));
   assert.ok(!read("components/grave-stones/grave-stone-list-page.tsx").includes("aspect-["));
 });
 
-test("10 the Prompt 04 list card is untouched", () => {
+test("10 the list card uses only the browser-safe responsive image DTO", () => {
   const card = read("components/grave-stones/grave-stone-card.tsx");
   assert.ok(card.includes("مشاهده و انتخاب"));
-  assert.ok(!card.includes("bg-surface-media"));
-  assert.ok(!/<img|mediaKey|aspect-\[/.test(card));
+  assert.ok(card.includes("ResponsiveImage"));
+  assert.ok(card.includes("media={item.media}"));
+  assert.ok(card.includes('fit="contain"'));
+  assert.ok(!/mediaKey|consentReference|privacyCleared/.test(card));
 });
 
-test("11 no image element and no media URL resolver exist", () => {
-  assert.ok(!/<img\b/i.test(ALL_CODE));
-  assert.ok(!/background-image|backgroundImage|url\(|srcSet|\bsrc=/.test(ALL_CODE));
+test("11 the product stage delegates image rendering to the shared safe component", () => {
+  const stage = read(STAGE);
+  assert.ok(stage.includes("ResponsiveImage"));
+  assert.ok(stage.includes("media={current}"));
+  assert.ok(stage.includes('fit={index === 0 ? "contain" : "cover"}'));
+  assert.ok(!/<img\b|background-image|backgroundImage|url\(/i.test(stage));
 });
 
 test("12 mediaKey never appears in the UI layer", () => {

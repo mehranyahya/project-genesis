@@ -1,12 +1,13 @@
 /**
  * Pure, side-effect free portfolio view-model.
  *
- * Consumes official adapter output only. Media is a publication gate, never a
- * rendered asset: media keys, captions and consent references never leave this
- * module. Inputs are never mutated.
+ * Consumes official adapter output only. Every asset is already same-origin,
+ * hash-addressed and stripped of internal publication metadata at build time.
  */
 
 import type { GraveStoneSizeCode, PortfolioItem } from "./content/types";
+import type { Media } from "./content/types";
+import { isPublicMedia } from "./content/media";
 import { buildQuoteReferralPath, normalizePortfolioReference } from "./portfolio-reference";
 import { SIZE_LABELS } from "./product-detail";
 
@@ -17,6 +18,7 @@ export interface PortfolioCard {
   sizeCode: GraveStoneSizeCode | null;
   sizeLabel: string | null;
   summary: string | null;
+  media: Media;
 }
 
 /** Trims a possible string; empty or non-string becomes null. */
@@ -26,17 +28,9 @@ function cleanText(value: unknown): string | null {
   return trimmed === "" ? null : trimmed;
 }
 
-/** True when at least one media entry is privacy-cleared and fully described. */
-function hasApprovedPublicMedia(item: PortfolioItem): boolean {
-  for (const media of item.media ?? []) {
-    if (!media) continue;
-    if (media.privacyCleared !== true) continue;
-    if (cleanText(media.consentReference) === null) continue;
-    if (cleanText(media.mediaKey) === null) continue;
-    if (cleanText(media.alt) === null) continue;
-    return true;
-  }
-  return false;
+/** True when at least one approved public media entry is fully described. */
+function firstApprovedPublicMedia(item: PortfolioItem): Media | null {
+  return (item.media ?? []).find((media) => isPublicMedia(media)) ?? null;
 }
 
 function resolveSize(value: unknown): GraveStoneSizeCode | null {
@@ -61,7 +55,8 @@ export function buildPortfolioModel(
     if (quotePath === null) continue;
 
     if (seen.has(reference)) continue;
-    if (!hasApprovedPublicMedia(item)) continue;
+    const media = firstApprovedPublicMedia(item);
+    if (media === null) continue;
 
     seen.add(reference);
 
@@ -74,6 +69,7 @@ export function buildPortfolioModel(
       sizeCode,
       sizeLabel: sizeCode === null ? null : SIZE_LABELS[sizeCode],
       summary: cleanText(item.summary),
+      media,
     });
   }
 

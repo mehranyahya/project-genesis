@@ -4,7 +4,8 @@
  * No fixtures, no fallbacks, no fabricated data.
  */
 
-import type { Guide, PortfolioItem, Product } from "./content/types";
+import { isPublicMedia } from "./content/media";
+import type { Guide, Media, PortfolioItem, Product } from "./content/types";
 
 export const FEATURED_PRODUCTS_LIMIT = 6;
 export const FEATURED_PRODUCTS_MIN = 3;
@@ -13,6 +14,7 @@ export interface HomeProductItem {
   readonly slug: string;
   readonly title: string;
   readonly summary: string | null;
+  readonly media: Media | null;
 }
 
 export interface HomeGuideItem {
@@ -24,6 +26,7 @@ export interface HomeGuideItem {
 export interface HomeViewModel {
   readonly products: readonly HomeProductItem[];
   readonly showProducts: boolean;
+  readonly heroMedia: Media | null;
   readonly showPortfolio: boolean;
   readonly guide: HomeGuideItem | null;
   readonly showGuide: boolean;
@@ -50,7 +53,10 @@ function isValidProduct(product: Product): boolean {
 }
 
 function isValidPortfolioItem(item: PortfolioItem): boolean {
-  return cleanText(item.publicReferenceId) !== null;
+  return (
+    cleanText(item.publicReferenceId) !== null &&
+    (item.media ?? []).some((media) => isPublicMedia(media))
+  );
 }
 
 function isValidGuide(guide: Guide): boolean {
@@ -65,6 +71,7 @@ export function buildHomeViewModel(input: HomeAdapterResult): HomeViewModel {
       slug: product.slug,
       title: product.title,
       summary: cleanText(product.summary),
+      media: (product.media ?? []).find((media) => isPublicMedia(media)) ?? null,
     }));
 
   const showProducts = products.length >= FEATURED_PRODUCTS_MIN;
@@ -79,6 +86,7 @@ export function buildHomeViewModel(input: HomeAdapterResult): HomeViewModel {
   return {
     products: showProducts ? products : [],
     showProducts,
+    heroMedia: products.find((product) => product.media !== null)?.media ?? null,
     showPortfolio: portfolioItem !== null,
     guide,
     showGuide: guide !== null,
