@@ -6,11 +6,12 @@ import { buildPortfolioModel } from "./portfolio";
 import { SIZE_LABELS } from "./product-detail";
 
 const media = (overrides: Partial<Media> = {}): Media => ({
-  mediaKey: "media/pf-1001-a.webp",
+  src: "/media/aaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbb-1280w.webp",
+  srcSet:
+    "/media/aaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbb-320w.webp 320w, /media/aaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbb-640w.webp 640w, /media/aaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbb-1280w.webp 1280w",
+  width: 1280,
+  height: 1600,
   alt: "نمای نمونه‌کار",
-  caption: "کپشن داخلی",
-  privacyCleared: true,
-  consentReference: "consent-1",
   ...overrides,
 });
 
@@ -79,48 +80,59 @@ test("7 adapter order is preserved", () => {
   );
 });
 
-test("8 an item without media is dropped", () => {
+test("8 an item without public media is dropped", () => {
   assert.deepEqual(buildPortfolioModel([item({ media: [] })]), []);
 });
 
-test("9 privacyCleared=false drops the item", () => {
-  assert.deepEqual(buildPortfolioModel([item({ media: [media({ privacyCleared: false })] })]), []);
+test("9 the first sanitized media object is preserved", () => {
+  const card = first(buildPortfolioModel([item()]));
+  assert.deepEqual(card.media, media());
 });
 
-test("10 an empty consent reference drops the item", () => {
-  assert.deepEqual(buildPortfolioModel([item({ media: [media({ consentReference: " " })] })]), []);
-  assert.deepEqual(buildPortfolioModel([item({ media: [media({ consentReference: null })] })]), []);
+test("10 public media exposes only src/srcSet/width/height/alt", () => {
+  assert.deepEqual(Object.keys(first(buildPortfolioModel([item()])).media).sort(), [
+    "alt",
+    "height",
+    "src",
+    "srcSet",
+    "width",
+  ]);
 });
 
-test("11 an empty media key drops the item", () => {
-  assert.deepEqual(buildPortfolioModel([item({ media: [media({ mediaKey: "  " })] })]), []);
-});
-
-test("12 an empty alt drops the item", () => {
-  assert.deepEqual(buildPortfolioModel([item({ media: [media({ alt: "" })] })]), []);
-});
-
-test("13 one approved media entry makes the item publishable", () => {
-  const cards = buildPortfolioModel([item({ media: [media({ privacyCleared: false }), media()] })]);
-  assert.equal(cards.length, 1);
-});
-
-test("14 the media key never reaches the view-model", () => {
+test("11 private Storage media keys never reach the view-model", () => {
   const serialized = JSON.stringify(buildPortfolioModel([item()]));
-  assert.ok(!serialized.includes("media/pf-1001-a.webp"));
   assert.ok(!serialized.includes("mediaKey"));
+  assert.ok(!serialized.includes("catalog-media"));
+  assert.ok(!serialized.includes("supabase"));
 });
 
-test("15 the caption never reaches the view-model", () => {
+test("12 privacy and consent state never reach the view-model", () => {
   const serialized = JSON.stringify(buildPortfolioModel([item()]));
-  assert.ok(!serialized.includes("کپشن داخلی"));
+  assert.ok(!serialized.includes("privacyCleared"));
+  assert.ok(!serialized.includes("consentReference"));
+  assert.ok(!serialized.includes("consent_reference"));
+});
+
+test("13 no caption field crosses the public media DTO", () => {
+  const serialized = JSON.stringify(buildPortfolioModel([item()]));
   assert.ok(!serialized.includes("caption"));
 });
 
-test("16 the consent reference never reaches the view-model", () => {
-  const serialized = JSON.stringify(buildPortfolioModel([item()]));
-  assert.ok(!serialized.includes("consent-1"));
-  assert.ok(!serialized.includes("consentReference"));
+test("14 the public URL is same-origin and hash-named", () => {
+  const source = first(buildPortfolioModel([item()])).media.src;
+  assert.match(source, /^\/media\/[a-f0-9]{24}\/[a-f0-9]{16}-1280w\.webp$/);
+});
+
+test("15 the srcSet has exactly three responsive WebP widths", () => {
+  const srcSet = first(buildPortfolioModel([item()])).media.srcSet;
+  assert.equal(srcSet.split(",").length, 3);
+  for (const width of [320, 640, 1280]) assert.ok(srcSet.includes(`-${width}w.webp ${width}w`));
+});
+
+test("16 fixed dimensions are positive and match the generated 4:5 surface", () => {
+  const value = first(buildPortfolioModel([item()])).media;
+  assert.equal(value.width, 1280);
+  assert.equal(value.height, 1600);
 });
 
 test("17 the stone code is trimmed", () => {
@@ -170,17 +182,18 @@ test("24 the quote path carries exactly source and reference", () => {
   assert.equal(url.searchParams.get("reference"), "pf-20304");
 });
 
-test("25 the caption and media key never appear in the quote path", () => {
+test("25 media details never appear in the quote path", () => {
   const card = first(buildPortfolioModel([item()]));
   assert.ok(!card.quotePath.includes("media"));
-  assert.ok(!card.quotePath.includes("کپشن"));
+  assert.ok(!card.quotePath.includes("src"));
 });
 
-test("26 the view-model exposes only the six approved keys", () => {
+test("26 the view-model exposes exactly the seven approved card keys", () => {
   const card = first(
     buildPortfolioModel([item({ stoneCode: "ST-1", sizeCode: "120x60", summary: "متن" })]),
   );
   assert.deepEqual(Object.keys(card).sort(), [
+    "media",
     "publicReferenceId",
     "quotePath",
     "sizeCode",

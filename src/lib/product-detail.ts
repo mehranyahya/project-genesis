@@ -6,6 +6,7 @@
 
 import type {
   GraveStoneSizeCode,
+  Media,
   PriceType,
   Product,
   ProductType,
@@ -40,14 +41,12 @@ export const CURRENCY_NOTE = "همهٔ مبالغ به تومان است.";
 export const PRICE_DATE_LABEL = "آخرین به‌روزرسانی قیمت:";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const PUBLIC_MEDIA_PATH = /^\/media\/[a-f0-9]{24}\/[a-f0-9]{16}-(320|640|1280)w\.webp$/;
 
 const amountFormatter = new Intl.NumberFormat("fa-IR");
 const dateFormatter = new Intl.DateTimeFormat("fa-IR", { dateStyle: "long", timeZone: "UTC" });
 
-export interface ProductDetailMedia {
-  readonly alt: string;
-  readonly caption: string | null;
-}
+export type ProductDetailMedia = Media;
 
 export interface ProductDetailOption {
   readonly id: string;
@@ -194,7 +193,6 @@ function normalizeVariants(product: Product): readonly ProductDetailVariant[] {
     });
   }
 
-  // Stable sort: locked size order, adapter order preserved inside each size.
   return accepted
     .map((variant, index) => ({ variant, index }))
     .sort((a, b) => {
@@ -205,16 +203,26 @@ function normalizeVariants(product: Product): readonly ProductDetailVariant[] {
     .map((entry) => entry.variant);
 }
 
+function validMedia(media: Media): boolean {
+  const alt = cleanText(media.alt);
+  if (alt === null || !PUBLIC_MEDIA_PATH.test(media.src)) return false;
+  if (!Number.isInteger(media.width) || !Number.isInteger(media.height)) return false;
+  if (media.width <= 0 || media.height <= 0) return false;
+  const candidates = media.srcSet.split(",").map((entry) => entry.trim());
+  if (candidates.length !== 3) return false;
+  return candidates.every((candidate) => {
+    const match =
+      /^(\/media\/[a-f0-9]{24}\/[a-f0-9]{16}-(320|640|1280)w\.webp)\s+(320|640|1280)w$/.exec(
+        candidate,
+      );
+    return match !== null && match[2] === match[3];
+  });
+}
+
 function normalizeMedia(product: Product): readonly ProductDetailMedia[] {
-  const out: ProductDetailMedia[] = [];
-  for (const media of product.media ?? []) {
-    if (media?.privacyCleared !== true) continue;
-    const alt = cleanText(media.alt);
-    if (alt === null) continue;
-    // mediaKey is deliberately dropped: it never reaches the display model.
-    out.push({ alt, caption: cleanText(media.caption) });
-  }
-  return out;
+  return (product.media ?? [])
+    .filter(validMedia)
+    .map((media) => ({ ...media, alt: media.alt.trim() }));
 }
 
 export function buildProductDetailModel(
@@ -248,11 +256,6 @@ export function buildProductDetailModel(
   };
 }
 
-/**
- * A single numeric price component (variant or option). Fixed/estimate amounts
- * are only valid when both a positive safe-integer amount and an exact
- * YYYY-MM-DD price date are present. Dates are never fabricated or borrowed.
- */
 export interface PriceComponent {
   readonly priceType: PriceType;
   readonly amountToman: number | null;
@@ -266,10 +269,6 @@ export function hasValidNumericPrice(component: PriceComponent): boolean {
   );
 }
 
-/**
- * Display-only price resolution. Precedence is review > estimate > fixed.
- * The server remains the sole authority for the final amount.
- */
 export function resolveSelectionPrice(
   variant: ProductDetailVariant,
   selectedOptions: readonly ProductDetailOption[],

@@ -175,7 +175,7 @@ const site = (overrides: Partial<Site> = {}): Site => ({
   displayName: "مهرآرا",
   latinName: "Mehrara",
   phone: null,
-  whatsapp: null,
+  whatsappUrl: null,
   telegram: null,
   address: null,
   workingHours: null,
@@ -197,7 +197,7 @@ test("contact entries keep only real site data", () => {
   const entries = buildContactDetails(
     site({
       phone: "02100000000",
-      whatsapp: "https://wa.me/98000",
+      whatsappUrl: "https://wa.me/98000",
       telegram: "javascript:alert(1)",
       address: "نشانی واقعی",
       workingHours: "۹ تا ۱۷",

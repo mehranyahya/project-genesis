@@ -110,7 +110,7 @@ export function buildContactDetails(site: Site | null | undefined): ContactEntry
   }
 
   const linkFields: { key: string; label: string; value: string | null }[] = [
-    { key: "whatsapp", label: "واتساپ", value: cleanText(site.whatsapp) },
+    { key: "whatsapp", label: "واتساپ", value: cleanText(site.whatsappUrl) },
     { key: "telegram", label: "تلگرام", value: cleanText(site.telegram) },
     { key: "instagram", label: "اینستاگرام", value: cleanText(site.links?.instagram) },
     { key: "website", label: "وب‌سایت", value: cleanText(site.links?.website) },

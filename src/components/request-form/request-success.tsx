@@ -26,6 +26,19 @@ function digitsOnly(value: string): string {
   return value.replace(/[^0-9+]/g, "");
 }
 
+export function whatsappSuccessUrl(baseUrl: string, trackingCode: string): string | null {
+  try {
+    const url = new URL(baseUrl);
+    if (url.protocol !== "https:" || !["wa.me", "api.whatsapp.com"].includes(url.hostname)) {
+      return null;
+    }
+    url.searchParams.set("text", whatsappMessage(trackingCode));
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 export function RequestSuccess({
   trackingCode,
   site,
@@ -33,9 +46,8 @@ export function RequestSuccess({
   trackingCode: string;
   site: Site | null;
 }): ReactNode {
-  const whatsapp = site?.whatsapp ?? null;
+  const whatsapp = site?.whatsappUrl ? whatsappSuccessUrl(site.whatsappUrl, trackingCode) : null;
   const phone = site?.phone ?? null;
-  const message = encodeURIComponent(whatsappMessage(trackingCode));
 
   return (
     <section
@@ -53,12 +65,7 @@ export function RequestSuccess({
 
       <div className="flex flex-wrap gap-3">
         {whatsapp ? (
-          <a
-            className={LINK}
-            href={`https://wa.me/${digitsOnly(whatsapp).replace(/^\+/, "")}?text=${message}`}
-            rel="noreferrer noopener"
-            target="_blank"
-          >
+          <a className={LINK} href={whatsapp} rel="noreferrer noopener" target="_blank">
             {SUCCESS_ACTIONS.whatsapp}
           </a>
         ) : null}

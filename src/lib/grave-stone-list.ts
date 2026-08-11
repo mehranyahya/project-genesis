@@ -4,7 +4,7 @@
  * no fabricated product data.
  */
 
-import type { GraveStoneSizeCode, Product, ProductType } from "./content/types";
+import type { GraveStoneSizeCode, Media, Product, ProductType } from "./content/types";
 
 export const GRAVE_STONE_SIZE_ORDER = ["120x60", "160x60", "180x60", "custom"] as const;
 
@@ -33,6 +33,7 @@ export interface GraveStoneListItem {
   readonly title: string;
   readonly summary: string | null;
   readonly type: ProductType;
+  readonly leadMedia: Media | null;
   readonly stoneCodes: readonly string[];
   readonly sizeCodes: readonly GraveStoneSizeCode[];
   /** Available variant pairs, used for same-variant stone+size matching. */
@@ -94,6 +95,7 @@ export function buildGraveStoneListModel(
       title,
       summary: cleanText(product.summary),
       type: product.type,
+      leadMedia: product.media[0] ?? null,
       stoneCodes,
       sizeCodes: GRAVE_STONE_SIZE_ORDER.filter((code) => sizeSeen.has(code)),
       variantPairs,

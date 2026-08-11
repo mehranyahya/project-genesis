@@ -7,8 +7,8 @@ const TERMS_REGISTRY_FILE = new URL(
   "../supabase/functions/_shared/terms-registry.generated.ts",
   import.meta.url,
 );
-const STRUCTURED_CONTENT_ADAPTER = new URL(
-  "../src/lib/content/supabase.server.ts",
+const STRUCTURED_CONTENT_ARTIFACT = new URL(
+  "../src/lib/content/generated-structured-content.ts",
   import.meta.url,
 );
 const MAX_FILE_BYTES = 256 * 1024;
@@ -98,13 +98,13 @@ const generatedTermsRegistry = [
 
 if (RELEASE_CHECK) {
   const missing = REQUIRED_RELEASE_PAGES.filter((slug) => typeof sources[slug] !== "string");
-  const adapter = await readFile(STRUCTURED_CONTENT_ADAPTER, "utf8");
+  const structuredArtifact = await readFile(STRUCTURED_CONTENT_ARTIFACT, "utf8");
   const blockers = [];
   if (missing.length > 0) {
     blockers.push(`reviewed Git pages missing: ${missing.join(", ")}`);
   }
-  if (adapter.includes("CONTENT_LATER_SCAFFOLD")) {
-    blockers.push("structured content pipeline is still CONTENT_LATER_SCAFFOLD");
+  if (!structuredArtifact.includes("STRUCTURED_CONTENT_GENERATED = true")) {
+    blockers.push("sanitized structured content/media artifact has not been generated");
   }
   if (currentTermsRelease === null) blockers.push("Terms registry has no reviewed current release");
   if (blockers.length > 0) {

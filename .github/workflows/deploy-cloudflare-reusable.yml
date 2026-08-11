@@ -36,6 +36,10 @@ on:
         required: true
       IP_HASH_SECRET:
         required: true
+      BUILD_SUPABASE_URL:
+        required: true
+      BUILD_SUPABASE_SERVICE_ROLE_KEY:
+        required: true
 
 permissions:
   contents: read
@@ -98,7 +102,16 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Verify generated content artifact
+      - name: Verify image processor availability
+        run: node -e "import('sharp').then((m) => { if (m.default?.versions == null) process.exit(1) })"
+
+      - name: Generate sanitized structured content and media
+        env:
+          BUILD_SUPABASE_URL: ${{ secrets.BUILD_SUPABASE_URL }}
+          BUILD_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.BUILD_SUPABASE_SERVICE_ROLE_KEY }}
+        run: bun run structured:generate
+
+      - name: Verify generated Git page artifact
         run: bun run content:check
 
       - name: Enforce release content gate

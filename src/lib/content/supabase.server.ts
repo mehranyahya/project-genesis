@@ -1,3 +1,9 @@
+import {
+  GENERATED_CATALOG_VERSION,
+  GENERATED_PORTFOLIO_ITEMS,
+  GENERATED_PRODUCTS,
+  GENERATED_SITE,
+} from "./generated-structured-content";
 import type {
   CatalogVersion,
   PortfolioItem,
@@ -8,33 +14,42 @@ import type {
 } from "./types";
 
 /**
- * CONTENT_LATER_SCAFFOLD boundary.
+ * Runtime structured content repository.
  *
- * Structured public content does not yet have an audited build artifact or a
- * narrow read-only Edge contract. The Cloudflare Worker must never receive a
- * Supabase service-role credential merely to make empty scaffold routes look
- * integrated. Empty arrays and null are the only authoritative values until
- * that separate content pipeline is completed.
+ * It consumes only the sanitized build artifact. There is no runtime fetch,
+ * Supabase URL, service-role key, private Storage path, media key or consent
+ * metadata in this module or the Worker bundle.
  */
 export async function loadProducts(query: ProductQuery = {}): Promise<Product[]> {
-  void query;
-  return [];
+  let products = GENERATED_PRODUCTS.filter((product) => product.isActive === true);
+  if (query.type) products = products.filter((product) => product.type === query.type);
+  if (query.featuredOnly) products = products.filter((product) => product.isFeatured === true);
+  if (query.sizeCode) {
+    products = products.filter((product) =>
+      product.variants.some(
+        (variant) => variant.isAvailable === true && variant.sizeCode === query.sizeCode,
+      ),
+    );
+  }
+  if (query.limit != null) products = products.slice(0, query.limit);
+  return products.slice();
 }
 
 export async function loadProduct(slug: string): Promise<Product | null> {
-  void slug;
-  return null;
+  return (
+    GENERATED_PRODUCTS.find((product) => product.isActive === true && product.slug === slug) ?? null
+  );
 }
 
 export async function loadPortfolioItems(query: PortfolioQuery = {}): Promise<PortfolioItem[]> {
-  void query;
-  return [];
+  const items = GENERATED_PORTFOLIO_ITEMS.slice();
+  return query.limit == null ? items : items.slice(0, query.limit);
 }
 
 export async function loadSite(): Promise<Site | null> {
-  return null;
+  return GENERATED_SITE;
 }
 
 export async function loadCatalogVersion(): Promise<CatalogVersion | null> {
-  return null;
+  return GENERATED_CATALOG_VERSION;
 }

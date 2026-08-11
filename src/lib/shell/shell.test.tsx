@@ -33,7 +33,7 @@ test("ContactLinks renders only non-null site fields", () => {
     displayName: "مهرآرا",
     latinName: "Mehrara",
     phone: "02100000000",
-    whatsapp: null,
+    whatsappUrl: null,
     telegram: null,
     address: null,
     workingHours: null,

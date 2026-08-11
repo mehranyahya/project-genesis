@@ -2,9 +2,19 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { buildHomeViewModel } from "./home";
-import type { Guide, PortfolioItem, Product } from "./content/types";
+import type { Guide, Media, PortfolioItem, Product } from "./content/types";
 
-function product(slug: string, isActive = true): Product {
+function media(id = "a"): Media {
+  return {
+    src: `/media/aaaaaaaaaaaaaaaaaaaaaaaa/${id.padStart(16, "a")}-1280w.webp`,
+    srcSet: `/media/aaaaaaaaaaaaaaaaaaaaaaaa/${id.padStart(16, "a")}-320w.webp 320w, /media/aaaaaaaaaaaaaaaaaaaaaaaa/${id.padStart(16, "a")}-640w.webp 640w, /media/aaaaaaaaaaaaaaaaaaaaaaaa/${id.padStart(16, "a")}-1280w.webp 1280w`,
+    width: 1280,
+    height: 1600,
+    alt: "نمای سنگ",
+  };
+}
+
+function product(slug: string, isActive = true, withMedia = false): Product {
   return {
     id: slug,
     code: slug.toUpperCase(),
@@ -15,7 +25,7 @@ function product(slug: string, isActive = true): Product {
     description: null,
     isActive,
     isFeatured: true,
-    media: [],
+    media: withMedia ? [media()] : [],
     variants: [],
     seo: null,
     updatedAt: "2026-01-01T00:00:00.000Z",
@@ -23,7 +33,7 @@ function product(slug: string, isActive = true): Product {
 }
 
 function portfolioItem(id: string): PortfolioItem {
-  return { publicReferenceId: id, media: [] };
+  return { publicReferenceId: id, media: [media()] };
 }
 
 function guide(slug: string, summary: string | null = null): Guide {
@@ -45,6 +55,7 @@ test("empty adapter results hide every optional section", () => {
   assert.equal(model.showPortfolio, false);
   assert.equal(model.showGuide, false);
   assert.equal(model.guide, null);
+  assert.equal(model.heroMedia, null);
   assert.deepEqual([...model.products], []);
 });
 
@@ -64,6 +75,14 @@ test("three active products reveal the product section", () => {
   });
   assert.equal(model.showProducts, true);
   assert.equal(model.products.length, 3);
+});
+
+test("the first real featured media becomes the hero media", () => {
+  const model = buildHomeViewModel({
+    ...EMPTY,
+    products: [product("a"), product("b", true, true), product("c")],
+  });
+  assert.equal(model.heroMedia?.src.endsWith("-1280w.webp"), true);
 });
 
 test("inactive products are not counted", () => {
@@ -93,8 +112,13 @@ test("empty summaries are normalised to null", () => {
   assert.equal(model.products[0]?.summary, null);
 });
 
-test("portfolio section needs at least one valid item", () => {
+test("portfolio section needs at least one valid item with public media", () => {
   assert.equal(buildHomeViewModel({ ...EMPTY, portfolioItems: [] }).showPortfolio, false);
+  assert.equal(
+    buildHomeViewModel({ ...EMPTY, portfolioItems: [{ publicReferenceId: "pf-1001", media: [] }] })
+      .showPortfolio,
+    false,
+  );
   assert.equal(
     buildHomeViewModel({ ...EMPTY, portfolioItems: [portfolioItem("pf-1001")] }).showPortfolio,
     true,
