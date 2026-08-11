@@ -9,9 +9,15 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "سنگ مزار سفارشی و سنگ ساختمانی" },
-      { name: "description", content: "انتخاب مدل سنگ مزار، مشاهدهٔ وضعیت قیمت و ثبت درخواست بررسی سفارش." },
+      {
+        name: "description",
+        content: "انتخاب مدل سنگ مزار، مشاهدهٔ وضعیت قیمت و ثبت درخواست بررسی سفارش.",
+      },
       { property: "og:title", content: "سنگ مزار سفارشی و سنگ ساختمانی" },
-      { property: "og:description", content: "انتخاب مدل سنگ مزار، مشاهدهٔ وضعیت قیمت و ثبت درخواست بررسی سفارش." },
+      {
+        property: "og:description",
+        content: "انتخاب مدل سنگ مزار، مشاهدهٔ وضعیت قیمت و ثبت درخواست بررسی سفارش.",
+      },
     ],
     links: [{ rel: "canonical", href: canonicalHref("/") }],
   }),

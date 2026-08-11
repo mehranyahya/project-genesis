@@ -22,15 +22,7 @@ export function productShareText(title: string, code: string): string {
   return `${title} — کد ${code}`;
 }
 
-export function ProductShare({
-  slug,
-  title,
-  code,
-}: {
-  slug: string;
-  title: string;
-  code: string;
-}) {
+export function ProductShare({ slug, title, code }: { slug: string; title: string; code: string }) {
   const [status, setStatus] = useState<string | null>(null);
   const busy = useRef(false);
 
