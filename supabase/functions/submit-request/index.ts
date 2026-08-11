@@ -8,7 +8,8 @@ import { processTelegramByRequestId } from "../_shared/telegram-delivery.ts";
 import { verifyTurnstile } from "../_shared/turnstile.ts";
 import { parseStrictJson } from "../_shared/json.ts";
 
-const TRACKING_PATTERN = /^MA-[1-9][0-9]{3,}$/;
+const TRACKING_PREFIX_PATTERN = /^[A-Z][A-Z0-9]{1,9}$/;
+const TRACKING_PATTERN = /^[A-Z][A-Z0-9]{1,9}-[1-9][0-9]{3,}$/;
 const HASH_PATTERN = /^[0-9a-f]{64}$/;
 const KEY_ID_PATTERN = /^[A-Za-z0-9._-]{1,64}$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -77,7 +78,7 @@ function readFingerprintConfig(): FingerprintConfig | null {
 
 function trackingCodePrefix(): string | null {
   const value = Deno.env.get("TRACKING_CODE_PREFIX")?.trim() ?? "";
-  return value === "MA" ? value : null;
+  return TRACKING_PREFIX_PATTERN.test(value) ? value : null;
 }
 
 function inspectResponse(value: InspectResult): Response | null | false {
