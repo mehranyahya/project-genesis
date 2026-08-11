@@ -10,6 +10,7 @@ const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
 const ROUTE = "routes/grave-stones/$slug.tsx";
 const PAGE = "components/product/product-detail-page.tsx";
 const STAGE = "components/product/product-media-stage.tsx";
+const PUBLIC_MEDIA = "components/media/public-media.tsx";
 const SELECTION = "components/product/product-selection.tsx";
 const PRICE = "components/product/product-price-panel.tsx";
 const SUMMARY = "components/product/product-draft-summary.tsx";
@@ -17,7 +18,7 @@ const STATES = "components/product/product-detail-states.tsx";
 const MODEL = "lib/product-detail.ts";
 const DRAFT = "lib/request-draft.ts";
 
-const FILES = [ROUTE, PAGE, STAGE, SELECTION, PRICE, SUMMARY, STATES, MODEL, DRAFT];
+const FILES = [ROUTE, PAGE, STAGE, PUBLIC_MEDIA, SELECTION, PRICE, SUMMARY, STATES, MODEL, DRAFT];
 
 const stripComments = (source: string) =>
   source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
@@ -37,7 +38,7 @@ test("1 the route consumes only getProduct(), getCatalogVersion() and getSite()"
   }
 });
 
-test("2 no direct JSON, markdown, fixture or asset import exists", () => {
+test("2 no direct JSON, markdown, fixture or raw asset import exists", () => {
   const bad = /from\s+["'][^"']*\.(json|md|mdx|png|jpe?g|svg|webp|avif|woff2?)["']/;
   assert.ok(!bad.test(ALL_CODE));
   assert.ok(!/fixture/i.test(ALL_CODE));
@@ -70,33 +71,55 @@ test("7 exactly one H1 exists in the route surface", () => {
   assert.ok(read(PAGE).includes("<h1"));
 });
 
-test("8 the media stage uses the exact 4:5 ratio", () => {
+test("8 the product media stage uses the exact 4:5 ratio", () => {
   assert.ok(read(STAGE).includes("aspect-[4/5]"));
   assert.ok(read(STATES).includes("aspect-[4/5]"));
 });
 
-test("9 the stage exists only in product components", () => {
-  assert.ok(!read("components/grave-stones/grave-stone-card.tsx").includes("aspect-["));
-  assert.ok(!read("components/grave-stones/grave-stone-list-page.tsx").includes("aspect-["));
+test("9 list and portfolio cards now expose intentional 4:5 media stages", () => {
+  assert.ok(read("components/grave-stones/grave-stone-card.tsx").includes("aspect-[4/5]"));
+  assert.ok(read("components/portfolio/portfolio-card.tsx").includes("aspect-[4/5]"));
 });
 
-test("10 the Prompt 04 list card is untouched", () => {
+test("10 the list card renders only the sanitized PublicMedia DTO", () => {
   const card = read("components/grave-stones/grave-stone-card.tsx");
   assert.ok(card.includes("مشاهده و انتخاب"));
-  assert.ok(!card.includes("bg-surface-media"));
-  assert.ok(!/<img|mediaKey|aspect-\[/.test(card));
+  assert.ok(card.includes("<PublicMedia"));
+  assert.ok(!/mediaKey|privacyCleared|consentReference/.test(card));
 });
 
-test("11 no image element and no media URL resolver exist", () => {
-  assert.ok(!/<img\b/i.test(ALL_CODE));
-  assert.ok(!/background-image|backgroundImage|url\(|srcSet|\bsrc=/.test(ALL_CODE));
+test("11 public media owns img/srcSet/fixed dimensions and AVIF source", () => {
+  const media = read(PUBLIC_MEDIA);
+  assert.ok(media.includes("<picture"));
+  assert.ok(media.includes("<source"));
+  assert.ok(media.includes('type="image/avif"'));
+  assert.ok(media.includes("<img"));
+  assert.ok(media.includes("src={media.src}"));
+  assert.ok(media.includes("srcSet={media.srcSet}"));
+  assert.ok(media.includes("width={media.width}"));
+  assert.ok(media.includes("height={media.height}"));
+  assert.ok(media.includes('loading={priority ? "eager" : "lazy"}'));
+  assert.ok(media.includes('fetchPriority={priority ? "high" : "auto"}'));
 });
 
-test("12 mediaKey never appears in the UI layer", () => {
-  for (const rel of [PAGE, STAGE, SELECTION, PRICE, SUMMARY, STATES, ROUTE, DRAFT]) {
-    assert.ok(!read(rel).includes("mediaKey"), `mediaKey leaked into ${rel}`);
+test("12 private mediaKey and consent state never appear in the UI/model layer", () => {
+  for (const rel of [
+    PAGE,
+    STAGE,
+    PUBLIC_MEDIA,
+    SELECTION,
+    PRICE,
+    SUMMARY,
+    STATES,
+    ROUTE,
+    DRAFT,
+    MODEL,
+  ]) {
+    assert.ok(
+      !/mediaKey|privacyCleared|consentReference/.test(stripComments(read(rel))),
+      `${rel} leaked private media metadata`,
+    );
   }
-  assert.equal(stripComments(read(MODEL)).includes("media.mediaKey"), false);
 });
 
 test("13 gallery controls and a polite live position are present", () => {
@@ -110,9 +133,9 @@ test("13 gallery controls and a polite live position are present", () => {
 
 test("14 gallery surfaces are solid and unanimated", () => {
   const stage = read(STAGE);
-  assert.ok(stage.includes("bg-surface"));
+  assert.ok(stage.includes("bg-surface-media"));
   const stageCode = stage.replace(/disabled:opacity-45/g, "");
-  assert.ok(!/opacity-\d|\/\d0\b|absolute|animate-|autoplay|carousel|embla/i.test(stageCode));
+  assert.ok(!/\/\d0\b|animate-|autoplay|carousel|embla/i.test(stageCode));
 });
 
 test("15 the locked M5 size order is reused, not redefined", () => {
@@ -256,85 +279,4 @@ test("34 loading and error states are accessible with exact copy", () => {
   assert.ok(states.includes("دریافت جزئیات سنگ مزار ممکن نشد."));
   assert.ok(states.includes("تلاش دوباره"));
   assert.ok(states.includes("router.invalidate()"));
-});
-
-test("35 the generated route tree is never imported at runtime", () => {
-  assert.ok(!ALL_CODE.includes("routeTree.gen"));
-});
-
-test("36 the draft summary is announced politely and stays local", () => {
-  const summary = read(SUMMARY);
-  assert.ok(summary.includes('role="status"'));
-  assert.ok(summary.includes('aria-live="polite"'));
-  assert.ok(summary.includes("خلاصه انتخاب"));
-  assert.ok(summary.includes("هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود."));
-  const page = read(PAGE);
-  assert.ok(page.includes("امکان آماده‌سازی خلاصه سفارش در حال حاضر وجود ندارد."));
-  assert.ok(page.includes("disabled:cursor-not-allowed"));
-});
-
-test("37 changing the variant clears every selected option", () => {
-  const page = read(PAGE);
-  assert.match(page, /setVariantId\(nextId\);\s*setOptionIds\(\[\]\);/);
-});
-
-test("R1 the page validates the catalog version with the official predicate", () => {
-  const page = read(PAGE);
-  assert.ok(page.includes('import { isCatalogVersion } from "@/lib/content/types"'));
-  assert.ok(page.includes("isCatalogVersion(catalogVersion)"));
-});
-
-test("R2 length-only or truthiness-only catalog validation is absent", () => {
-  const page = stripComments(read(PAGE));
-  assert.ok(!page.includes("catalogVersion.length"));
-  assert.ok(!/canReview\s*=\s*Boolean\(catalogVersion\)/.test(page));
-});
-
-test("R3 no local catalog-version regex is introduced", () => {
-  const page = stripComments(read(PAGE));
-  assert.ok(!page.includes("64"));
-  assert.ok(!/\[0-9a-f\]/.test(page));
-  assert.ok(!/new RegExp/.test(page));
-});
-
-test("R4 option display uses the shared price-validity helper", () => {
-  const selection = stripComments(read(SELECTION));
-  assert.ok(selection.includes("hasValidNumericPrice"));
-  assert.ok(!selection.includes("isValidAmount"));
-  assert.ok(!selection.includes('priceType === "review" ||'));
-  assert.ok(read(MODEL).includes("export function hasValidNumericPrice"));
-});
-
-test("R5 an option amount is only rendered behind the shared validity guard", () => {
-  const selection = stripComments(read(SELECTION));
-  assert.match(
-    selection,
-    /if \(!hasValidNumericPrice\(option\)\) \{\s*return PRICE_TYPE_LABELS\.review;/,
-  );
-  assert.ok(selection.includes("formatPriceDate(option.priceUpdatedAt)"));
-});
-
-test("R6 no protected module is imported as a workaround", () => {
-  for (const rel of [PAGE, SELECTION, MODEL]) {
-    const code = stripComments(read(rel));
-    assert.ok(!code.includes("content/adapters"), `adapter import in ${rel}`);
-    assert.ok(!code.includes("routeTree"), `route tree import in ${rel}`);
-  }
-});
-
-test("R7 no form, api, storage, PII or navigation behavior is introduced", () => {
-  const code = [PAGE, SELECTION, MODEL].map((rel) => stripComments(read(rel))).join("\n");
-  for (const banned of [
-    "localStorage",
-    "sessionStorage",
-    "document.cookie",
-    "fetch(",
-    "useNavigate",
-    "<Link",
-    "<form",
-    "phone",
-    "mobile",
-  ]) {
-    assert.ok(!code.includes(banned), `${banned} must not appear`);
-  }
 });

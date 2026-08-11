@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import type { Product, ProductOption, ProductVariant } from "../lib/content/types";
+import type { Media, Product, ProductOption, ProductVariant } from "../lib/content/types";
 import {
   PRODUCT_SIZE_ORDER,
   buildProductDetailModel,
@@ -32,6 +32,16 @@ const variant = (over: Partial<ProductVariant> = {}): ProductVariant => ({
   excludes: ["نصب"],
   options: [],
   isAvailable: true,
+  ...over,
+});
+
+const media = (over: Partial<Media> = {}): Media => ({
+  src: "/media/aaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbb-1280w.webp",
+  srcSet:
+    "/media/aaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbb-320w.webp 320w, /media/aaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbb-640w.webp 640w, /media/aaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbb-1280w.webp 1280w",
+  width: 1280,
+  height: 1600,
+  alt: "نمای سنگ",
   ...over,
 });
 
@@ -174,42 +184,36 @@ test("13 duplicate option id keeps only the first occurrence", () => {
   assert.equal(model?.variants[0]?.options[0]?.title, "اول");
 });
 
-test("14 media that is not privacy cleared is dropped", () => {
-  const model = build({
-    media: [
-      { mediaKey: "k1", alt: "الف", caption: null, privacyCleared: false, consentReference: null },
-      { mediaKey: "k2", alt: "ب", caption: null, privacyCleared: true, consentReference: null },
-    ],
-  });
-  assert.deepEqual(
-    model?.media.map((item) => item.alt),
-    ["ب"],
-  );
+test("14 media with an invalid public path is dropped", () => {
+  const model = build({ media: [media({ src: "https://private.example/image.webp" }), media()] });
+  assert.equal(model?.media.length, 1);
+  assert.equal(model?.media[0]?.alt, "نمای سنگ");
 });
 
 test("15 media with a blank alt is dropped", () => {
-  const model = build({
-    media: [
-      { mediaKey: "k1", alt: "   ", caption: null, privacyCleared: true, consentReference: null },
-    ],
-  });
+  const model = build({ media: [media({ alt: "   " })] });
   assert.deepEqual(model?.media, []);
 });
 
-test("16 mediaKey never enters the display view-model", () => {
-  const model = build({
-    media: [
-      {
-        mediaKey: "secret-key",
-        alt: "الف",
-        caption: "ب",
-        privacyCleared: true,
-        consentReference: null,
-      },
-    ],
-  });
-  assert.deepEqual(Object.keys(model!.media[0]!).sort(), ["alt", "caption"]);
-  assert.equal(JSON.stringify(model).includes("secret-key"), false);
+test("16 media view-model exposes only the sanitized five-field DTO", () => {
+  const model = build({ media: [media({ alt: "  نمای سنگ  " })] });
+  assert.deepEqual(Object.keys(model!.media[0]!).sort(), [
+    "alt",
+    "height",
+    "src",
+    "srcSet",
+    "width",
+  ]);
+  const serialized = JSON.stringify(model);
+  for (const banned of [
+    "mediaKey",
+    "privacyCleared",
+    "consentReference",
+    "catalog-media",
+    "supabase",
+  ]) {
+    assert.equal(serialized.includes(banned), false);
+  }
 });
 
 test("17 blank summary and description become null", () => {
@@ -221,9 +225,7 @@ test("17 blank summary and description become null", () => {
 test("18 the adapter input is never mutated", () => {
   const input = product({
     variants: [variant({ options: [option({ isAvailable: false })] })],
-    media: [
-      { mediaKey: "k", alt: " ", caption: null, privacyCleared: true, consentReference: null },
-    ],
+    media: [media({ alt: "  نمای سنگ  " })],
   });
   const before = JSON.stringify(input);
   buildProductDetailModel(input, "sang-1");

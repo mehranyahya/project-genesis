@@ -30,11 +30,6 @@ const ADAPTER_NAMES = [
   "getCatalogVersion",
 ] as const;
 
-/* ------------------------------------------------------------------ *
- * Type-level assertions. These are enforced by `tsc --noEmit`,
- * not by regex over source text.
- * ------------------------------------------------------------------ */
-
 type Equals<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
 type Expect<T extends true> = T;
@@ -47,7 +42,6 @@ type OptionalKeys<T> = {
 
 type _ProductTypeUnion = Expect<Equals<ProductType, "simple" | "cnc_box">>;
 type _PriceTypeUnion = Expect<Equals<PriceType, "fixed" | "estimate" | "review">>;
-
 type _ProductRequired = Expect<
   Equals<
     RequiredKeys<Product>,
@@ -66,7 +60,6 @@ type _ProductRequired = Expect<
     | "updatedAt"
   >
 >;
-
 type _VariantRequired = Expect<
   Equals<
     RequiredKeys<ProductVariant>,
@@ -82,7 +75,6 @@ type _VariantRequired = Expect<
     | "isAvailable"
   >
 >;
-
 type _OptionRequired = Expect<
   Equals<
     RequiredKeys<ProductOption>,
@@ -95,58 +87,43 @@ type _OptionRequired = Expect<
     | "compatibleSizeCodes"
   >
 >;
-
 type _SiteRequired = Expect<
   Equals<
     RequiredKeys<Site>,
     | "displayName"
     | "latinName"
     | "phone"
-    | "whatsapp"
+    | "whatsappUrl"
     | "telegram"
     | "address"
     | "workingHours"
     | "links"
   >
 >;
-
 type _SeoRequired = Expect<
   Equals<RequiredKeys<SeoMeta>, "title" | "description" | "canonicalPath" | "robots">
 >;
-
 type _MediaRequired = Expect<
-  Equals<
-    RequiredKeys<Media>,
-    "mediaKey" | "alt" | "caption" | "privacyCleared" | "consentReference"
-  >
+  Equals<RequiredKeys<Media>, "src" | "srcSet" | "width" | "height" | "alt">
 >;
-type _MediaOptional = Expect<Equals<OptionalKeys<Media>, "width" | "height">>;
-
+type _MediaOptional = Expect<Equals<OptionalKeys<Media>, never>>;
 type _GuideRequired = Expect<
   Equals<RequiredKeys<Guide>, "slug" | "title" | "summary" | "body" | "seo" | "updatedAt">
 >;
-
 type _PortfolioRequired = Expect<
   Equals<RequiredKeys<PortfolioItem>, "publicReferenceId" | "media">
 >;
-
 type _PortfolioOptional = Expect<
   Equals<OptionalKeys<PortfolioItem>, "stoneCode" | "sizeCode" | "summary">
 >;
-
 type _PortfolioSizeCode = Expect<
   Equals<PortfolioItem["sizeCode"], GraveStoneSizeCode | null | undefined>
 >;
-
 type _PortfolioStoneCode = Expect<Equals<PortfolioItem["stoneCode"], string | null | undefined>>;
 type _PortfolioSummary = Expect<Equals<PortfolioItem["summary"], string | null | undefined>>;
-
-// Portfolio exposes no customer-identifying surface.
 type _PortfolioNoPii = Expect<
   Equals<Extract<keyof PortfolioItem, `${string}customer${string}` | "name" | "phone">, never>
 >;
-
-// CatalogVersion is branded: a plain string is not assignable to it.
 type _BrandedCatalogVersion = Expect<Equals<string extends CatalogVersion ? true : false, false>>;
 
 test("type-level contract assertions compile", () => {
@@ -187,17 +164,26 @@ test("guide adapters remain content-blocked until their Git repository is wired"
   assert.equal(await adapters.getGuide("any"), null);
 });
 
-test("structured content remains an explicit empty scaffold without Worker service-role access", () => {
+test("structured runtime reads only the sanitized generated artifact", () => {
   const source = readFileSync(new URL("./supabase.server.ts", import.meta.url), "utf8");
-  assert.match(source, /CONTENT_LATER_SCAFFOLD/);
-  assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY|SUPABASE_URL|process\.env|fetch\(/);
-  assert.match(source, /return \[\];/);
-  assert.match(source, /return null;/);
+  const generated = readFileSync(
+    new URL("./generated-structured-content.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /generated-structured-content/);
+  assert.doesNotMatch(
+    source,
+    /SUPABASE_SERVICE_ROLE_KEY|BUILD_SUPABASE_SERVICE_ROLE_KEY|SUPABASE_URL|process\.env|fetch\(|\/rest\/v1|\/storage\/v1/i,
+  );
+  assert.match(generated, /STRUCTURED_CONTENT_GENERATED = false/);
+  assert.doesNotMatch(
+    generated,
+    /mediaKey|privacyCleared|consentReference|service.role|supabase\.co/i,
+  );
 });
 
 test("content adapters cross only approved TanStack server-function boundaries", () => {
   const source = readFileSync(new URL("./adapters.ts", import.meta.url), "utf8");
-
   assert.match(source, /from "\.\/supabase\.functions"/);
   assert.match(source, /from "\.\/git\.functions"/);
   assert.match(source, /getProductsFromServer/);
@@ -206,7 +192,6 @@ test("content adapters cross only approved TanStack server-function boundaries",
   assert.match(source, /getSiteFromServer/);
   assert.match(source, /getCatalogVersionFromServer/);
   assert.match(source, /getPageFromGitServer/);
-
   assert.equal(
     /supabase\.server|git\.server|@supabase|\.from\(|\/rest\/v1|service.role|service_role|node:fs|content\//i.test(
       source,

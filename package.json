@@ -17,6 +17,7 @@
     "content:generate": "node scripts/generate-content-pages.mjs",
     "content:check": "node scripts/generate-content-pages.mjs --check",
     "content:release-check": "node scripts/generate-content-pages.mjs --release-check",
+    "structured:generate": "node scripts/generate-structured-content.mjs",
     "edge:check": "deno check supabase/functions/submit-request/index.ts supabase/functions/telegram-recovery/index.ts"
   },
   "dependencies": {

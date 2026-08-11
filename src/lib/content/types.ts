@@ -44,14 +44,17 @@ export interface SeoMeta {
   robots: string | null;
 }
 
+/**
+ * The only media shape allowed to cross the build/runtime boundary.
+ * Private Storage paths, media keys, captions, consent references and privacy
+ * review state never enter browser-facing content objects.
+ */
 export interface Media {
-  mediaKey: string;
+  src: string;
+  srcSet: string;
+  width: number;
+  height: number;
   alt: string;
-  caption: string | null;
-  privacyCleared: boolean;
-  consentReference: string | null;
-  width?: number;
-  height?: number;
 }
 
 export interface ProductOption {
@@ -120,7 +123,7 @@ export interface Site {
   displayName: string;
   latinName: string;
   phone: string | null;
-  whatsapp: string | null;
+  whatsappUrl: string | null;
   telegram: string | null;
   address: string | null;
   workingHours: string | null;

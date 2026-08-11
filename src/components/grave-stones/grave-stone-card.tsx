@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { SIZE_FILTER_OPTIONS, TYPE_FILTER_OPTIONS } from "./grave-stone-filter";
+import { PublicMedia } from "@/components/media/public-media";
 import type { GraveStoneListItem } from "@/lib/grave-stone-list";
 
 export const CARD_CTA_LABEL = "مشاهده و انتخاب";
@@ -12,6 +13,17 @@ export function GraveStoneCard({ item }: { item: GraveStoneListItem }) {
   return (
     <li className="col-span-4 md:col-span-4 lg:col-span-4">
       <article className="flex h-full flex-col gap-3 border border-border-subtle bg-surface p-4">
+        {item.leadMedia ? (
+          <div className="aspect-[4/5] overflow-hidden bg-surface-media">
+            <PublicMedia
+              media={item.leadMedia}
+              fit="contain"
+              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+              className="block h-full w-full"
+            />
+          </div>
+        ) : null}
+
         <h3 className="text-base font-bold text-text-primary">{item.title}</h3>
 
         {item.summary ? <p className="text-sm text-text-secondary">{item.summary}</p> : null}
