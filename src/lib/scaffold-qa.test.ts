@@ -4,6 +4,8 @@ import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import { htmlDir } from "./i18n/locale";
+
 /**
  * Scaffold QA gate (Prompt 12).
  * Source-level assertions only. No business logic, no new capability.
