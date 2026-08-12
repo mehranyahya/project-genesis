@@ -20,7 +20,7 @@ import { formatSubmitPrice } from "../../components/request-form/request-form-st
 import { productShareText } from "../../components/product/product-share";
 import { successTextParts } from "../../components/request-form/request-success";
 
-const SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const SRC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const ARABIC = /[\u0600-\u06FF]/;
 
 /* --------------------------------------------------------- translator */
