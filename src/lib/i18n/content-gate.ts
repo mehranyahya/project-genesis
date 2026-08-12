@@ -41,3 +41,29 @@ export function contentListForLocale<T extends LocalizedContent>(
   if (!values) return [];
   return values.filter((value) => isContentForLocale(value, locale));
 }
+
+
+/**
+ * Site record narrowed to one locale.
+ *
+ * Locale-neutral values (phone, WhatsApp/Telegram handles, links, Latin name)
+ * always survive. Prose written in another language — display name, address,
+ * working hours — is dropped rather than leaked into the other locale.
+ */
+export function siteForLocale<
+  T extends LocalizedContent & {
+    displayName: string;
+    latinName: string;
+    address: string | null;
+    workingHours: string | null;
+  },
+>(site: T | null | undefined, locale: Locale): T | null {
+  if (!site) return null;
+  if (isContentForLocale(site, locale)) return site;
+  return {
+    ...site,
+    displayName: locale === DEFAULT_LOCALE ? site.displayName : site.latinName,
+    address: null,
+    workingHours: null,
+  };
+}
