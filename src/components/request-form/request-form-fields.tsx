@@ -39,7 +39,7 @@ function FieldError({ id, message }: { id: string; message: string | undefined }
   if (message === undefined) return null;
   return (
     <p id={id} role="alert" className="text-sm text-status-error">
-      خطا: {message}
+      {t("خطا")}: {t(message)}
     </p>
   );
 }
@@ -194,7 +194,7 @@ export function RequestFormFields({
                   onChange({ preferredContact: option.value satisfies PreferredContact })
                 }
               />
-              <span className="text-sm text-text-primary">{option.label}</span>
+              <span className="text-sm text-text-primary">{t(option.label)}</span>
             </label>
           ))}
         </div>

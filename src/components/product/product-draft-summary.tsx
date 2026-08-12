@@ -31,7 +31,7 @@ export function ProductDraftSummary({ draft }: { draft: GraveStoneRequestDraft }
         </div>
         <div className="flex flex-wrap gap-2">
           <dt className="text-sm text-text-caption">{t("نوع")}</dt>
-          <dd className="text-sm text-text-primary">{snapshot.productTypeLabel}</dd>
+          <dd className="text-sm text-text-primary">{t(snapshot.productTypeLabel)}</dd>
         </div>
         <div className="flex flex-wrap gap-2">
           <dt className="text-sm text-text-caption">{t("سنگ")}</dt>
@@ -46,7 +46,7 @@ export function ProductDraftSummary({ draft }: { draft: GraveStoneRequestDraft }
         <div className="flex flex-wrap gap-2">
           <dt className="text-sm text-text-caption">{t("وضعیت قیمت")}</dt>
           <dd className="text-sm text-text-primary">
-            {PRICE_TYPE_LABELS[snapshot.priceType]} — {snapshot.priceLabel}
+            {t(PRICE_TYPE_LABELS[snapshot.priceType])} — {t(snapshot.priceLabel)}
           </dd>
         </div>
         {date ? (

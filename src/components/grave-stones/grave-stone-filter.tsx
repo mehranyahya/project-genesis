@@ -60,7 +60,7 @@ export function GraveStoneFilter({
         >
           {TYPE_FILTER_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
-              {option.label}
+              {t(option.label)}
             </option>
           ))}
         </select>
@@ -97,7 +97,7 @@ export function GraveStoneFilter({
         >
           {SIZE_FILTER_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
-              {option.label}
+              {t(option.label)}
             </option>
           ))}
         </select>

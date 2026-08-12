@@ -47,13 +47,13 @@ function Field({
   return (
     <div className={cn("flex flex-col gap-2", className)} {...props}>
       <label htmlFor={id} className="text-sm font-bold text-text-primary">
-        {label}
+        {t(label)}
         {required ? <span className="ms-1 text-text-caption">{t("(الزامی)")}</span> : null}
       </label>
       {control}
       {hint ? (
         <p id={hintId} className="text-sm leading-relaxed text-text-caption">
-          {hint}
+          {t(hint)}
         </p>
       ) : null}
       {error ? (

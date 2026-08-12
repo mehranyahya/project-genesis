@@ -186,7 +186,7 @@ export function CustomFunnelStepper({
               }
             >
               <span className="pe-1">{index + 1}.</span>
-              {label}
+              {t(label)}
               {index === step ? <span className="ps-2 text-sm">{t("(مرحلهٔ جاری)")}</span> : null}
             </li>
           ))}
@@ -194,7 +194,7 @@ export function CustomFunnelStepper({
       </nav>
 
       <div className="col-span-4 flex flex-col gap-6 md:col-span-8 lg:col-span-9">
-        <h2 className="text-lg font-bold text-text-primary">{CUSTOM_FUNNEL_STEPS[step]}</h2>
+        <h2 className="text-lg font-bold text-text-primary">{t(CUSTOM_FUNNEL_STEPS[step])}</h2>
 
         <div role="status" aria-live="polite" className="text-sm text-text-secondary">
           {cascadeStep === step ? CASCADE_RESET_TEXT : null}

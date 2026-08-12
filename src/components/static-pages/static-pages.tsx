@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { GuideBody } from "@/components/guides/guides";
 import type { ContactEntry, StaticPageModel } from "@/lib/static-pages";
 import { NOT_FOUND_MARKER } from "@/lib/static-pages";
+import { useT } from "@/lib/i18n/react";
 
 const SECTION =
   "mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12";
@@ -53,7 +54,7 @@ export function ContactDetailsList({ entries }: { entries: ContactEntry[] }) {
     <dl className="flex flex-col gap-3 border-t border-border-subtle pt-6">
       {entries.map((entry) => (
         <div key={entry.key} className="flex flex-col gap-1">
-          <dt className="text-xs font-bold text-text-caption">{entry.label}</dt>
+          <dt className="text-xs font-bold text-text-caption">{t(entry.label)}</dt>
           <dd className="text-sm text-text-primary">
             {entry.href === null ? (
               <bdi>{entry.value}</bdi>
