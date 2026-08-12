@@ -41,6 +41,7 @@ export const BASE_STATIC_PATHS = [
   "/grave-stones/custom",
   "/portfolio",
   "/building-stone",
+  "/stoneworks",
   "/guides",
   "/quote",
   "/about",

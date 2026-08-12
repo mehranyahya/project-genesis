@@ -10,6 +10,7 @@ import {
   SKIP_LINK_LABEL,
   isBusinessRoute,
 } from "./navigation";
+import { CHOICE_PATHS } from "../components/home/home-sections";
 
 const EXPECTED = [
   "/",
@@ -18,6 +19,7 @@ const EXPECTED = [
   "/grave-stones/custom",
   "/portfolio",
   "/building-stone",
+  "/stoneworks",
   "/guides",
   "/guides/$slug",
   "/quote",
@@ -58,9 +60,9 @@ test("primary navigation targets are allowed, static and public", () => {
     PRIMARY_NAV.map((item) => item.to),
     [
       "/grave-stones",
-      "/grave-stones/custom",
       "/portfolio",
       "/building-stone",
+      "/stoneworks",
       "/guides",
       "/about",
       "/contact",
@@ -89,4 +91,24 @@ test("primary CTA label and destination are exact", () => {
 test("skip link contract", () => {
   assert.equal(SKIP_LINK_LABEL, "رفتن به محتوای اصلی");
   assert.equal(MAIN_CONTENT_ID, "main-content");
+});
+
+test("the custom funnel keeps its route and its home-page access after the nav swap", () => {
+  // Primary navigation swapped the custom-order entry for Stoneworks to keep
+  // the desktop header uncrowded; the route itself must stay reachable.
+  assert.ok(isBusinessRoute("/grave-stones/custom"));
+  assert.equal(
+    PRIMARY_NAV.some((item) => item.to === "/grave-stones/custom"),
+    false,
+  );
+  assert.deepEqual(
+    CHOICE_PATHS.map((item) => item.to).filter((to) => to === "/grave-stones/custom"),
+    ["/grave-stones/custom"],
+  );
+});
+
+test("the Stoneworks entry is present exactly once with its official label", () => {
+  const entries = PRIMARY_NAV.filter((item) => item.to === "/stoneworks");
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0]?.label, "محصولات سنگی خاص");
 });
