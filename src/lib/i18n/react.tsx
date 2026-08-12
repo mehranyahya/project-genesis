@@ -62,20 +62,28 @@ export function useDynamicPath(path: BaseDynamicPath): LocalizedDynamicPath {
   return localizePath(path, locale) as LocalizedDynamicPath;
 }
 
-/** Locale-aware link for the static public routes. */
+/**
+ * Locale-aware link.
+ *
+ * `to` is the shared Persian base path; the active locale decides whether the
+ * `/en` prefix is added. Dynamic segments keep working through `params`.
+ */
 export function LocaleLink({
   to,
+  params,
   children,
   ...rest
-}: { to: BaseStaticPath | BaseDynamicPath; children: ReactNode } & Omit<
-  React.ComponentProps<typeof Link>,
-  "to" | "children"
->) {
+}: {
+  to: BaseStaticPath | BaseDynamicPath;
+  params?: Record<string, string>;
+  children: ReactNode;
+} & Omit<React.ComponentProps<typeof Link>, "to" | "params" | "children">) {
   const locale = useLocale();
   const target = localizePath(to, locale);
+  const AnyLink = Link as unknown as React.ComponentType<Record<string, unknown>>;
   return (
-    <Link to={target} {...rest}>
+    <AnyLink to={target} {...(params ? { params } : {})} {...rest}>
       {children}
-    </Link>
+    </AnyLink>
   );
 }
