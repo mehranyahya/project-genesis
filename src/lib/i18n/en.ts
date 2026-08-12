@@ -21,6 +21,7 @@ export const EN_MESSAGES = {
   نمونه‌کارها: "Projects",
   "سنگ ساختمانی": "Building Stone",
   راهنماها: "Guides",
+  "محصولات سنگی خاص": "Special Stonework",
   "درباره ما": "About Us",
   تماس: "Contact",
   "حریم خصوصی": "Privacy Policy",
@@ -278,6 +279,51 @@ export const EN_MESSAGES = {
     "For the “Other” application, enter a description between 10 and 500 characters.",
   "مساحت باید عددی بیشتر از صفر و حداکثر ۱۰۰٬۰۰۰ متر مربع باشد.":
     "The area must be a number greater than zero and at most 100,000 square metres.",
+
+  // Stoneworks
+  "محصولات سنگی خاص و سفارش ساخت": "Special Stonework and Bespoke Commissions",
+  "دسته‌های ساخت سفارشی سنگ: مجسمه، آبنما، عناصر معماری، دکور سنگی و یادمان. ثبت درخواست بررسی ساخت.":
+    "Bespoke stone production categories: sculpture, water features, architectural elements, stone furniture and monuments. Submit a commission for review.",
+  "همهٔ کارهای این بخش سفارشی ساخته می‌شوند. نوع سنگ، ابعاد، جزئیات تراش، شرایط محل و نصب و شیوهٔ حمل برای هر سفارش جداگانه بررسی می‌شود، بنابراین وضعیت قیمت همهٔ دسته‌ها «نیازمند بررسی» است.":
+    "Everything in this section is made to order. The stone, the dimensions, the carving detail, the site and installation conditions and the transport method are reviewed for each commission individually, so the price state of every category is “requires review”.",
+  "دسته‌های ساخت": "Production categories",
+  "مراحل بررسی سفارش": "How a commission is reviewed",
+  "انتخاب دسته": "Choose a category",
+  "اعلام ابعاد و شرایط محل": "Share the dimensions and site conditions",
+  "بررسی فنی": "Technical review",
+  "تأیید نهایی": "Final confirmation",
+  "درخواست ساخت": "Request a commission",
+  "درخواست ساخت: {category}": "Request a commission: {category}",
+
+  "مجسمه و هنر سنگی": "Sculpture and stone art",
+  "تراش دستی و ماشینی احجام هنری از سنگ طبیعی، بر پایهٔ طرح یا ایدهٔ شما و متناسب با جنس سنگ انتخابی.":
+    "Hand and machine carving of artistic forms in natural stone, based on your design or idea and suited to the stone you choose.",
+  "کاربردها: فضای باز، ورودی ساختمان، محوطهٔ عمومی و مجموعه‌های فرهنگی.":
+    "Used for: outdoor settings, building entrances, public grounds and cultural venues.",
+
+  "آبنما و محوطه": "Water features and grounds",
+  "ساخت آبنما، حوض، جدول و اجزای سنگی محوطه با توجه به ابعاد زمین، مسیر آب و شرایط اجرای محل.":
+    "Water features, basins, kerbs and stone landscape elements built around the plot dimensions, the water path and the conditions on site.",
+  "کاربردها: حیاط، باغ، محوطهٔ اداری و فضاهای شهری.":
+    "Used for: courtyards, gardens, corporate grounds and urban spaces.",
+
+  "عناصر معماری": "Architectural elements",
+  "اجرای ستون، سرستون، قاب درگاه، نرده و قرنیز سنگی هماهنگ با نقشه و جزئیات معماری پروژه.":
+    "Columns, capitals, door surrounds, balustrades and stone cornices produced in line with the drawings and architectural detailing of the project.",
+  "کاربردها: نما، ورودی، راه‌پله و بازسازی بناهای موجود.":
+    "Used for: façades, entrances, staircases and the restoration of existing buildings.",
+
+  "دکور و مبلمان سنگی": "Stone furniture and decor",
+  "ساخت میز، نیمکت، پیشخوان، شومینه و عناصر دکوراتیو سنگی با ابعاد و پرداخت سطح موردنظر شما.":
+    "Tables, benches, counters, fireplaces and decorative stone elements made to your dimensions and surface finish.",
+  "کاربردها: فضای داخلی مسکونی، تجاری و اداری.":
+    "Used for: residential, retail and office interiors.",
+
+  "یادمان و سفارش اختصاصی": "Monuments and bespoke commissions",
+  "طراحی و اجرای یادمان، لوح و سازه‌های سنگی اختصاصی که در دسته‌های دیگر نمی‌گنجند، بر اساس شرح سفارش شما.":
+    "Design and production of monuments, plaques and one-off stone structures that fall outside the other categories, following your brief.",
+  "کاربردها: فضاهای یادبود، پروژه‌های سازمانی و سفارش‌های خاص.":
+    "Used for: memorial spaces, institutional projects and special commissions.",
 
   // Parameterised messages
   "{amount} تومان": "{amount} toman",

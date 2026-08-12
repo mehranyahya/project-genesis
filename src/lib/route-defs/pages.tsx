@@ -26,6 +26,7 @@ import {
   ProductDetailLoading,
 } from "@/components/product/product-detail-states";
 import { QuotePage } from "@/components/request-form/quote-page";
+import { StoneworksPage } from "@/components/stoneworks/stoneworks-page";
 import {
   ContactDetailsList,
   ContentBlockedState,
@@ -51,6 +52,7 @@ import { buildPortfolioModel } from "@/lib/portfolio";
 import { findPortfolioReference, normalizePortfolioReference } from "@/lib/portfolio-reference";
 import { buildProductDetailModel } from "@/lib/product-detail";
 import { getRequestTermsDocument } from "@/lib/request-terms";
+import { STONEWORKS_META_DESCRIPTION, STONEWORKS_META_TITLE } from "@/lib/stoneworks";
 import {
   buildContactPageModel,
   buildStaticPageModel,
@@ -90,6 +92,26 @@ export function homeRouteOptions(locale: Locale) {
 function HomeRoute() {
   const model = useRouteData<ReturnType<typeof buildHomeViewModel>>();
   return <HomePage model={model} />;
+}
+
+/* ------------------------------------------------------------ stoneworks */
+
+/**
+ * One shared factory for `/stoneworks` and `/en/stoneworks`.
+ * The page is a pure catalogue of production categories: no adapter data,
+ * no media and no amount.
+ */
+export function stoneworksRouteOptions(locale: Locale) {
+  return {
+    head: () =>
+      localizedHead({
+        locale,
+        basePath: "/stoneworks",
+        title: STONEWORKS_META_TITLE,
+        description: STONEWORKS_META_DESCRIPTION,
+      }),
+    component: StoneworksPage,
+  };
 }
 
 /* ---------------------------------------------------------- grave stones */

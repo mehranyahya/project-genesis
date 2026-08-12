@@ -11,6 +11,7 @@ export const BUSINESS_ROUTES = [
   "/grave-stones/custom",
   "/portfolio",
   "/building-stone",
+  "/stoneworks",
   "/guides",
   "/guides/$slug",
   "/quote",
@@ -34,9 +35,9 @@ export interface NavItem {
 /** Primary public navigation (header + mobile panel + footer). */
 export const PRIMARY_NAV: readonly NavItem[] = [
   { label: "فروشگاه سنگ مزار", to: "/grave-stones" },
-  { label: "سفارش سفارشی", to: "/grave-stones/custom" },
   { label: "نمونه‌کارها", to: "/portfolio" },
   { label: "سنگ ساختمانی", to: "/building-stone" },
+  { label: "محصولات سنگی خاص", to: "/stoneworks" },
   { label: "راهنماها", to: "/guides" },
   { label: "درباره ما", to: "/about" },
   { label: "تماس", to: "/contact" },

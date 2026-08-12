@@ -316,6 +316,7 @@ test("no public /404 route and no unexpected public UI route files exist", () =>
     "en/portfolio.tsx",
     "en/privacy.tsx",
     "en/quote.tsx",
+    "en/stoneworks.tsx",
     "en/terms.tsx",
     "grave-stones/$slug.tsx",
     "grave-stones/custom.tsx",
@@ -326,6 +327,7 @@ test("no public /404 route and no unexpected public UI route files exist", () =>
     "portfolio.tsx",
     "privacy.tsx",
     "quote.tsx",
+    "stoneworks.tsx",
     "terms.tsx",
   ]);
   assert.equal(

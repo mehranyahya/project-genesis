@@ -57,6 +57,10 @@ test("locale is derived only from the URL prefix", () => {
 
 test("path mapping is reciprocal and keeps dynamic slugs stable", () => {
   assert.equal(localizePath("/grave-stones", "en"), "/en/grave-stones");
+  assert.equal(localizePath("/stoneworks", "en"), "/en/stoneworks");
+  assert.equal(basePathFromPathname("/en/stoneworks"), "/stoneworks");
+  assert.equal(alternatePathname("/stoneworks", "en"), "/en/stoneworks");
+  assert.equal(alternatePathname("/en/stoneworks", "fa"), "/stoneworks");
   assert.equal(localizePath("/", "en"), "/en");
   assert.equal(localizePath("/", "fa"), "/");
   assert.equal(basePathFromPathname("/en/guides/how-to"), "/guides/how-to");
@@ -186,7 +190,7 @@ test("English route wrappers contain no Persian source text", () => {
   const files = (readdirSync(dir, { recursive: true }) as string[]).filter((file) =>
     /\.tsx?$/.test(file),
   );
-  assert.ok(files.length >= 13);
+  assert.ok(files.length >= 14);
   for (const file of files) {
     const source = readFileSync(path.join(dir, file), "utf8");
     assert.equal(ARABIC.test(source), false, `${file} must not contain Persian text`);

@@ -16,6 +16,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as QuoteRouteImport } from './routes/quote'
+import { Route as StoneworksRouteImport } from './routes/stoneworks'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ApiSubmitRequestRouteImport } from './routes/api/submit-request'
 import { Route as EnIndexRouteImport } from './routes/en/index'
@@ -25,6 +26,7 @@ import { Route as EnContactRouteImport } from './routes/en/contact'
 import { Route as EnPortfolioRouteImport } from './routes/en/portfolio'
 import { Route as EnPrivacyRouteImport } from './routes/en/privacy'
 import { Route as EnQuoteRouteImport } from './routes/en/quote'
+import { Route as EnStoneworksRouteImport } from './routes/en/stoneworks'
 import { Route as EnTermsRouteImport } from './routes/en/terms'
 import { Route as GraveStonesIndexRouteImport } from './routes/grave-stones/index'
 import { Route as GraveStonesSlugRouteImport } from './routes/grave-stones/$slug'
@@ -72,6 +74,11 @@ const QuoteRoute = QuoteRouteImport.update({
   path: '/quote',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StoneworksRoute = StoneworksRouteImport.update({
+  id: '/stoneworks',
+  path: '/stoneworks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -115,6 +122,11 @@ const EnPrivacyRoute = EnPrivacyRouteImport.update({
 const EnQuoteRoute = EnQuoteRouteImport.update({
   id: '/en/quote',
   path: '/en/quote',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnStoneworksRoute = EnStoneworksRouteImport.update({
+  id: '/en/stoneworks',
+  path: '/en/stoneworks',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EnTermsRoute = EnTermsRouteImport.update({
@@ -181,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/portfolio': typeof PortfolioRoute
   '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
+  '/stoneworks': typeof StoneworksRoute
   '/terms': typeof TermsRoute
   '/api/submit-request': typeof ApiSubmitRequestRoute
   '/en/about': typeof EnAboutRoute
@@ -189,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/en/portfolio': typeof EnPortfolioRoute
   '/en/privacy': typeof EnPrivacyRoute
   '/en/quote': typeof EnQuoteRoute
+  '/en/stoneworks': typeof EnStoneworksRoute
   '/en/terms': typeof EnTermsRoute
   '/grave-stones/$slug': typeof GraveStonesSlugRoute
   '/grave-stones/custom': typeof GraveStonesCustomRoute
@@ -210,6 +224,7 @@ export interface FileRoutesByTo {
   '/portfolio': typeof PortfolioRoute
   '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
+  '/stoneworks': typeof StoneworksRoute
   '/terms': typeof TermsRoute
   '/api/submit-request': typeof ApiSubmitRequestRoute
   '/en/about': typeof EnAboutRoute
@@ -218,6 +233,7 @@ export interface FileRoutesByTo {
   '/en/portfolio': typeof EnPortfolioRoute
   '/en/privacy': typeof EnPrivacyRoute
   '/en/quote': typeof EnQuoteRoute
+  '/en/stoneworks': typeof EnStoneworksRoute
   '/en/terms': typeof EnTermsRoute
   '/grave-stones/$slug': typeof GraveStonesSlugRoute
   '/grave-stones/custom': typeof GraveStonesCustomRoute
@@ -240,6 +256,7 @@ export interface FileRoutesById {
   '/portfolio': typeof PortfolioRoute
   '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
+  '/stoneworks': typeof StoneworksRoute
   '/terms': typeof TermsRoute
   '/api/submit-request': typeof ApiSubmitRequestRoute
   '/en/about': typeof EnAboutRoute
@@ -248,6 +265,7 @@ export interface FileRoutesById {
   '/en/portfolio': typeof EnPortfolioRoute
   '/en/privacy': typeof EnPrivacyRoute
   '/en/quote': typeof EnQuoteRoute
+  '/en/stoneworks': typeof EnStoneworksRoute
   '/en/terms': typeof EnTermsRoute
   '/grave-stones/$slug': typeof GraveStonesSlugRoute
   '/grave-stones/custom': typeof GraveStonesCustomRoute
@@ -271,6 +289,7 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/privacy'
     | '/quote'
+    | '/stoneworks'
     | '/terms'
     | '/api/submit-request'
     | '/en/about'
@@ -279,6 +298,7 @@ export interface FileRouteTypes {
     | '/en/portfolio'
     | '/en/privacy'
     | '/en/quote'
+    | '/en/stoneworks'
     | '/en/terms'
     | '/grave-stones/$slug'
     | '/grave-stones/custom'
@@ -300,6 +320,7 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/privacy'
     | '/quote'
+    | '/stoneworks'
     | '/terms'
     | '/api/submit-request'
     | '/en/about'
@@ -308,6 +329,7 @@ export interface FileRouteTypes {
     | '/en/portfolio'
     | '/en/privacy'
     | '/en/quote'
+    | '/en/stoneworks'
     | '/en/terms'
     | '/grave-stones/$slug'
     | '/grave-stones/custom'
@@ -329,6 +351,7 @@ export interface FileRouteTypes {
     | '/portfolio'
     | '/privacy'
     | '/quote'
+    | '/stoneworks'
     | '/terms'
     | '/api/submit-request'
     | '/en/about'
@@ -337,6 +360,7 @@ export interface FileRouteTypes {
     | '/en/portfolio'
     | '/en/privacy'
     | '/en/quote'
+    | '/en/stoneworks'
     | '/en/terms'
     | '/grave-stones/$slug'
     | '/grave-stones/custom'
@@ -359,6 +383,7 @@ export interface RootRouteChildren {
   PortfolioRoute: typeof PortfolioRoute
   PrivacyRoute: typeof PrivacyRoute
   QuoteRoute: typeof QuoteRoute
+  StoneworksRoute: typeof StoneworksRoute
   TermsRoute: typeof TermsRoute
   ApiSubmitRequestRoute: typeof ApiSubmitRequestRoute
   EnAboutRoute: typeof EnAboutRoute
@@ -367,6 +392,7 @@ export interface RootRouteChildren {
   EnPortfolioRoute: typeof EnPortfolioRoute
   EnPrivacyRoute: typeof EnPrivacyRoute
   EnQuoteRoute: typeof EnQuoteRoute
+  EnStoneworksRoute: typeof EnStoneworksRoute
   EnTermsRoute: typeof EnTermsRoute
   GraveStonesSlugRoute: typeof GraveStonesSlugRoute
   GraveStonesCustomRoute: typeof GraveStonesCustomRoute
@@ -432,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuoteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/stoneworks': {
+      id: '/stoneworks'
+      path: '/stoneworks'
+      fullPath: '/stoneworks'
+      preLoaderRoute: typeof StoneworksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -493,6 +526,13 @@ declare module '@tanstack/react-router' {
       path: '/en/quote'
       fullPath: '/en/quote'
       preLoaderRoute: typeof EnQuoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/stoneworks': {
+      id: '/en/stoneworks'
+      path: '/en/stoneworks'
+      fullPath: '/en/stoneworks'
+      preLoaderRoute: typeof EnStoneworksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/en/terms': {
@@ -583,6 +623,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortfolioRoute: PortfolioRoute,
   PrivacyRoute: PrivacyRoute,
   QuoteRoute: QuoteRoute,
+  StoneworksRoute: StoneworksRoute,
   TermsRoute: TermsRoute,
   ApiSubmitRequestRoute: ApiSubmitRequestRoute,
   EnAboutRoute: EnAboutRoute,
@@ -591,6 +632,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnPortfolioRoute: EnPortfolioRoute,
   EnPrivacyRoute: EnPrivacyRoute,
   EnQuoteRoute: EnQuoteRoute,
+  EnStoneworksRoute: EnStoneworksRoute,
   EnTermsRoute: EnTermsRoute,
   GraveStonesSlugRoute: GraveStonesSlugRoute,
   GraveStonesCustomRoute: GraveStonesCustomRoute,
