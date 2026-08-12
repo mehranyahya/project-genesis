@@ -45,6 +45,7 @@ function FieldError({ id, message }: { id: string; message: string | undefined }
 }
 
 function TextField({
+  const t = useT();
   fieldKey,
   value,
   error,

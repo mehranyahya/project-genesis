@@ -30,6 +30,7 @@ function FieldError({ id, message }: { id: string; message: string | undefined }
 }
 
 function RadioGroup<TValue extends string>({
+  const t = useT();
   fieldKey,
   legend,
   options,

@@ -30,3 +30,5 @@ export function BuildingStoneSummary({ values }: { values: BuildingStoneValues }
     </section>
   );
 }
+
+  const t = useT();
