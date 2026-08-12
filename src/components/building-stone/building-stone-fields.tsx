@@ -47,6 +47,7 @@ function RadioGroup<TValue extends string>({
   disabled: boolean;
   onSelect: (next: TValue) => void;
 }) {
+  const t = useT();
   const errId = buildingStoneErrorId(fieldKey);
   return (
     <fieldset className="border border-border-subtle p-4">
