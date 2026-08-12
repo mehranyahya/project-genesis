@@ -11,7 +11,9 @@ import {
   serverFocusDomId,
   sourceIdentity,
 } from "../../components/request-form/request-form";
-import { fieldId } from "../../components/request-form/request-form-fields";
+import { fieldId, termsLabelParts } from "../../components/request-form/request-form-fields";
+import { translate } from "../i18n/messages";
+import { delegationErrors, routeUnit } from "../route-defs/route-test-source";
 import type { BuildingStoneValues } from "../building-stone";
 import {
   EMPTY_BUILDING_STONE_VALUES,
@@ -964,4 +966,16 @@ test("52 the building page and form never carry personal data in the source", ()
   const identity = sourceIdentity(stoneSource());
   assert.ok(!identity.includes("علی"));
   assert.ok(!identity.includes("0912"));
+});
+
+test("fa and en quote wrappers declare their route ids and delegate to the shared factory", () => {
+  assert.deepEqual(
+    delegationErrors({
+      rel: QUOTE_ROUTE,
+      faRouteId: "/quote",
+      enRouteId: "/en/quote",
+      exportName: "quoteRouteOptions",
+    }),
+    [],
+  );
 });

@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+
+import { htmlDir, htmlLang, localeFromPathname } from "../i18n/locale";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { ContactLinks } from "@/components/layout/contact-links";
@@ -47,8 +49,15 @@ test("ContactLinks renders only non-null site fields", () => {
 
 test("root document is Persian, RTL and exposes the main landmark", () => {
   const source = read("routes/__root.tsx");
-  assert.match(source, /lang="fa"/);
-  assert.match(source, /dir="rtl"/);
+  // lang/dir are derived from the matched route, not hard-coded markup.
+  assert.match(source, /lang=\{htmlLang\(locale\)\} dir=\{htmlDir\(locale\)\}/);
+  assert.match(source, /localeFromPathname/);
+  assert.equal(htmlLang("fa"), "fa");
+  assert.equal(htmlDir("fa"), "rtl");
+  assert.equal(htmlLang("en"), "en");
+  assert.equal(htmlDir("en"), "ltr");
+  assert.equal(localeFromPathname("/grave-stones"), "fa");
+  assert.equal(localeFromPathname("/en/grave-stones"), "en");
   assert.match(source, /<Outlet \/>/);
   assert.match(source, /QueryClientProvider/);
   assert.match(source, /AppShell/);
@@ -61,9 +70,12 @@ test("shell landmarks and accessible navigation labels exist", () => {
   assert.match(shell, /SKIP_LINK_LABEL/);
   assert.match(read("components/layout/site-header.tsx"), /<header/);
   assert.match(read("components/layout/site-footer.tsx"), /<footer/);
-  assert.match(read("components/layout/site-header.tsx"), /aria-label="ناوبری اصلی"/);
-  assert.match(read("components/layout/mobile-navigation.tsx"), /aria-label="ناوبری موبایل"/);
-  assert.match(read("components/layout/site-footer.tsx"), /aria-label="ناوبری پاورقی"/);
+  assert.match(read("components/layout/site-header.tsx"), /aria-label=\{t\("ناوبری اصلی"\)\}/);
+  assert.match(
+    read("components/layout/mobile-navigation.tsx"),
+    /aria-label=\{t\("ناوبری موبایل"\)\}/,
+  );
+  assert.match(read("components/layout/site-footer.tsx"), /aria-label=\{t\("ناوبری پاورقی"\)\}/);
   assert.match(read("components/layout/mobile-navigation.tsx"), /aria-expanded=\{open\}/);
 });
 
