@@ -16,7 +16,9 @@ export function BuildingStoneSummary({ values }: { values: BuildingStoneValues }
 
   return (
     <section className="border border-border-subtle bg-surface p-4">
-      <h2 className="text-base font-bold text-text-primary">{BUILDING_STONE_SUMMARY_HEADING}</h2>
+      <h2 className="text-base font-bold text-text-primary">
+        {t(BUILDING_STONE_SUMMARY_HEADING)}
+      </h2>
       <dl className="flex flex-col gap-2 pt-3">
         {rows.map((row) => (
           <div key={row.key} className="flex flex-wrap items-baseline gap-2">
