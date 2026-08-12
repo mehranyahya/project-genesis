@@ -110,6 +110,7 @@ export function CustomFunnelStepper({
   onDraftInvalidated: () => void;
 }) {
   const [step, setStep] = useState(0);
+  const t = useT();
   const [selection, setSelection] = useState<CustomFunnelSelection>(EMPTY_CUSTOM_FUNNEL_SELECTION);
   const [cascadeStep, setCascadeStep] = useState<number | null>(null);
   const ready = useRef(false);

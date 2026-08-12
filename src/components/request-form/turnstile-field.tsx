@@ -101,6 +101,7 @@ export interface TurnstileFieldHandle {
 }
 
 export const TurnstileField = forwardRef<TurnstileFieldHandle>(function TurnstileField(_, ref) {
+  const t = useT();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const apiRef = useRef<TurnstileApi | null>(null);
   const widgetIdRef = useRef<string | null>(null);
