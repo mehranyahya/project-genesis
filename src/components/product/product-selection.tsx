@@ -26,13 +26,13 @@ function optionPriceText(option: ProductDetailOption): string {
 }
 
 export function ProductSelection({
-  const t = useT();
   variants,
   selectedVariant,
   selectedOptionIds,
   onSelectVariant,
   onToggleOption,
 }: {
+  const t = useT();
   variants: readonly ProductDetailVariant[];
   selectedVariant: ProductDetailVariant;
   selectedOptionIds: readonly string[];

@@ -18,7 +18,6 @@ export interface FieldProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "
  * color alone: both carry an explicit textual marker.
  */
 function Field({
-  const t = useT();
   id,
   label,
   hint,
@@ -29,6 +28,7 @@ function Field({
   children,
   ...props
 }: FieldProps) {
+  const t = useT();
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const successId = success ? `${id}-success` : undefined;

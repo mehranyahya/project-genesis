@@ -22,12 +22,12 @@ const ACTION =
   "inline-flex min-h-11 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] enabled:hover:border-surface-inverse enabled:hover:bg-surface-inverse disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 export function ProductDetailPage({
-  const t = useT();
   model,
   catalogVersion,
   site,
   termsDocument,
 }: {
+  const t = useT();
   model: ProductDetailModel;
   catalogVersion: string | null;
   site?: Site | null;

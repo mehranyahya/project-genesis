@@ -98,12 +98,12 @@ function OptionStage({
 }
 
 export function CustomFunnelStepper({
-  const t = useT();
   model,
   catalogVersion,
   onDraftReady,
   onDraftInvalidated,
 }: {
+  const t = useT();
   model: CustomFunnelModel;
   catalogVersion: string | null;
   onDraftReady: (draft: GraveStoneRequestDraft) => void;

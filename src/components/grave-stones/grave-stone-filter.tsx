@@ -28,7 +28,6 @@ const CONTROL =
 const LABEL = "block pb-2 text-sm text-text-secondary";
 
 export function GraveStoneFilter({
-  const t = useT();
   filters,
   stoneCodes,
   controlsId,
@@ -36,6 +35,7 @@ export function GraveStoneFilter({
   onReset,
   showReset,
 }: {
+  const t = useT();
   filters: GraveStoneFilters;
   stoneCodes: readonly string[];
   controlsId: string;

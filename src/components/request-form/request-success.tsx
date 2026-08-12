@@ -40,10 +40,10 @@ export function whatsappSuccessUrl(baseUrl: string, trackingCode: string): strin
 }
 
 export function RequestSuccess({
-  const t = useT();
   trackingCode,
   site,
 }: {
+  const t = useT();
   trackingCode: string;
   site: Site | null;
 }): ReactNode {
