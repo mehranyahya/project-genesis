@@ -18,11 +18,24 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ApiSubmitRequestRouteImport } from './routes/api/submit-request'
+import { Route as EnIndexRouteImport } from './routes/en/index'
+import { Route as EnAboutRouteImport } from './routes/en/about'
+import { Route as EnBuildingStoneRouteImport } from './routes/en/building-stone'
+import { Route as EnContactRouteImport } from './routes/en/contact'
+import { Route as EnPortfolioRouteImport } from './routes/en/portfolio'
+import { Route as EnPrivacyRouteImport } from './routes/en/privacy'
+import { Route as EnQuoteRouteImport } from './routes/en/quote'
+import { Route as EnTermsRouteImport } from './routes/en/terms'
 import { Route as GraveStonesIndexRouteImport } from './routes/grave-stones/index'
 import { Route as GraveStonesSlugRouteImport } from './routes/grave-stones/$slug'
 import { Route as GraveStonesCustomRouteImport } from './routes/grave-stones/custom'
 import { Route as GuidesIndexRouteImport } from './routes/guides/index'
 import { Route as GuidesSlugRouteImport } from './routes/guides/$slug'
+import { Route as EnGraveStonesIndexRouteImport } from './routes/en/grave-stones/index'
+import { Route as EnGraveStonesSlugRouteImport } from './routes/en/grave-stones/$slug'
+import { Route as EnGraveStonesCustomRouteImport } from './routes/en/grave-stones/custom'
+import { Route as EnGuidesIndexRouteImport } from './routes/en/guides/index'
+import { Route as EnGuidesSlugRouteImport } from './routes/en/guides/$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -69,6 +82,46 @@ const ApiSubmitRequestRoute = ApiSubmitRequestRouteImport.update({
   path: '/api/submit-request',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnIndexRoute = EnIndexRouteImport.update({
+  id: '/en/',
+  path: '/en/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnAboutRoute = EnAboutRouteImport.update({
+  id: '/en/about',
+  path: '/en/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnBuildingStoneRoute = EnBuildingStoneRouteImport.update({
+  id: '/en/building-stone',
+  path: '/en/building-stone',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnContactRoute = EnContactRouteImport.update({
+  id: '/en/contact',
+  path: '/en/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnPortfolioRoute = EnPortfolioRouteImport.update({
+  id: '/en/portfolio',
+  path: '/en/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnPrivacyRoute = EnPrivacyRouteImport.update({
+  id: '/en/privacy',
+  path: '/en/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnQuoteRoute = EnQuoteRouteImport.update({
+  id: '/en/quote',
+  path: '/en/quote',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnTermsRoute = EnTermsRouteImport.update({
+  id: '/en/terms',
+  path: '/en/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GraveStonesIndexRoute = GraveStonesIndexRouteImport.update({
   id: '/grave-stones/',
   path: '/grave-stones/',
@@ -94,6 +147,31 @@ const GuidesSlugRoute = GuidesSlugRouteImport.update({
   path: '/guides/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnGraveStonesIndexRoute = EnGraveStonesIndexRouteImport.update({
+  id: '/en/grave-stones/',
+  path: '/en/grave-stones/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnGraveStonesSlugRoute = EnGraveStonesSlugRouteImport.update({
+  id: '/en/grave-stones/$slug',
+  path: '/en/grave-stones/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnGraveStonesCustomRoute = EnGraveStonesCustomRouteImport.update({
+  id: '/en/grave-stones/custom',
+  path: '/en/grave-stones/custom',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnGuidesIndexRoute = EnGuidesIndexRouteImport.update({
+  id: '/en/guides/',
+  path: '/en/guides/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnGuidesSlugRoute = EnGuidesSlugRouteImport.update({
+  id: '/en/guides/$slug',
+  path: '/en/guides/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -105,11 +183,24 @@ export interface FileRoutesByFullPath {
   '/quote': typeof QuoteRoute
   '/terms': typeof TermsRoute
   '/api/submit-request': typeof ApiSubmitRequestRoute
+  '/en/about': typeof EnAboutRoute
+  '/en/building-stone': typeof EnBuildingStoneRoute
+  '/en/contact': typeof EnContactRoute
+  '/en/portfolio': typeof EnPortfolioRoute
+  '/en/privacy': typeof EnPrivacyRoute
+  '/en/quote': typeof EnQuoteRoute
+  '/en/terms': typeof EnTermsRoute
   '/grave-stones/$slug': typeof GraveStonesSlugRoute
   '/grave-stones/custom': typeof GraveStonesCustomRoute
   '/guides/$slug': typeof GuidesSlugRoute
+  '/en/': typeof EnIndexRoute
   '/grave-stones/': typeof GraveStonesIndexRoute
   '/guides/': typeof GuidesIndexRoute
+  '/en/grave-stones/$slug': typeof EnGraveStonesSlugRoute
+  '/en/grave-stones/custom': typeof EnGraveStonesCustomRoute
+  '/en/guides/$slug': typeof EnGuidesSlugRoute
+  '/en/grave-stones/': typeof EnGraveStonesIndexRoute
+  '/en/guides/': typeof EnGuidesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -121,11 +212,24 @@ export interface FileRoutesByTo {
   '/quote': typeof QuoteRoute
   '/terms': typeof TermsRoute
   '/api/submit-request': typeof ApiSubmitRequestRoute
+  '/en/about': typeof EnAboutRoute
+  '/en/building-stone': typeof EnBuildingStoneRoute
+  '/en/contact': typeof EnContactRoute
+  '/en/portfolio': typeof EnPortfolioRoute
+  '/en/privacy': typeof EnPrivacyRoute
+  '/en/quote': typeof EnQuoteRoute
+  '/en/terms': typeof EnTermsRoute
   '/grave-stones/$slug': typeof GraveStonesSlugRoute
   '/grave-stones/custom': typeof GraveStonesCustomRoute
   '/guides/$slug': typeof GuidesSlugRoute
+  '/en': typeof EnIndexRoute
   '/grave-stones': typeof GraveStonesIndexRoute
   '/guides': typeof GuidesIndexRoute
+  '/en/grave-stones/$slug': typeof EnGraveStonesSlugRoute
+  '/en/grave-stones/custom': typeof EnGraveStonesCustomRoute
+  '/en/guides/$slug': typeof EnGuidesSlugRoute
+  '/en/grave-stones': typeof EnGraveStonesIndexRoute
+  '/en/guides': typeof EnGuidesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -138,11 +242,24 @@ export interface FileRoutesById {
   '/quote': typeof QuoteRoute
   '/terms': typeof TermsRoute
   '/api/submit-request': typeof ApiSubmitRequestRoute
+  '/en/about': typeof EnAboutRoute
+  '/en/building-stone': typeof EnBuildingStoneRoute
+  '/en/contact': typeof EnContactRoute
+  '/en/portfolio': typeof EnPortfolioRoute
+  '/en/privacy': typeof EnPrivacyRoute
+  '/en/quote': typeof EnQuoteRoute
+  '/en/terms': typeof EnTermsRoute
   '/grave-stones/$slug': typeof GraveStonesSlugRoute
   '/grave-stones/custom': typeof GraveStonesCustomRoute
   '/guides/$slug': typeof GuidesSlugRoute
+  '/en/': typeof EnIndexRoute
   '/grave-stones/': typeof GraveStonesIndexRoute
   '/guides/': typeof GuidesIndexRoute
+  '/en/grave-stones/$slug': typeof EnGraveStonesSlugRoute
+  '/en/grave-stones/custom': typeof EnGraveStonesCustomRoute
+  '/en/guides/$slug': typeof EnGuidesSlugRoute
+  '/en/grave-stones/': typeof EnGraveStonesIndexRoute
+  '/en/guides/': typeof EnGuidesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -156,11 +273,24 @@ export interface FileRouteTypes {
     | '/quote'
     | '/terms'
     | '/api/submit-request'
+    | '/en/about'
+    | '/en/building-stone'
+    | '/en/contact'
+    | '/en/portfolio'
+    | '/en/privacy'
+    | '/en/quote'
+    | '/en/terms'
     | '/grave-stones/$slug'
     | '/grave-stones/custom'
     | '/guides/$slug'
+    | '/en/'
     | '/grave-stones/'
     | '/guides/'
+    | '/en/grave-stones/$slug'
+    | '/en/grave-stones/custom'
+    | '/en/guides/$slug'
+    | '/en/grave-stones/'
+    | '/en/guides/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,11 +302,24 @@ export interface FileRouteTypes {
     | '/quote'
     | '/terms'
     | '/api/submit-request'
+    | '/en/about'
+    | '/en/building-stone'
+    | '/en/contact'
+    | '/en/portfolio'
+    | '/en/privacy'
+    | '/en/quote'
+    | '/en/terms'
     | '/grave-stones/$slug'
     | '/grave-stones/custom'
     | '/guides/$slug'
+    | '/en'
     | '/grave-stones'
     | '/guides'
+    | '/en/grave-stones/$slug'
+    | '/en/grave-stones/custom'
+    | '/en/guides/$slug'
+    | '/en/grave-stones'
+    | '/en/guides'
   id:
     | '__root__'
     | '/'
@@ -188,11 +331,24 @@ export interface FileRouteTypes {
     | '/quote'
     | '/terms'
     | '/api/submit-request'
+    | '/en/about'
+    | '/en/building-stone'
+    | '/en/contact'
+    | '/en/portfolio'
+    | '/en/privacy'
+    | '/en/quote'
+    | '/en/terms'
     | '/grave-stones/$slug'
     | '/grave-stones/custom'
     | '/guides/$slug'
+    | '/en/'
     | '/grave-stones/'
     | '/guides/'
+    | '/en/grave-stones/$slug'
+    | '/en/grave-stones/custom'
+    | '/en/guides/$slug'
+    | '/en/grave-stones/'
+    | '/en/guides/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -205,11 +361,24 @@ export interface RootRouteChildren {
   QuoteRoute: typeof QuoteRoute
   TermsRoute: typeof TermsRoute
   ApiSubmitRequestRoute: typeof ApiSubmitRequestRoute
+  EnAboutRoute: typeof EnAboutRoute
+  EnBuildingStoneRoute: typeof EnBuildingStoneRoute
+  EnContactRoute: typeof EnContactRoute
+  EnPortfolioRoute: typeof EnPortfolioRoute
+  EnPrivacyRoute: typeof EnPrivacyRoute
+  EnQuoteRoute: typeof EnQuoteRoute
+  EnTermsRoute: typeof EnTermsRoute
   GraveStonesSlugRoute: typeof GraveStonesSlugRoute
   GraveStonesCustomRoute: typeof GraveStonesCustomRoute
   GuidesSlugRoute: typeof GuidesSlugRoute
+  EnIndexRoute: typeof EnIndexRoute
   GraveStonesIndexRoute: typeof GraveStonesIndexRoute
   GuidesIndexRoute: typeof GuidesIndexRoute
+  EnGraveStonesSlugRoute: typeof EnGraveStonesSlugRoute
+  EnGraveStonesCustomRoute: typeof EnGraveStonesCustomRoute
+  EnGuidesSlugRoute: typeof EnGuidesSlugRoute
+  EnGraveStonesIndexRoute: typeof EnGraveStonesIndexRoute
+  EnGuidesIndexRoute: typeof EnGuidesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -277,6 +446,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSubmitRequestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/en/': {
+      id: '/en/'
+      path: '/en'
+      fullPath: '/en/'
+      preLoaderRoute: typeof EnIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/about': {
+      id: '/en/about'
+      path: '/en/about'
+      fullPath: '/en/about'
+      preLoaderRoute: typeof EnAboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/building-stone': {
+      id: '/en/building-stone'
+      path: '/en/building-stone'
+      fullPath: '/en/building-stone'
+      preLoaderRoute: typeof EnBuildingStoneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/contact': {
+      id: '/en/contact'
+      path: '/en/contact'
+      fullPath: '/en/contact'
+      preLoaderRoute: typeof EnContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/portfolio': {
+      id: '/en/portfolio'
+      path: '/en/portfolio'
+      fullPath: '/en/portfolio'
+      preLoaderRoute: typeof EnPortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/privacy': {
+      id: '/en/privacy'
+      path: '/en/privacy'
+      fullPath: '/en/privacy'
+      preLoaderRoute: typeof EnPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/quote': {
+      id: '/en/quote'
+      path: '/en/quote'
+      fullPath: '/en/quote'
+      preLoaderRoute: typeof EnQuoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/terms': {
+      id: '/en/terms'
+      path: '/en/terms'
+      fullPath: '/en/terms'
+      preLoaderRoute: typeof EnTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/grave-stones/': {
       id: '/grave-stones/'
       path: '/grave-stones'
@@ -312,6 +537,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuidesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/en/grave-stones/': {
+      id: '/en/grave-stones/'
+      path: '/en/grave-stones'
+      fullPath: '/en/grave-stones/'
+      preLoaderRoute: typeof EnGraveStonesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/grave-stones/$slug': {
+      id: '/en/grave-stones/$slug'
+      path: '/en/grave-stones/$slug'
+      fullPath: '/en/grave-stones/$slug'
+      preLoaderRoute: typeof EnGraveStonesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/grave-stones/custom': {
+      id: '/en/grave-stones/custom'
+      path: '/en/grave-stones/custom'
+      fullPath: '/en/grave-stones/custom'
+      preLoaderRoute: typeof EnGraveStonesCustomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/guides/': {
+      id: '/en/guides/'
+      path: '/en/guides'
+      fullPath: '/en/guides/'
+      preLoaderRoute: typeof EnGuidesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/guides/$slug': {
+      id: '/en/guides/$slug'
+      path: '/en/guides/$slug'
+      fullPath: '/en/guides/$slug'
+      preLoaderRoute: typeof EnGuidesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -325,11 +585,24 @@ const rootRouteChildren: RootRouteChildren = {
   QuoteRoute: QuoteRoute,
   TermsRoute: TermsRoute,
   ApiSubmitRequestRoute: ApiSubmitRequestRoute,
+  EnAboutRoute: EnAboutRoute,
+  EnBuildingStoneRoute: EnBuildingStoneRoute,
+  EnContactRoute: EnContactRoute,
+  EnPortfolioRoute: EnPortfolioRoute,
+  EnPrivacyRoute: EnPrivacyRoute,
+  EnQuoteRoute: EnQuoteRoute,
+  EnTermsRoute: EnTermsRoute,
   GraveStonesSlugRoute: GraveStonesSlugRoute,
   GraveStonesCustomRoute: GraveStonesCustomRoute,
   GuidesSlugRoute: GuidesSlugRoute,
+  EnIndexRoute: EnIndexRoute,
   GraveStonesIndexRoute: GraveStonesIndexRoute,
   GuidesIndexRoute: GuidesIndexRoute,
+  EnGraveStonesSlugRoute: EnGraveStonesSlugRoute,
+  EnGraveStonesCustomRoute: EnGraveStonesCustomRoute,
+  EnGuidesSlugRoute: EnGuidesSlugRoute,
+  EnGraveStonesIndexRoute: EnGraveStonesIndexRoute,
+  EnGuidesIndexRoute: EnGuidesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
