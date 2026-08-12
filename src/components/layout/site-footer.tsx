@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { LocaleLink, useT } from "@/lib/i18n/react";
 
 import { ContactLinks } from "./contact-links";
 import { FOOTER_LEGAL_NAV, PRIMARY_NAV } from "@/lib/navigation";
@@ -6,6 +6,7 @@ import type { Site } from "@/lib/content/types";
 
 /** Solid Obsidian footer. Bronze appears only as a non-interactive rule. */
 export function SiteFooter({ site }: { site: Site | null }) {
+  const t = useT();
   return (
     <footer className="bg-surface-inverse text-text-inverse">
       <div
@@ -20,32 +21,32 @@ export function SiteFooter({ site }: { site: Site | null }) {
           </div>
         ) : null}
 
-        <nav aria-label="ناوبری پاورقی" className="col-span-4 md:col-span-4 lg:col-span-4">
+        <nav aria-label={t("ناوبری پاورقی")} className="col-span-4 md:col-span-4 lg:col-span-4">
           <ul>
             {PRIMARY_NAV.map((item) => (
               <li key={item.to}>
-                <Link
+                <LocaleLink
                   to={item.to}
                   className="inline-flex min-h-11 items-center text-sm text-text-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse"
                 >
-                  {item.label}
-                </Link>
+                  {t(item.label)}
+                </LocaleLink>
               </li>
             ))}
           </ul>
         </nav>
 
         <div className="col-span-4 md:col-span-4 lg:col-span-4">
-          <nav aria-label="ناوبری حقوقی">
+          <nav aria-label={t("ناوبری حقوقی")}>
             <ul>
               {FOOTER_LEGAL_NAV.map((item) => (
                 <li key={item.to}>
-                  <Link
+                  <LocaleLink
                     to={item.to}
                     className="inline-flex min-h-11 items-center text-sm text-text-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse"
                   >
-                    {item.label}
-                  </Link>
+                    {t(item.label)}
+                  </LocaleLink>
                 </li>
               ))}
             </ul>

@@ -1,5 +1,5 @@
 /**
- * Mehrara navigation contract.
+ * Site navigation contract.
  * The single source of truth for allowed business routes, public navigation
  * destinations and the one shop CTA. No content, no fixtures, no URLs.
  */

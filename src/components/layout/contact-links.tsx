@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n/react";
 import type { Site } from "@/lib/content/types";
 
 /**
@@ -12,15 +13,16 @@ export interface ContactLinksProps {
 }
 
 export function ContactLinks({ site, className, linkClassName }: ContactLinksProps) {
+  const t = useT();
   if (!site) return null;
 
   const entries: { key: string; label: string; href: string }[] = [];
 
-  if (site.phone) entries.push({ key: "phone", label: "تلفن", href: `tel:${site.phone}` });
+  if (site.phone) entries.push({ key: "phone", label: t("تلفن"), href: `tel:${site.phone}` });
   if (site.whatsappUrl) {
-    entries.push({ key: "whatsapp", label: "واتساپ", href: site.whatsappUrl });
+    entries.push({ key: "whatsapp", label: t("واتساپ"), href: site.whatsappUrl });
   }
-  if (site.telegram) entries.push({ key: "telegram", label: "تلگرام", href: site.telegram });
+  if (site.telegram) entries.push({ key: "telegram", label: t("تلگرام"), href: site.telegram });
 
   if (entries.length === 0) return null;
 
