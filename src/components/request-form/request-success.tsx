@@ -43,10 +43,10 @@ export function RequestSuccess({
   trackingCode,
   site,
 }: {
-  const t = useT();
   trackingCode: string;
   site: Site | null;
 }): ReactNode {
+  const t = useT();
   const whatsapp = site?.whatsappUrl ? whatsappSuccessUrl(site.whatsappUrl, trackingCode) : null;
   const phone = site?.phone ?? null;
 
