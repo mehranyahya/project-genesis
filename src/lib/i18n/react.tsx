@@ -67,11 +67,12 @@ export function LocaleLink({
   to,
   children,
   ...rest
-}: { to: BaseStaticPath; children: ReactNode } & Omit<
+}: { to: BaseStaticPath | BaseDynamicPath; children: ReactNode } & Omit<
   React.ComponentProps<typeof Link>,
   "to" | "children"
 >) {
-  const target = useStaticPath(to);
+  const locale = useLocale();
+  const target = localizePath(to, locale);
   return (
     <Link to={target} {...rest}>
       {children}
