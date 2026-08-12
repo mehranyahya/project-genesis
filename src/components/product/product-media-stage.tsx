@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { PublicMedia } from "@/components/media/public-media";
 import type { ProductDetailMedia } from "@/lib/product-detail";
+import { useT } from "@/lib/i18n/react";
 
 export const MEDIA_EMPTY_TEXT = "رسانهٔ تأییدشده‌ای برای این محصول ثبت نشده است.";
 export const MEDIA_PREV_LABEL = "رسانه قبلی";
@@ -14,6 +15,7 @@ const CONTROL =
 
 /** Neutral 4:5 product stage. The first visible image is the product-route LCP candidate. */
 export function ProductMediaStage({ media }: { media: readonly ProductDetailMedia[] }) {
+  const t = useT();
   const [index, setIndex] = useState(0);
   const total = media.length;
   const current = total > 0 ? media[Math.min(index, total - 1)] : null;
@@ -31,7 +33,7 @@ export function ProductMediaStage({ media }: { media: readonly ProductDetailMedi
           />
         ) : (
           <div className="flex h-full items-end">
-            <p className="text-sm text-text-secondary">{MEDIA_EMPTY_TEXT}</p>
+            <p className="text-sm text-text-secondary">{t(MEDIA_EMPTY_TEXT)}</p>
           </div>
         )}
       </div>
@@ -44,7 +46,7 @@ export function ProductMediaStage({ media }: { media: readonly ProductDetailMedi
             disabled={index === 0}
             onClick={() => setIndex((value) => Math.max(0, value - 1))}
           >
-            {MEDIA_PREV_LABEL}
+            {t(MEDIA_PREV_LABEL)}
           </button>
           <button
             type="button"
@@ -52,7 +54,7 @@ export function ProductMediaStage({ media }: { media: readonly ProductDetailMedi
             disabled={index >= total - 1}
             onClick={() => setIndex((value) => Math.min(total - 1, value + 1))}
           >
-            {MEDIA_NEXT_LABEL}
+            {t(MEDIA_NEXT_LABEL)}
           </button>
           <p aria-live="polite" className="text-sm text-text-secondary">
             {positionFormatter.format(Math.min(index, total - 1) + 1)} از{" "}

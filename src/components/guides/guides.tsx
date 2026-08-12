@@ -3,6 +3,7 @@ import { LocaleLink } from "@/lib/i18n/react";
 
 import { PRIMARY_CTA } from "@/lib/navigation";
 import type { GuideBlock, GuideDetailModel, GuideInline, GuideListItem } from "@/lib/guides";
+import { useT } from "@/lib/i18n/react";
 
 export const GUIDES_TITLE = "راهنماها";
 export const GUIDES_LOADING_LABEL = "در حال دریافت راهنماها";
@@ -98,8 +99,9 @@ export function GuideBody({ blocks }: { blocks: GuideBlock[] }) {
  * ------------------------------------------------------------------ */
 
 export function GuidesLoading() {
+  const t = useT();
   return (
-    <section className={SECTION} aria-busy="true" aria-label={GUIDES_LOADING_LABEL}>
+    <section className={SECTION} aria-busy="true" aria-label={t(GUIDES_LOADING_LABEL)}>
       <div
         aria-hidden="true"
         className={`${FULL} h-11 border border-border-subtle bg-surface-media`}
@@ -114,6 +116,7 @@ export function GuidesLoading() {
 }
 
 function ErrorState({ text }: { text: string }) {
+  const t = useT();
   const router = useRouter();
   return (
     <section className={SECTION}>
@@ -123,7 +126,7 @@ function ErrorState({ text }: { text: string }) {
       >
         <h2 className="text-base font-bold text-text-primary">{text}</h2>
         <button type="button" onClick={() => void router.invalidate()} className={ACTION}>
-          {GUIDES_RETRY_LABEL}
+          {t(GUIDES_RETRY_LABEL)}
         </button>
       </div>
     </section>
@@ -131,11 +134,13 @@ function ErrorState({ text }: { text: string }) {
 }
 
 export function GuidesError() {
-  return <ErrorState text={GUIDES_ERROR_TEXT} />;
+  const t = useT();
+  return <ErrorState text={t(GUIDES_ERROR_TEXT)} />;
 }
 
 export function GuideError() {
-  return <ErrorState text={GUIDE_ERROR_TEXT} />;
+  const t = useT();
+  return <ErrorState text={t(GUIDE_ERROR_TEXT)} />;
 }
 
 /* ------------------------------------------------------------------ *
@@ -143,15 +148,16 @@ export function GuideError() {
  * ------------------------------------------------------------------ */
 
 export function GuidesListPage({ items }: { items: GuideListItem[] }) {
+  const t = useT();
   return (
     <section className={SECTION}>
       <div className={FULL}>
-        <h1 className="text-2xl font-bold text-text-primary">{GUIDES_TITLE}</h1>
+        <h1 className="text-2xl font-bold text-text-primary">{t(GUIDES_TITLE)}</h1>
       </div>
 
       {items.length === 0 ? (
         <div role="status" className={`${FULL} border border-border-subtle bg-surface p-4`}>
-          <p className="text-sm text-text-primary">{GUIDES_EMPTY_TEXT}</p>
+          <p className="text-sm text-text-primary">{t(GUIDES_EMPTY_TEXT)}</p>
         </div>
       ) : (
         <ul className={`${FULL} flex flex-col gap-4`}>
@@ -172,7 +178,7 @@ export function GuidesListPage({ items }: { items: GuideListItem[] }) {
                 )}
                 {item.updatedAt === null || item.updatedLabel === null ? null : (
                   <p className="text-xs text-text-caption">
-                    {GUIDE_UPDATED_LABEL}:{" "}
+                    {t(GUIDE_UPDATED_LABEL)}:{" "}
                     <time dateTime={item.updatedAt}>{item.updatedLabel}</time>
                   </p>
                 )}
@@ -186,6 +192,7 @@ export function GuidesListPage({ items }: { items: GuideListItem[] }) {
 }
 
 export function GuideDetailPage({ guide }: { guide: GuideDetailModel }) {
+  const t = useT();
   return (
     <section className={SECTION}>
       <article className={`${FULL} flex flex-col gap-6`}>
@@ -193,7 +200,7 @@ export function GuideDetailPage({ guide }: { guide: GuideDetailModel }) {
           <h1 className="text-2xl font-bold text-text-primary">{guide.title}</h1>
           {guide.updatedAt === null || guide.updatedLabel === null ? null : (
             <p className="text-xs text-text-caption">
-              {GUIDE_UPDATED_LABEL}: <time dateTime={guide.updatedAt}>{guide.updatedLabel}</time>
+              {t(GUIDE_UPDATED_LABEL)}: <time dateTime={guide.updatedAt}>{guide.updatedLabel}</time>
             </p>
           )}
           {guide.summary === null ? null : (
@@ -208,7 +215,7 @@ export function GuideDetailPage({ guide }: { guide: GuideDetailModel }) {
             {PRIMARY_CTA.label}
           </LocaleLink>
           <LocaleLink to="/guides" className={QUIET_LINK}>
-            {GUIDES_BACK_LABEL}
+            {t(GUIDES_BACK_LABEL)}
           </LocaleLink>
         </div>
       </article>

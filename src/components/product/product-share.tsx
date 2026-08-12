@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useT } from "@/lib/i18n/react";
 
 export const SHARE_BUTTON_LABEL = "اشتراک‌گذاری مدل";
 export const COPY_BUTTON_LABEL = "کپی لینک";
@@ -23,6 +24,7 @@ export function productShareText(title: string, code: string): string {
 }
 
 export function ProductShare({ slug, title, code }: { slug: string; title: string; code: string }) {
+  const t = useT();
   const [status, setStatus] = useState<string | null>(null);
   const busy = useRef(false);
 
@@ -69,10 +71,10 @@ export function ProductShare({ slug, title, code }: { slug: string; title: strin
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-3">
         <button type="button" className={ACTION} onClick={share}>
-          {SHARE_BUTTON_LABEL}
+          {t(SHARE_BUTTON_LABEL)}
         </button>
         <button type="button" className={ACTION} onClick={copyLink}>
-          {COPY_BUTTON_LABEL}
+          {t(COPY_BUTTON_LABEL)}
         </button>
       </div>
       <p role="status" aria-live="polite" className="text-sm text-text-secondary">

@@ -12,6 +12,7 @@ import {
 } from "@/lib/building-stone";
 import type { Site } from "@/lib/content/types";
 import type { RequestTermsDocument } from "@/lib/request-form";
+import { useT } from "@/lib/i18n/react";
 
 export const BUILDING_STONE_HEADING = "درخواست بررسی سنگ ساختمانی";
 export const BUILDING_STONE_INTRO =
@@ -19,6 +20,7 @@ export const BUILDING_STONE_INTRO =
 export const BUILDING_STONE_SECTION_HEADING = "مشخصات درخواست";
 
 export function BuildingStonePage({
+  const t = useT();
   site,
   termsDocument,
 }: {
@@ -49,8 +51,8 @@ export function BuildingStonePage({
   return (
     <section className="mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12">
       <div className="col-span-4 md:col-span-8 lg:col-span-12">
-        <h1 className="text-2xl font-bold text-text-primary">{BUILDING_STONE_HEADING}</h1>
-        <p className="pt-2 text-sm text-text-secondary">{BUILDING_STONE_INTRO}</p>
+        <h1 className="text-2xl font-bold text-text-primary">{t(BUILDING_STONE_HEADING)}</h1>
+        <p className="pt-2 text-sm text-text-secondary">{t(BUILDING_STONE_INTRO)}</p>
       </div>
 
       <div className="col-span-4 md:col-span-8 lg:col-span-12">
@@ -59,7 +61,7 @@ export function BuildingStonePage({
 
       <div className="col-span-4 md:col-span-8 lg:col-span-12">
         <h2 className="pb-4 text-lg font-bold text-text-primary">
-          {BUILDING_STONE_SECTION_HEADING}
+          {t(BUILDING_STONE_SECTION_HEADING)}
         </h2>
         <RequestForm
           source={{ kind: "building_stone", selection }}

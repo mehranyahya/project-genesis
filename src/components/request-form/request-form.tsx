@@ -30,6 +30,7 @@ import {
 import { submitRequestWithTurnstile as submitRequest } from "@/lib/request-submit-turnstile";
 import type { RequestSubmitTransport, SubmitOutcome } from "@/lib/request-submit";
 import { SUBMIT_MESSAGES, createSubmissionId, rememberTrackingCode } from "@/lib/request-submit";
+import { useT } from "@/lib/i18n/react";
 
 export const SUBMIT_LABEL = "ثبت درخواست بررسی";
 

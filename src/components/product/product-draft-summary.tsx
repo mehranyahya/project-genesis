@@ -22,7 +22,7 @@ export function ProductDraftSummary({ draft }: { draft: GraveStoneRequestDraft }
       aria-live="polite"
       className="flex flex-col gap-3 border border-border-subtle bg-surface p-4"
     >
-      <h2 className="text-base font-bold text-text-primary">{DRAFT_HEADING}</h2>
+      <h2 className="text-base font-bold text-text-primary">{t(DRAFT_HEADING)}</h2>
 
       <dl className="flex flex-col gap-2">
         <div className="flex flex-wrap gap-2">
@@ -71,7 +71,7 @@ export function ProductDraftSummary({ draft }: { draft: GraveStoneRequestDraft }
       ) : null}
 
       <p className="text-sm text-text-caption">{CURRENCY_NOTE}</p>
-      <p className="text-sm text-text-secondary">{DRAFT_LOGISTICS_NOTE}</p>
+      <p className="text-sm text-text-secondary">{t(DRAFT_LOGISTICS_NOTE)}</p>
     </section>
   );
 }

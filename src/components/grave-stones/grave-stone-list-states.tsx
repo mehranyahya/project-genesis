@@ -19,7 +19,7 @@ export function GraveStoneCatalogEmpty() {
     <div
       className={`${FULL} flex flex-col items-start gap-4 border border-border-subtle bg-surface p-4`}
     >
-      <p className="text-sm text-text-primary">{CATALOG_EMPTY_TEXT}</p>
+      <p className="text-sm text-text-primary">{t(CATALOG_EMPTY_TEXT)}</p>
       <LocaleLink to="/grave-stones/custom" className={ACTION}>{t("ثبت سفارش سفارشی")}</LocaleLink>
     </div>
   );
@@ -31,7 +31,7 @@ export function GraveStoneFilteredEmpty({ onReset }: { onReset: () => void }) {
     <div
       className={`${FULL} flex flex-col items-start gap-4 border border-border-subtle bg-surface p-4`}
     >
-      <p className="text-sm text-text-primary">{FILTERED_EMPTY_TEXT}</p>
+      <p className="text-sm text-text-primary">{t(FILTERED_EMPTY_TEXT)}</p>
       <button
         type="button"
         onClick={onReset}
@@ -43,8 +43,9 @@ export function GraveStoneFilteredEmpty({ onReset }: { onReset: () => void }) {
 
 /** Static structural skeleton. No motion, no sample product data. */
 export function GraveStoneListLoading() {
+  const t = useT();
   return (
-    <section className={SECTION} aria-busy="true" aria-label={LOADING_LABEL}>
+    <section className={SECTION} aria-busy="true" aria-label={t(LOADING_LABEL)}>
       <div
         aria-hidden="true"
         className={`${FULL} h-11 border border-border-subtle bg-surface-media`}
@@ -65,6 +66,7 @@ export function GraveStoneListLoading() {
 }
 
 export function GraveStoneListError() {
+  const t = useT();
   const router = useRouter();
   return (
     <section className={SECTION}>
@@ -72,9 +74,9 @@ export function GraveStoneListError() {
         role="alert"
         className={`${FULL} flex flex-col items-start gap-4 border border-status-error bg-surface p-4`}
       >
-        <h2 className="text-base font-bold text-text-primary">{ERROR_TEXT}</h2>
+        <h2 className="text-base font-bold text-text-primary">{t(ERROR_TEXT)}</h2>
         <button type="button" onClick={() => void router.invalidate()} className={ACTION}>
-          {RETRY_LABEL}
+          {t(RETRY_LABEL)}
         </button>
       </div>
     </section>

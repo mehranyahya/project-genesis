@@ -10,6 +10,7 @@ import type {
   RequestSource,
 } from "@/lib/request-form";
 import {
+import { useT } from "@/lib/i18n/react";
   LOCATION_UNKNOWN_VALUE,
   PREFERRED_CONTACT_OPTIONS,
   REQUEST_FIELD_LABELS,
@@ -85,6 +86,7 @@ function TextField({
 }
 
 export function RequestFormFields({
+  const t = useT();
   values,
   errors,
   source,
@@ -233,7 +235,7 @@ export function RequestFormFields({
               to="/terms"
               className="underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
-              {TERMS_LINK_TEXT}
+              {t(TERMS_LINK_TEXT)}
             </LocaleLink>
             {TERMS_LABEL_TAIL}
           </span>

@@ -102,9 +102,9 @@ export function ProductDetailPage({
 
         <div className="flex flex-col gap-3">
           <button type="button" className={ACTION} disabled={!canReview} onClick={reviewSelection}>
-            {REVIEW_BUTTON_LABEL}
+            {t(REVIEW_BUTTON_LABEL)}
           </button>
-          {!canReview ? <p className="text-sm text-text-secondary">{DRAFT_BLOCKED_TEXT}</p> : null}
+          {!canReview ? <p className="text-sm text-text-secondary">{t(DRAFT_BLOCKED_TEXT)}</p> : null}
         </div>
 
         <ProductShare slug={model.slug} title={model.title} code={model.code} />

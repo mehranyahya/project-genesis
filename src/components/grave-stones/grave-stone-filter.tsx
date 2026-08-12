@@ -75,7 +75,7 @@ export function GraveStoneFilter({
           aria-controls={controlsId}
           onChange={(event) => onChange({ ...filters, stoneCode: event.target.value })}
         >
-          <option value={NEUTRAL_FILTER_VALUE}>{STONE_NEUTRAL_LABEL}</option>
+          <option value={NEUTRAL_FILTER_VALUE}>{t(STONE_NEUTRAL_LABEL)}</option>
           {stoneCodes.map((code) => (
             <option key={code} value={code}>
               {code}
@@ -110,7 +110,7 @@ export function GraveStoneFilter({
             onClick={onReset}
             className="inline-flex min-h-11 items-center border border-border-control bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
           >
-            {RESET_LABEL}
+            {t(RESET_LABEL)}
           </button>
         </div>
       ) : null}

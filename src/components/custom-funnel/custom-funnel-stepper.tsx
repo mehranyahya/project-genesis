@@ -66,7 +66,7 @@ function OptionStage({
 }) {
   const t = useT();
   if (options.length === 0) {
-    return <p className="text-sm text-text-primary">{NO_STAGE_OPTIONS_TEXT}</p>;
+    return <p className="text-sm text-text-primary">{t(NO_STAGE_OPTIONS_TEXT)}</p>;
   }
 
   return (
@@ -238,7 +238,7 @@ export function CustomFunnelStepper({
 
         {step === 1 ? (
           stone === null ? (
-            <p className="text-sm text-text-primary">{NO_STAGE_OPTIONS_TEXT}</p>
+            <p className="text-sm text-text-primary">{t(NO_STAGE_OPTIONS_TEXT)}</p>
           ) : (
             <fieldset className="border border-border-subtle p-4">
               <legend className="px-2 text-sm font-bold text-text-primary">{t("انتخاب اندازه")}</legend>
@@ -321,7 +321,7 @@ export function CustomFunnelStepper({
                 if (draft !== null) onDraftReady(draft);
               }}
             >
-              {DELIVER_DRAFT_LABEL}
+              {t(DELIVER_DRAFT_LABEL)}
             </button>
             {!catalogReady ? (
               <p className="text-sm text-text-secondary">{DRAFT_BLOCKED_TEXT}</p>
@@ -336,7 +336,7 @@ export function CustomFunnelStepper({
             disabled={step === 0}
             onClick={() => goToStep(step - 1)}
           >
-            {PREVIOUS_STEP_LABEL}
+            {t(PREVIOUS_STEP_LABEL)}
           </button>
           <button
             type="button"
@@ -344,7 +344,7 @@ export function CustomFunnelStepper({
             disabled={!canAdvance}
             onClick={() => goToStep(step + 1)}
           >
-            {NEXT_STEP_LABEL}
+            {t(NEXT_STEP_LABEL)}
           </button>
         </div>
       </div>

@@ -42,7 +42,7 @@ export function ProductSelection({
   return (
     <div className="flex flex-col gap-6">
       <fieldset className="border border-border-subtle p-4">
-        <legend className="px-2 text-sm font-bold text-text-primary">{VARIANT_LEGEND}</legend>
+        <legend className="px-2 text-sm font-bold text-text-primary">{t(VARIANT_LEGEND)}</legend>
         <div className="flex flex-col gap-3 pt-2">
           {variants.map((variant) => (
             <label key={variant.id} className={ROW} htmlFor={`variant-${variant.id}`}>
@@ -68,7 +68,7 @@ export function ProductSelection({
 
       {selectedVariant.options.length > 0 ? (
         <fieldset className="border border-border-subtle p-4">
-          <legend className="px-2 text-sm font-bold text-text-primary">{OPTION_LEGEND}</legend>
+          <legend className="px-2 text-sm font-bold text-text-primary">{t(OPTION_LEGEND)}</legend>
           <div className="flex flex-col gap-3 pt-2">
             {selectedVariant.options.map((option) => {
               const date = formatPriceDate(option.priceUpdatedAt);

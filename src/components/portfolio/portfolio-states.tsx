@@ -1,4 +1,5 @@
 import { useRouter } from "@tanstack/react-router";
+import { useT } from "@/lib/i18n/react";
 
 export const PORTFOLIO_LOADING_LABEL = "در حال دریافت نمونه‌کارها";
 export const PORTFOLIO_EMPTY_TEXT = "در حال حاضر نمونه‌کار عمومی و دارای مجوز نمایش ثبت نشده است.";
@@ -13,8 +14,9 @@ const ACTION =
 
 /** Static structural skeleton. No motion, no shimmer, no sample content. */
 export function PortfolioLoading() {
+  const t = useT();
   return (
-    <section className={SECTION} aria-busy="true" aria-label={PORTFOLIO_LOADING_LABEL}>
+    <section className={SECTION} aria-busy="true" aria-label={t(PORTFOLIO_LOADING_LABEL)}>
       <div
         aria-hidden="true"
         className={`${FULL} h-11 border border-border-subtle bg-surface-media`}
@@ -35,14 +37,16 @@ export function PortfolioLoading() {
 }
 
 export function PortfolioEmpty() {
+  const t = useT();
   return (
     <div role="status" className={`${FULL} border border-border-subtle bg-surface p-4`}>
-      <p className="text-sm text-text-primary">{PORTFOLIO_EMPTY_TEXT}</p>
+      <p className="text-sm text-text-primary">{t(PORTFOLIO_EMPTY_TEXT)}</p>
     </div>
   );
 }
 
 export function PortfolioError() {
+  const t = useT();
   const router = useRouter();
   return (
     <section className={SECTION}>
@@ -50,9 +54,9 @@ export function PortfolioError() {
         role="alert"
         className={`${FULL} flex flex-col items-start gap-4 border border-status-error bg-surface p-4`}
       >
-        <h2 className="text-base font-bold text-text-primary">{PORTFOLIO_ERROR_TEXT}</h2>
+        <h2 className="text-base font-bold text-text-primary">{t(PORTFOLIO_ERROR_TEXT)}</h2>
         <button type="button" onClick={() => void router.invalidate()} className={ACTION}>
-          {PORTFOLIO_RETRY_LABEL}
+          {t(PORTFOLIO_RETRY_LABEL)}
         </button>
       </div>
     </section>
