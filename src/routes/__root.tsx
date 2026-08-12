@@ -3,6 +3,7 @@ import {
   Outlet,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -16,6 +17,8 @@ import { NotFoundView } from "../components/static-pages/static-pages";
 import { getPage, getSite } from "../lib/content/adapters";
 import { buildContentSecurityPolicy } from "../lib/csp";
 import { buildNotFoundModel } from "../lib/static-pages";
+import { LocaleProvider, useT } from "../lib/i18n/react";
+import { htmlDir, htmlLang, localeFromPathname } from "../lib/i18n/locale";
 
 const CSP_MISSING_NONCE_POLICY = "default-src 'none'; frame-ancestors 'none'";
 
@@ -28,6 +31,7 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const t = useT();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -35,9 +39,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
       <div className="max-w-md text-center" role="alert" aria-live="assertive">
-        <h1 className="text-xl font-bold text-text-primary">بارگذاری این صفحه انجام نشد</h1>
+        <h1 className="text-xl font-bold text-text-primary">{t("بارگذاری این صفحه انجام نشد")}</h1>
         <p className="mt-2 text-sm text-text-secondary">
-          مشکلی پیش آمد. می‌توانید دوباره تلاش کنید یا به صفحهٔ اصلی برگردید.
+          {t("مشکلی پیش آمد. می‌توانید دوباره تلاش کنید یا به صفحهٔ اصلی برگردید.")}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -48,13 +52,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="inline-flex min-h-11 items-center justify-center rounded-sm border border-action-primary bg-action-primary px-4 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] hover:bg-surface-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse motion-reduce:transition-none"
           >
-            تلاش دوباره
+            {t("تلاش دوباره")}
           </button>
           <a
             href="/"
             className="inline-flex min-h-11 items-center justify-center rounded-sm border border-border-control bg-surface px-4 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
           >
-            بازگشت به خانه
+            {t("بازگشت به خانه")}
           </a>
         </div>
       </div>
@@ -108,9 +112,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+function useActiveLocale() {
+  return useRouterState({ select: (state) => localeFromPathname(state.location.pathname) });
+}
+
 function RootShell({ children }: { children: ReactNode }) {
+  const locale = useActiveLocale();
   return (
-    <html lang="fa" dir="rtl">
+    <html lang={htmlLang(locale)} dir={htmlDir(locale)}>
       <head>
         <HeadContent />
       </head>
@@ -126,12 +135,16 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const site = Route.useLoaderData()?.site ?? null;
 
+  const locale = useActiveLocale();
+
   return (
+    <LocaleProvider locale={locale}>
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <AppShell site={site}>
         <Outlet />
       </AppShell>
     </QueryClientProvider>
+    </LocaleProvider>
   );
 }
