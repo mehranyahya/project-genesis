@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+
+import { delegationErrors, routeUnit } from "@/lib/route-defs/route-test-source";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { buildHomeViewModel } from "@/lib/home";
@@ -65,7 +67,7 @@ test("final CTA text and destination are exact", () => {
 });
 
 test("home reads official adapters only and imports no content files", () => {
-  const route = read("routes/index.tsx");
+  const route = routeUnit("routes/index.tsx", "homeRouteOptions");
   assert.ok(route.includes('from "@/lib/content/adapters"'));
   assert.ok(route.includes("getProducts({ featuredOnly: true, limit: 6 })"));
   assert.ok(route.includes("getPortfolioItems({ limit: 1 })"));
@@ -143,4 +145,16 @@ test("no new route is declared by the home scaffold", () => {
   assert.equal(route.split("createFileRoute(").length - 1, 1);
   assert.ok(route.includes('createFileRoute("/")'));
   assert.equal(ALL.includes("routeTree.gen"), false);
+});
+
+test("fa and en home wrappers declare their route ids and delegate to the shared factory", () => {
+  assert.deepEqual(
+    delegationErrors({
+      rel: "routes/index.tsx",
+      faRouteId: "/",
+      enRouteId: "/en/",
+      exportName: "homeRouteOptions",
+    }),
+    [],
+  );
 });

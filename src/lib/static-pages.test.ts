@@ -247,25 +247,35 @@ test("terms model exposes no terms_version or terms_content_hash", () => {
 const ROOT = process.cwd();
 const read = (path: string) => readFileSync(join(ROOT, path), "utf8");
 
-test("static routes read exactly their own page adapter", () => {
-  const about = read("src/routes/about.tsx");
-  assert.match(about, /getPage\("about"\)/);
-  assert.equal(/getPage\("(?!about)/.test(about), false);
-  assert.equal(about.includes("getSite"), false);
-
-  const privacy = read("src/routes/privacy.tsx");
-  assert.match(privacy, /getPage\("privacy"\)/);
-  assert.equal(privacy.includes("getSite"), false);
-
-  const terms = read("src/routes/terms.tsx");
-  assert.match(terms, /getPage\("terms"\)/);
-  assert.equal(terms.includes("getSite"), false);
+test("static routes delegate to the shared factory with their own slug", () => {
+  const factory = read("src/lib/route-defs/pages.tsx");
+  for (const slug of ["about", "privacy", "terms"] as const) {
+    for (const rel of [`src/routes/${slug}.tsx`, `src/routes/en/${slug}.tsx`]) {
+      const source = read(rel);
+      assert.match(source, /from "@\/lib\/route-defs\/pages"/, rel);
+      assert.match(source, new RegExp(`${slug}RouteOptions\\("(fa|en)"\\)`), rel);
+      assert.equal(source.includes("getSite"), false, rel);
+      assert.equal(source.includes("getPage("), false, rel);
+    }
+    assert.match(factory, new RegExp(`"${slug}", "[^"]+", StaticPageRoute`));
+  }
+  // The static-page factory reads exactly one page adapter and never the site.
+  assert.match(factory, /buildStaticPageModel\(contentForLocale\(await getPage\(slug\), locale\), slug\)/);
+  const staticSection = factory.slice(
+    factory.indexOf("function staticPageOptions("),
+    factory.indexOf("export function contactRouteOptions("),
+  );
+  assert.equal(staticSection.includes("getSite("), false);
 });
 
 test('contact route reads getPage("contact") and getSite()', () => {
-  const contact = read("src/routes/contact.tsx");
-  assert.match(contact, /getPage\("contact"\)/);
-  assert.match(contact, /getSite\(\)/);
+  const factory = read("src/lib/route-defs/pages.tsx");
+  const contactSection = factory.slice(factory.indexOf("export function contactRouteOptions("));
+  assert.match(contactSection, /getPage\("contact"\)/);
+  assert.match(contactSection, /getSite\(\)/);
+  for (const rel of ["src/routes/contact.tsx", "src/routes/en/contact.tsx"]) {
+    assert.match(read(rel), /contactRouteOptions\("(fa|en)"\)/, rel);
+  }
 });
 
 test('root reads getSite() and getPage("not-found") and hard-codes no 404 copy', () => {
@@ -291,6 +301,19 @@ test("no public /404 route and no unexpected public UI route files exist", () =>
     "about.tsx",
     "building-stone.tsx",
     "contact.tsx",
+    "en/about.tsx",
+    "en/building-stone.tsx",
+    "en/contact.tsx",
+    "en/grave-stones/$slug.tsx",
+    "en/grave-stones/custom.tsx",
+    "en/grave-stones/index.tsx",
+    "en/guides/$slug.tsx",
+    "en/guides/index.tsx",
+    "en/index.tsx",
+    "en/portfolio.tsx",
+    "en/privacy.tsx",
+    "en/quote.tsx",
+    "en/terms.tsx",
     "grave-stones/$slug.tsx",
     "grave-stones/custom.tsx",
     "grave-stones/index.tsx",
@@ -316,6 +339,11 @@ test("static page sources add no backend, supabase or unsafe html", () => {
     "src/routes/contact.tsx",
     "src/routes/privacy.tsx",
     "src/routes/terms.tsx",
+    "src/routes/en/about.tsx",
+    "src/routes/en/contact.tsx",
+    "src/routes/en/privacy.tsx",
+    "src/routes/en/terms.tsx",
+    "src/lib/route-defs/pages.tsx",
     "src/routes/__root.tsx",
   ]) {
     const source = read(path);
