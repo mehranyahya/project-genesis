@@ -37,8 +37,27 @@ export function factorySection(exportName: string): string {
   return FACTORY_SOURCE.slice(start, next === -1 ? undefined : next);
 }
 
-/** Wrapper sources plus the owning factory section, as one string. */
+/** The shared import header of the factory module. */
+export const FACTORY_IMPORTS = FACTORY_SOURCE.slice(
+  0,
+  FACTORY_SOURCE.indexOf("export function"),
+);
+
+/** Wrapper sources plus the factory import header and the owning section. */
 export function routeUnit(rel: string, exportName: string): string {
+  return [
+    readSource(rel),
+    readSource(englishWrapperPath(rel)),
+    FACTORY_IMPORTS,
+    factorySection(exportName),
+  ].join("\n");
+}
+
+/**
+ * Same as {@link routeUnit} without the shared import header, so per-route
+ * "must not call X" bans are not satisfied by another route's import.
+ */
+export function routeUnitBody(rel: string, exportName: string): string {
   return [readSource(rel), readSource(englishWrapperPath(rel)), factorySection(exportName)].join(
     "\n",
   );

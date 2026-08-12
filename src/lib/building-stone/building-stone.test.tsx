@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-import { delegationErrors, routeUnit } from "@/lib/route-defs/route-test-source";
+import { delegationErrors, routeUnit, routeUnitBody } from "@/lib/route-defs/route-test-source";
 
 import {
   EMPTY_REQUEST_FORM_VALUES,
@@ -23,6 +23,8 @@ const ROUTE = "routes/building-stone.tsx";
 const ROUTE_FACTORY = "buildingStoneRouteOptions";
 /** fa wrapper + en wrapper + the shared factory section that owns this route. */
 const routeSource = () => routeUnit(ROUTE, ROUTE_FACTORY);
+/** Route unit without the shared import header, used for per-route bans. */
+const routeBody = () => routeUnitBody(ROUTE, ROUTE_FACTORY);
 const readUnit = (rel: string) => (rel === ROUTE ? routeSource() : read(rel));
 const PAGE = "components/building-stone/building-stone-page.tsx";
 const FIELDS = "components/building-stone/building-stone-fields.tsx";
@@ -71,7 +73,7 @@ test("1 the route is the real business route and reads only getSite()", () => {
   assert.ok(route.includes('createFileRoute("/building-stone")'));
   assert.ok(route.includes("getSite()"));
   for (const name of ["getProducts", "getProduct(", "getGuides", "getGuide(", "getPage"]) {
-    assert.ok(!route.includes(name), `route must not call ${name}`);
+    assert.ok(!routeBody().includes(name), `route must not call ${name}`);
   }
 });
 
@@ -119,7 +121,7 @@ test("7 every extension error is accessible and non-color-coded", () => {
   assert.ok(fields.includes('role="alert"'));
   assert.ok(fields.includes("aria-errormessage"));
   assert.ok(fields.includes("aria-invalid"));
-  assert.ok(fields.includes("خطا: "));
+  assert.ok(fields.includes('{t("خطا")}: '));
 });
 
 test("8 the building-stone error is focused before the general field errors", () => {

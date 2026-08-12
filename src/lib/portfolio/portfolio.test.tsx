@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-import { delegationErrors, routeUnit } from "@/lib/route-defs/route-test-source";
+import { delegationErrors, routeUnit, routeUnitBody } from "@/lib/route-defs/route-test-source";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
@@ -14,6 +14,8 @@ const ROUTE = "routes/portfolio.tsx";
 const ROUTE_FACTORY = "portfolioRouteOptions";
 /** fa wrapper + en wrapper + the shared factory section that owns this route. */
 const routeSource = () => routeUnit(ROUTE, ROUTE_FACTORY);
+/** Route unit without the shared import header, used for per-route bans. */
+const routeBody = () => routeUnitBody(ROUTE, ROUTE_FACTORY);
 const readUnit = (rel: string) => (rel === ROUTE ? routeSource() : read(rel));
 const PAGE = "components/portfolio/portfolio-page.tsx";
 const CARD = "components/portfolio/portfolio-card.tsx";
@@ -43,7 +45,7 @@ test("1-4 route consumes only getPortfolioItems() and keeps the existing route i
     "getSite",
     "getPage",
   ]) {
-    assert.ok(!route.includes(name), `route must not call ${name}`);
+    assert.ok(!routeBody().includes(name), `route must not call ${name}`);
   }
 });
 

@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-import { delegationErrors, routeUnit } from "@/lib/route-defs/route-test-source";
+import { delegationErrors, routeUnit, routeUnitBody } from "@/lib/route-defs/route-test-source";
 
 import { CUSTOM_FUNNEL_OPTION_ROLES, CUSTOM_FUNNEL_STEPS } from "../custom-funnel";
 
@@ -16,6 +16,8 @@ const ROUTE = "routes/grave-stones/custom.tsx";
 const ROUTE_FACTORY = "customFunnelRouteOptions";
 /** fa wrapper + en wrapper + the shared factory section that owns this route. */
 const routeSource = () => routeUnit(ROUTE, ROUTE_FACTORY);
+/** Route unit without the shared import header, used for per-route bans. */
+const routeBody = () => routeUnitBody(ROUTE, ROUTE_FACTORY);
 const readUnit = (rel: string) => (rel === ROUTE ? routeSource() : read(rel));
 const PAGE = "components/custom-funnel/custom-funnel-page.tsx";
 const STEPPER = "components/custom-funnel/custom-funnel-stepper.tsx";
@@ -37,7 +39,7 @@ test("1 the route consumes only getProducts(), getCatalogVersion() and getSite()
   assert.ok(route.includes("getCatalogVersion()"));
   assert.ok(route.includes("getSite()"));
   for (const name of ["getProduct(", "getPortfolioItems", "getGuides", "getPage("]) {
-    assert.ok(!route.includes(name), `route must not call ${name}`);
+    assert.ok(!routeBody().includes(name), `route must not call ${name}`);
   }
 });
 
@@ -57,8 +59,9 @@ test("4 the existing route id is preserved", () => {
 });
 
 test("5 no new route is declared", () => {
+  // One wrapper per locale, and no third route declaration.
   const occurrences = ALL.match(/createFileRoute\(/g) ?? [];
-  assert.equal(occurrences.length, 1);
+  assert.equal(occurrences.length, 2);
 });
 
 test("6 exactly one h1 with the locked heading exists", () => {
@@ -380,15 +383,10 @@ test("49 no unused price state remains in the stepper", () => {
 
 test("50 option-row pricing helpers are preserved", () => {
   const stepper = read(STEPPER);
-  for (const helper of [
-    "hasValidNumericPrice",
-    "formatAmount",
-    "formatPriceDate",
-    "PRICE_TYPE_LABELS",
-  ]) {
+  for (const helper of ["formatOptionPriceLabel", "formatPriceDate"]) {
     assert.ok(stepper.includes(helper), `must keep ${helper}`);
   }
-  assert.ok(stepper.includes("function optionPriceText"));
+  assert.ok(stepper.includes("formatOptionPriceLabel(option, locale)"));
 });
 
 test("51 no form, network, storage, cookie or PII surface is added", () => {

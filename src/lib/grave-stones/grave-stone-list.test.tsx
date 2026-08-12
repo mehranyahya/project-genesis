@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-import { delegationErrors, routeUnit } from "@/lib/route-defs/route-test-source";
+import { delegationErrors, routeUnit, routeUnitBody } from "@/lib/route-defs/route-test-source";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
@@ -14,6 +14,8 @@ const ROUTE = "routes/grave-stones/index.tsx";
 const ROUTE_FACTORY = "graveStoneListRouteOptions";
 /** fa wrapper + en wrapper + the shared factory section that owns this route. */
 const routeSource = () => routeUnit(ROUTE, ROUTE_FACTORY);
+/** Route unit without the shared import header, used for per-route bans. */
+const routeBody = () => routeUnitBody(ROUTE, ROUTE_FACTORY);
 const readUnit = (rel: string) => (rel === ROUTE ? routeSource() : read(rel));
 const PAGE = "components/grave-stones/grave-stone-list-page.tsx";
 const FILTER = "components/grave-stones/grave-stone-filter.tsx";
@@ -35,7 +37,7 @@ test("route consumes only the official getProducts() adapter", () => {
   assert.ok(route.includes("await getProducts()"));
   assert.ok(route.includes("buildGraveStoneListModel"));
   for (const name of ["getPortfolioItems", "getGuides", "getSite", "getPage", "getProduct("]) {
-    assert.ok(!route.includes(name), `route must not call ${name}`);
+    assert.ok(!routeBody().includes(name), `route must not call ${name}`);
   }
 });
 

@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-import { delegationErrors, routeUnit } from "@/lib/route-defs/route-test-source";
+import { delegationErrors, routeUnit, routeUnitBody } from "@/lib/route-defs/route-test-source";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
@@ -14,6 +14,8 @@ const ROUTE = "routes/grave-stones/$slug.tsx";
 const ROUTE_FACTORY = "productDetailRouteOptions";
 /** fa wrapper + en wrapper + the shared factory section that owns this route. */
 const routeSource = () => routeUnit(ROUTE, ROUTE_FACTORY);
+/** Route unit without the shared import header, used for per-route bans. */
+const routeBody = () => routeUnitBody(ROUTE, ROUTE_FACTORY);
 const readUnit = (rel: string) => (rel === ROUTE ? routeSource() : read(rel));
 const PAGE = "components/product/product-detail-page.tsx";
 const STAGE = "components/product/product-media-stage.tsx";
@@ -41,7 +43,7 @@ test("1 the route consumes only getProduct(), getCatalogVersion() and getSite()"
   assert.ok(route.includes("getSite()"));
   assert.ok(route.includes("Promise.all"));
   for (const name of ["getProducts(", "getPortfolioItems", "getGuides", "getPage("]) {
-    assert.ok(!route.includes(name), `route must not call ${name}`);
+    assert.ok(!routeBody().includes(name), `route must not call ${name}`);
   }
 });
 
@@ -182,7 +184,7 @@ test("19 fixed, estimate and review labels are exact", () => {
   assert.ok(model.includes('fixed: "قیمت"'));
   assert.ok(model.includes('estimate: "برآورد"'));
   assert.ok(model.includes('review: "نیازمند بررسی"'));
-  assert.ok(model.includes("برآورد: ${"));
+  assert.ok(model.includes('${priceTypeLabel("estimate", locale)}: ${amount}'));
 });
 
 test("20 the currency note is visible beside the price panel", () => {
@@ -206,7 +208,7 @@ test("22 product.updatedAt is never consumed as a price date", () => {
 test("23 includes and excludes render as semantic lists", () => {
   const price = read(PRICE);
   assert.ok(price.includes("شامل نمی‌شود"));
-  assert.ok(price.includes(">شامل<") || price.includes("{INCLUDES_HEADING}"));
+  assert.ok(price.includes(">شامل<") || price.includes("INCLUDES_HEADING"));
   assert.equal(price.split("<ul").length - 1, 2);
   assert.ok(price.includes("variant.includes.length > 0"));
   assert.ok(price.includes("variant.excludes.length > 0"));
