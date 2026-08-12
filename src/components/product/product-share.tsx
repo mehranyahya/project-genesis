@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useT } from "@/lib/i18n/react";
+import { translatorFor, type Translator } from "@/lib/i18n/messages";
 
 export const SHARE_BUTTON_LABEL = "اشتراک‌گذاری مدل";
 export const COPY_BUTTON_LABEL = "کپی لینک";
@@ -18,9 +19,14 @@ export function productShareUrl(slug: string, origin: string): string {
   return new URL(`/grave-stones/${encodeURIComponent(slug)}`, origin).toString();
 }
 
+export const SHARE_CODE_TEMPLATE = "کد {code}";
+
+/** Persian remains the default so the existing pure-function contract holds. */
+const FA: Translator = translatorFor("fa");
+
 /** Title and display code only — no price, selection, PII, media key or secret. */
-export function productShareText(title: string, code: string): string {
-  return `${title} — کد ${code}`;
+export function productShareText(title: string, code: string, t: Translator = FA): string {
+  return `${title} — ${t(SHARE_CODE_TEMPLATE, { code })}`;
 }
 
 export function ProductShare({ slug, title, code }: { slug: string; title: string; code: string }) {
@@ -39,9 +45,9 @@ export function ProductShare({ slug, title, code }: { slug: string; title: strin
     busy.current = true;
     try {
       await navigator.clipboard.writeText(url);
-      setStatus(COPY_SUCCESS_TEXT);
+      setStatus(t(COPY_SUCCESS_TEXT));
     } catch {
-      setStatus(COPY_FAILURE_TEXT);
+      setStatus(t(COPY_FAILURE_TEXT));
     } finally {
       busy.current = false;
     }
@@ -56,11 +62,11 @@ export function ProductShare({ slug, title, code }: { slug: string; title: strin
     }
     busy.current = true;
     try {
-      await navigator.share({ title, text: productShareText(title, code), url });
+      await navigator.share({ title, text: productShareText(title, code, t), url });
       setStatus(null);
     } catch (error) {
       if (!(error instanceof DOMException && error.name === "AbortError")) {
-        setStatus(SHARE_FAILURE_TEXT);
+        setStatus(t(SHARE_FAILURE_TEXT));
       }
     } finally {
       busy.current = false;
