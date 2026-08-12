@@ -24,6 +24,8 @@ const routeSources = routePaths.map((path) => ({
   path,
   source: readFileSync(new URL(path, import.meta.url), "utf8"),
 }));
+const sharedSource = readFileSync(new URL("./route-defs/shared.tsx", import.meta.url), "utf8");
+const factorySource = readFileSync(new URL("./route-defs/pages.tsx", import.meta.url), "utf8");
 const deployWorkflow = readFileSync(
   new URL("../../.github/workflows/deploy-cloudflare.yml", import.meta.url),
   "utf8",
@@ -65,33 +67,44 @@ test("canonical helper rejects unsafe paths and non-clean production origins", (
   }
 });
 
-test("every route that owns a canonical link uses the shared origin-aware helper", () => {
+test("every public route exists in both locales and delegates to the shared factory", () => {
   assert.equal(routeSources.length, 13);
   for (const { path, source } of routeSources) {
-    assert.match(source, /rel: "canonical"/, `${path} must still own its canonical link`);
-    assert.match(source, /canonicalHref\(/, `${path} must use canonicalHref`);
-    assert.equal(/rel: "canonical", href: "\//.test(source), false, `${path} has a raw canonical`);
-    assert.equal(
-      /rel: "canonical", href: page\.canonicalPath/.test(source),
-      false,
-      `${path} bypasses helper`,
+    assert.match(source, /createFileRoute\("/, `${path} must declare its route id`);
+    assert.match(
+      source,
+      /from "@\/lib\/route-defs\/pages"/,
+      `${path} must delegate to the shared factory`,
     );
-    assert.equal(
-      /rel: "canonical", href: guide\.path/.test(source),
-      false,
-      `${path} bypasses helper`,
+    assert.equal(/rel: "canonical"/.test(source), false, `${path} must not inline a canonical`);
+  }
+  for (const { path } of routeSources) {
+    const english = path.replace("../routes/", "../routes/en/");
+    assert.ok(
+      readFileSync(new URL(english, import.meta.url), "utf8").includes("createFileRoute("),
+      `${english} must exist`,
     );
   }
 });
 
+test("the shared head helper owns every canonical and hreflang link", () => {
+  assert.match(sharedSource, /rel: "canonical"/);
+  assert.match(sharedSource, /canonicalHref\(localizeRawPath\(basePath, locale\)\)/);
+  assert.match(sharedSource, /hrefLang: alternate/);
+  assert.match(sharedSource, /hrefLang: "x-default"/);
+  assert.equal(/rel: "canonical", href: "\//.test(sharedSource), false);
+  assert.equal(/rel: "canonical", href: page\.canonicalPath/.test(sharedSource), false);
+  assert.equal(/rel: "canonical", href: guide\.path/.test(sharedSource), false);
+});
+
 test("dynamic product canonical is derived from loaded validated product data", () => {
-  const productRoute = routeSources.find(({ path }) => path.includes("grave-stones/$slug"));
-  assert.ok(productRoute);
-  assert.match(productRoute.source, /loaderData\.model\.slug/);
+  assert.match(factorySource, /localizedLinks\(`\/grave-stones\/\$\{data\.model\.slug\}`, locale\)/);
   assert.equal(
-    /canonicalHref\(`\/grave-stones\/\$\{params\.slug\}`\)/.test(productRoute.source),
+    /canonicalHref\(`\/grave-stones\/\$\{params\.slug\}`\)/.test(factorySource),
     false,
   );
+  assert.match(factorySource, /localizedLinks\(guide\.path, locale\)/);
+  assert.match(factorySource, /localizedLinks\(page\.canonicalPath \?\? basePath, locale\)/);
 });
 
 test("build canonical origin is derived from the selected repository SITE_URL", () => {
