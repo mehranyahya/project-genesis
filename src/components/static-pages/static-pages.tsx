@@ -77,8 +77,8 @@ export function ContactDetailsList({ entries }: { entries: ContactEntry[] }) {
 
 /** Not-found UI. Without a real page only the structural marker is shown. */
 export function NotFoundView({ page }: { page: StaticPageModel | null }) {
-  if (!page) {
   const t = useT();
+  if (!page) {
     return (
       <section className={SECTION}>
         <div className={FULL}>
