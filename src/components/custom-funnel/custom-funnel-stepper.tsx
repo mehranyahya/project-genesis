@@ -64,6 +64,7 @@ function OptionStage({
   selectedIds: readonly string[];
   onToggle: (optionId: string) => void;
 }) {
+  const t = useT();
   if (options.length === 0) {
     return <p className="text-sm text-text-primary">{NO_STAGE_OPTIONS_TEXT}</p>;
   }
@@ -103,7 +104,6 @@ export function CustomFunnelStepper({
   onDraftReady,
   onDraftInvalidated,
 }: {
-  const t = useT();
   model: CustomFunnelModel;
   catalogVersion: string | null;
   onDraftReady: (draft: GraveStoneRequestDraft) => void;

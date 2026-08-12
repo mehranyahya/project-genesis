@@ -35,7 +35,6 @@ export function GraveStoneFilter({
   onReset,
   showReset,
 }: {
-  const t = useT();
   filters: GraveStoneFilters;
   stoneCodes: readonly string[];
   controlsId: string;
@@ -43,6 +42,7 @@ export function GraveStoneFilter({
   onReset: () => void;
   showReset: boolean;
 }) {
+  const t = useT();
   return (
     <fieldset className="col-span-4 grid grid-cols-4 gap-4 border border-border-subtle bg-surface p-4 md:col-span-8 md:grid-cols-8 lg:col-span-12 lg:grid-cols-12">
       <legend className="px-1 text-sm font-bold text-text-primary">{t("فیلتر محصولات")}</legend>

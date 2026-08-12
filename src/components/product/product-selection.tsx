@@ -32,13 +32,13 @@ export function ProductSelection({
   onSelectVariant,
   onToggleOption,
 }: {
-  const t = useT();
   variants: readonly ProductDetailVariant[];
   selectedVariant: ProductDetailVariant;
   selectedOptionIds: readonly string[];
   onSelectVariant: (variantId: string) => void;
   onToggleOption: (optionId: string) => void;
 }) {
+  const t = useT();
   return (
     <div className="flex flex-col gap-6">
       <fieldset className="border border-border-subtle p-4">

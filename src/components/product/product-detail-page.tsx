@@ -27,12 +27,12 @@ export function ProductDetailPage({
   site,
   termsDocument,
 }: {
-  const t = useT();
   model: ProductDetailModel;
   catalogVersion: string | null;
   site?: Site | null;
   termsDocument: RequestTermsDocument | null;
 }) {
+  const t = useT();
   const [variantId, setVariantId] = useState(model.variants[0]!.id);
   const [optionIds, setOptionIds] = useState<readonly string[]>([]);
   const [draft, setDraft] = useState<GraveStoneRequestDraft | null>(null);
