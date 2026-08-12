@@ -1,12 +1,12 @@
 import {
   CURRENCY_NOTE,
   PRICE_DATE_LABEL,
-  PRICE_TYPE_LABELS,
   formatPriceDate,
   formatPriceLabel,
+  priceTypeLabel,
 } from "@/lib/product-detail";
 import type { ProductDetailVariant, SelectionPrice } from "@/lib/product-detail";
-import { useT } from "@/lib/i18n/react";
+import { useLocale, useT } from "@/lib/i18n/react";
 
 export const PRICE_HEADING = "وضعیت قیمت";
 export const INCLUDES_HEADING = "شامل";
@@ -20,19 +20,21 @@ export function ProductPricePanel({
   price: SelectionPrice;
 }) {
   const t = useT();
-  const date = price.priceType === "review" ? null : formatPriceDate(variant.priceUpdatedAt);
+  const locale = useLocale();
+  const date =
+    price.priceType === "review" ? null : formatPriceDate(variant.priceUpdatedAt, locale);
 
   return (
     <section className="flex flex-col gap-3 border border-border-subtle bg-surface p-4">
       <h2 className="text-base font-bold text-text-primary">{t(PRICE_HEADING)}</h2>
 
-      <p className="text-sm text-text-secondary">{PRICE_TYPE_LABELS[price.priceType]}</p>
-      <p className="text-base font-bold text-text-primary">{formatPriceLabel(price)}</p>
-      <p className="text-sm text-text-caption">{CURRENCY_NOTE}</p>
+      <p className="text-sm text-text-secondary">{priceTypeLabel(price.priceType, locale)}</p>
+      <p className="text-base font-bold text-text-primary">{formatPriceLabel(price, locale)}</p>
+      <p className="text-sm text-text-caption">{t(CURRENCY_NOTE)}</p>
 
       {date ? (
         <p className="text-sm text-text-secondary">
-          {PRICE_DATE_LABEL} {date}
+          {t(PRICE_DATE_LABEL)} {date}
         </p>
       ) : null}
 
