@@ -17,8 +17,9 @@ import { NotFoundView } from "../components/static-pages/static-pages";
 import { getPage, getSite } from "../lib/content/adapters";
 import { buildContentSecurityPolicy } from "../lib/csp";
 import { buildNotFoundModel } from "../lib/static-pages";
-import { LocaleProvider, useT } from "../lib/i18n/react";
-import { htmlDir, htmlLang, localeFromPathname } from "../lib/i18n/locale";
+import { LocaleProvider } from "../lib/i18n/react";
+import { htmlDir, htmlLang, localeFromPathname, localizeRawPath } from "../lib/i18n/locale";
+import { translatorFor } from "../lib/i18n/messages";
 
 const CSP_MISSING_NONCE_POLICY = "default-src 'none'; frame-ancestors 'none'";
 
@@ -31,7 +32,8 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  const t = useT();
+  const locale = useActiveLocale();
+  const t = translatorFor(locale);
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -55,7 +57,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             {t("تلاش دوباره")}
           </button>
           <a
-            href="/"
+            href={localizeRawPath("/", locale)}
             className="inline-flex min-h-11 items-center justify-center rounded-sm border border-border-control bg-surface px-4 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
           >
             {t("بازگشت به خانه")}
@@ -80,16 +82,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "سنگ مزار سفارشی و سنگ ساختمانی" },
-      {
-        name: "description",
-        content: "انتخاب مدل سنگ مزار، مشاهدهٔ گزینه‌ها و ثبت درخواست بررسی سفارش.",
-      },
-      { property: "og:title", content: "سنگ مزار سفارشی و سنگ ساختمانی" },
-      {
-        property: "og:description",
-        content: "انتخاب مدل سنگ مزار، مشاهدهٔ گزینه‌ها و ثبت درخواست بررسی سفارش.",
-      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
