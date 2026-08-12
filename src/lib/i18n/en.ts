@@ -242,6 +242,7 @@ export const EN_MESSAGES = {
   "(الزامی)": "(required)",
   "انجام شد:": "Done:",
   "خطا:": "Error:",
+  "خطا": "Error",
   "اطلاع:": "Note:",
 
   // Success
@@ -282,6 +283,7 @@ export const EN_MESSAGES = {
   "{amount} تومان": "{amount} toman",
   "برآورد: {amount}": "Estimate: {amount}",
   "{title} — کد {code}": "{title} — code {code}",
+  "کد {code}": "code {code}",
   "کد پیگیری: {code}": "Tracking code: {code}",
   "درخواست شما با کد {code} ثبت شد. برای تسریع هماهنگی، همین کد را در واتساپ ارسال کنید. موجودی، محل اجرا و جزئیات سفارش بررسی می‌شود و پیش از هر اقدامی برای تأیید نهایی با شما تماس می‌گیریم. هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.":
     "Your request has been registered with tracking code {code}. To speed things up, send this code on WhatsApp. Availability, the installation site and the order details will be reviewed, and we will contact you for final confirmation before anything proceeds. Delivery and installation are quoted separately after the site has been reviewed.",

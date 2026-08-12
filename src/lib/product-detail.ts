@@ -157,6 +157,18 @@ export function formatPriceDate(
 }
 
 /** Display-only price string. Review never renders an amount. */
+/** Localized price line for a single option row. */
+export function formatOptionPriceLabel(
+  option: ProductDetailOption,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  if (!hasValidNumericPrice(option)) return priceTypeLabel("review", locale);
+  const amount = formatMoney(option.amountToman as number, locale);
+  return option.priceType === "estimate"
+    ? `${priceTypeLabel("estimate", locale)}: ${amount}`
+    : `${priceTypeLabel("fixed", locale)}: ${amount}`;
+}
+
 export function formatPriceLabel(
   price: SelectionPrice,
   locale: Locale = DEFAULT_LOCALE,
