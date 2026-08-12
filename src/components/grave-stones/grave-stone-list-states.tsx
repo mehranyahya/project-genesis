@@ -20,7 +20,9 @@ export function GraveStoneCatalogEmpty() {
       className={`${FULL} flex flex-col items-start gap-4 border border-border-subtle bg-surface p-4`}
     >
       <p className="text-sm text-text-primary">{t(CATALOG_EMPTY_TEXT)}</p>
-      <LocaleLink to="/grave-stones/custom" className={ACTION}>{t("ثبت سفارش سفارشی")}</LocaleLink>
+      <LocaleLink to="/grave-stones/custom" className={ACTION}>
+        {t("ثبت سفارش سفارشی")}
+      </LocaleLink>
     </div>
   );
 }
@@ -36,7 +38,9 @@ export function GraveStoneFilteredEmpty({ onReset }: { onReset: () => void }) {
         type="button"
         onClick={onReset}
         className="inline-flex min-h-11 items-center border border-border-control bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
-      >{t("پاک‌کردن فیلترها")}</button>
+      >
+        {t("پاک‌کردن فیلترها")}
+      </button>
     </div>
   );
 }

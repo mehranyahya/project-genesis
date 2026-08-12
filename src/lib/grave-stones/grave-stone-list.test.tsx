@@ -4,10 +4,19 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import { delegationErrors, routeUnit, routeUnitBody } from "@/lib/route-defs/route-test-source";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
 
 const ROUTE = "routes/grave-stones/index.tsx";
+
+const ROUTE_FACTORY = "graveStoneListRouteOptions";
+/** fa wrapper + en wrapper + the shared factory section that owns this route. */
+const routeSource = () => routeUnit(ROUTE, ROUTE_FACTORY);
+/** Route unit without the shared import header, used for per-route bans. */
+const routeBody = () => routeUnitBody(ROUTE, ROUTE_FACTORY);
+const readUnit = (rel: string) => (rel === ROUTE ? routeSource() : read(rel));
 const PAGE = "components/grave-stones/grave-stone-list-page.tsx";
 const FILTER = "components/grave-stones/grave-stone-filter.tsx";
 const CARD = "components/grave-stones/grave-stone-card.tsx";
@@ -15,20 +24,20 @@ const STATES = "components/grave-stones/grave-stone-list-states.tsx";
 const VIEW_MODEL = "lib/grave-stone-list.ts";
 
 const FILES = [ROUTE, PAGE, FILTER, CARD, STATES, VIEW_MODEL];
-const ALL = FILES.map(read).join("\n");
+const ALL = FILES.map(readUnit).join("\n");
 
 const stripComments = (source: string) =>
   source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-const ALL_CODE = FILES.map((rel) => stripComments(read(rel))).join("\n");
+const ALL_CODE = FILES.map((rel) => stripComments(readUnit(rel))).join("\n");
 
 test("route consumes only the official getProducts() adapter", () => {
-  const route = read(ROUTE);
+  const route = routeSource();
   assert.ok(route.includes('from "@/lib/content/adapters"'));
   assert.ok(route.includes("await getProducts()"));
   assert.ok(route.includes("buildGraveStoneListModel"));
   for (const name of ["getPortfolioItems", "getGuides", "getSite", "getPage", "getProduct("]) {
-    assert.ok(!route.includes(name), `route must not call ${name}`);
+    assert.ok(!routeBody().includes(name), `route must not call ${name}`);
   }
 });
 
@@ -110,7 +119,7 @@ test("error state is an alert with a real retry and no raw message", () => {
 });
 
 test("route wires pending and error components and defines no local notFound", () => {
-  const route = read(ROUTE);
+  const route = routeSource();
   assert.ok(route.includes("pendingComponent: GraveStoneListLoading"));
   assert.ok(route.includes("errorComponent: GraveStoneListError"));
   assert.ok(!route.includes("notFoundComponent"));
@@ -208,4 +217,16 @@ test("filter state never touches URL, storage or cookies", () => {
   ]) {
     assert.ok(!ALL_CODE.includes(banned), `banned persistence: ${banned}`);
   }
+});
+
+test("fa and en wrappers declare their route ids and delegate to the shared factory", () => {
+  assert.deepEqual(
+    delegationErrors({
+      rel: ROUTE,
+      faRouteId: "/grave-stones/",
+      enRouteId: "/en/grave-stones/",
+      exportName: ROUTE_FACTORY,
+    }),
+    [],
+  );
 });

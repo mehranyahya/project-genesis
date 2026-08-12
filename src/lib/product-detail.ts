@@ -13,6 +13,8 @@ import type {
   ProductVariant,
 } from "./content/types";
 import { GRAVE_STONE_SIZE_ORDER } from "./grave-stone-list";
+import { DEFAULT_LOCALE, type Locale } from "./i18n/locale";
+import { translate } from "./i18n/messages";
 
 /** Locked M5 size order, imported read-only from the Prompt 04 contract. */
 export const PRODUCT_SIZE_ORDER = GRAVE_STONE_SIZE_ORDER;
@@ -43,8 +45,18 @@ export const PRICE_DATE_LABEL = "آخرین به‌روزرسانی قیمت:";
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const PUBLIC_MEDIA_PATH = /^\/media\/[a-f0-9]{24}\/[a-f0-9]{16}-(320|640|1280)w\.webp$/;
 
-const amountFormatter = new Intl.NumberFormat("fa-IR");
-const dateFormatter = new Intl.DateTimeFormat("fa-IR", { dateStyle: "long", timeZone: "UTC" });
+/** Persian source template for a currency amount. */
+export const AMOUNT_TEMPLATE = "{amount} تومان";
+
+const amountFormatters: Readonly<Record<Locale, Intl.NumberFormat>> = {
+  fa: new Intl.NumberFormat("fa-IR"),
+  en: new Intl.NumberFormat("en-US"),
+};
+
+const dateFormatters: Readonly<Record<Locale, Intl.DateTimeFormat>> = {
+  fa: new Intl.DateTimeFormat("fa-IR", { dateStyle: "long", timeZone: "UTC" }),
+  en: new Intl.DateTimeFormat("en-GB", { dateStyle: "long", timeZone: "UTC" }),
+};
 
 export type ProductDetailMedia = Media;
 
@@ -118,23 +130,53 @@ export function normalizePriceDate(value: unknown): string | null {
   return new Date(time).toISOString().slice(0, 10) === value ? value : null;
 }
 
-export function formatAmount(amount: number): string {
-  return amountFormatter.format(amount);
+export function formatAmount(amount: number, locale: Locale = DEFAULT_LOCALE): string {
+  return amountFormatters[locale].format(amount);
 }
 
-export function formatPriceDate(value: string | null): string | null {
+/** Localized currency string: Persian by default, English under `/en`. */
+export function formatMoney(amount: number, locale: Locale = DEFAULT_LOCALE): string {
+  return translate(locale, AMOUNT_TEMPLATE, { amount: formatAmount(amount, locale) });
+}
+
+export function priceTypeLabel(priceType: PriceType, locale: Locale = DEFAULT_LOCALE): string {
+  return translate(locale, PRICE_TYPE_LABELS[priceType]);
+}
+
+export function sizeLabel(sizeCode: GraveStoneSizeCode, locale: Locale = DEFAULT_LOCALE): string {
+  return translate(locale, SIZE_LABELS[sizeCode]);
+}
+
+export function formatPriceDate(
+  value: string | null,
+  locale: Locale = DEFAULT_LOCALE,
+): string | null {
   const normalized = normalizePriceDate(value);
   if (normalized === null) return null;
-  return dateFormatter.format(new Date(`${normalized}T00:00:00Z`));
+  return dateFormatters[locale].format(new Date(`${normalized}T00:00:00Z`));
 }
 
 /** Display-only price string. Review never renders an amount. */
-export function formatPriceLabel(price: SelectionPrice): string {
+/** Localized price line for a single option row. */
+export function formatOptionPriceLabel(
+  option: ProductDetailOption,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  if (!hasValidNumericPrice(option)) return priceTypeLabel("review", locale);
+  const amount = formatMoney(option.amountToman as number, locale);
+  return option.priceType === "estimate"
+    ? `${priceTypeLabel("estimate", locale)}: ${amount}`
+    : `${priceTypeLabel("fixed", locale)}: ${amount}`;
+}
+
+export function formatPriceLabel(price: SelectionPrice, locale: Locale = DEFAULT_LOCALE): string {
   if (price.priceType === "review" || !isValidAmount(price.amountToman)) {
-    return PRICE_TYPE_LABELS.review;
+    return priceTypeLabel("review", locale);
   }
-  const amount = `${formatAmount(price.amountToman)} تومان`;
-  return price.priceType === "estimate" ? `برآورد: ${amount}` : amount;
+  const amount = formatMoney(price.amountToman, locale);
+  return price.priceType === "estimate"
+    ? `${priceTypeLabel("estimate", locale)}: ${amount}`
+    : amount;
 }
 
 function normalizeOptions(

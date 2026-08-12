@@ -4,10 +4,19 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import { delegationErrors, routeUnit, routeUnitBody } from "@/lib/route-defs/route-test-source";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
 
 const ROUTE = "routes/grave-stones/$slug.tsx";
+
+const ROUTE_FACTORY = "productDetailRouteOptions";
+/** fa wrapper + en wrapper + the shared factory section that owns this route. */
+const routeSource = () => routeUnit(ROUTE, ROUTE_FACTORY);
+/** Route unit without the shared import header, used for per-route bans. */
+const routeBody = () => routeUnitBody(ROUTE, ROUTE_FACTORY);
+const readUnit = (rel: string) => (rel === ROUTE ? routeSource() : read(rel));
 const PAGE = "components/product/product-detail-page.tsx";
 const STAGE = "components/product/product-media-stage.tsx";
 const PUBLIC_MEDIA = "components/media/public-media.tsx";
@@ -23,18 +32,18 @@ const FILES = [ROUTE, PAGE, STAGE, PUBLIC_MEDIA, SELECTION, PRICE, SUMMARY, STAT
 const stripComments = (source: string) =>
   source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-const ALL = FILES.map(read).join("\n");
-const ALL_CODE = FILES.map((rel) => stripComments(read(rel))).join("\n");
+const ALL = FILES.map(readUnit).join("\n");
+const ALL_CODE = FILES.map((rel) => stripComments(readUnit(rel))).join("\n");
 
 test("1 the route consumes only getProduct(), getCatalogVersion() and getSite()", () => {
-  const route = read(ROUTE);
+  const route = routeSource();
   assert.ok(route.includes('from "@/lib/content/adapters"'));
   assert.ok(route.includes("getProduct(params.slug)"));
   assert.ok(route.includes("getCatalogVersion()"));
   assert.ok(route.includes("getSite()"));
   assert.ok(route.includes("Promise.all"));
   for (const name of ["getProducts(", "getPortfolioItems", "getGuides", "getPage("]) {
-    assert.ok(!route.includes(name), `route must not call ${name}`);
+    assert.ok(!routeBody().includes(name), `route must not call ${name}`);
   }
 });
 
@@ -45,7 +54,7 @@ test("2 no direct JSON, markdown, fixture or raw asset import exists", () => {
 });
 
 test("3 the official notFound() is used for invalid products", () => {
-  const route = read(ROUTE);
+  const route = routeSource();
   assert.ok(route.includes('notFound } from "@tanstack/react-router"'));
   assert.ok(route.includes("throw notFound()"));
   assert.ok(route.includes("buildProductDetailModel"));
@@ -56,7 +65,7 @@ test("4 no local notFoundComponent is declared", () => {
 });
 
 test("5 pending and error components are real and wired", () => {
-  const route = read(ROUTE);
+  const route = routeSource();
   assert.ok(route.includes("pendingComponent: ProductDetailLoading"));
   assert.ok(route.includes("errorComponent: ProductDetailError"));
   assert.ok(!route.includes("RouteSkeleton"));
@@ -175,7 +184,7 @@ test("19 fixed, estimate and review labels are exact", () => {
   assert.ok(model.includes('fixed: "قیمت"'));
   assert.ok(model.includes('estimate: "برآورد"'));
   assert.ok(model.includes('review: "نیازمند بررسی"'));
-  assert.ok(model.includes("برآورد: ${"));
+  assert.ok(model.includes('${priceTypeLabel("estimate", locale)}: ${amount}'));
 });
 
 test("20 the currency note is visible beside the price panel", () => {
@@ -199,7 +208,7 @@ test("22 product.updatedAt is never consumed as a price date", () => {
 test("23 includes and excludes render as semantic lists", () => {
   const price = read(PRICE);
   assert.ok(price.includes("شامل نمی‌شود"));
-  assert.ok(price.includes(">شامل<") || price.includes("{INCLUDES_HEADING}"));
+  assert.ok(price.includes(">شامل<") || price.includes("INCLUDES_HEADING"));
   assert.equal(price.split("<ul").length - 1, 2);
   assert.ok(price.includes("variant.includes.length > 0"));
   assert.ok(price.includes("variant.excludes.length > 0"));
@@ -283,4 +292,16 @@ test("34 loading and error states are accessible with exact copy", () => {
   assert.ok(states.includes("دریافت جزئیات سنگ مزار ممکن نشد."));
   assert.ok(states.includes("تلاش دوباره"));
   assert.ok(states.includes("router.invalidate()"));
+});
+
+test("fa and en wrappers declare their route ids and delegate to the shared factory", () => {
+  assert.deepEqual(
+    delegationErrors({
+      rel: ROUTE,
+      faRouteId: "/grave-stones/$slug",
+      enRouteId: "/en/grave-stones/$slug",
+      exportName: ROUTE_FACTORY,
+    }),
+    [],
+  );
 });

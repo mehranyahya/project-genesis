@@ -4,12 +4,21 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import { delegationErrors, routeUnit, routeUnitBody } from "@/lib/route-defs/route-test-source";
+
 import { CUSTOM_FUNNEL_OPTION_ROLES, CUSTOM_FUNNEL_STEPS } from "../custom-funnel";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
 
 const ROUTE = "routes/grave-stones/custom.tsx";
+
+const ROUTE_FACTORY = "customFunnelRouteOptions";
+/** fa wrapper + en wrapper + the shared factory section that owns this route. */
+const routeSource = () => routeUnit(ROUTE, ROUTE_FACTORY);
+/** Route unit without the shared import header, used for per-route bans. */
+const routeBody = () => routeUnitBody(ROUTE, ROUTE_FACTORY);
+const readUnit = (rel: string) => (rel === ROUTE ? routeSource() : read(rel));
 const PAGE = "components/custom-funnel/custom-funnel-page.tsx";
 const STEPPER = "components/custom-funnel/custom-funnel-stepper.tsx";
 const STATES = "components/custom-funnel/custom-funnel-states.tsx";
@@ -20,22 +29,22 @@ const FILES = [ROUTE, PAGE, STEPPER, STATES, LOGIC];
 const stripComments = (source: string) =>
   source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-const ALL = FILES.map(read).join("\n");
-const ALL_CODE = FILES.map((rel) => stripComments(read(rel))).join("\n");
+const ALL = FILES.map(readUnit).join("\n");
+const ALL_CODE = FILES.map((rel) => stripComments(readUnit(rel))).join("\n");
 
 test("1 the route consumes only getProducts(), getCatalogVersion() and getSite()", () => {
-  const route = read(ROUTE);
+  const route = routeSource();
   assert.ok(route.includes('from "@/lib/content/adapters"'));
   assert.ok(route.includes("Promise.all"));
   assert.ok(route.includes("getCatalogVersion()"));
   assert.ok(route.includes("getSite()"));
   for (const name of ["getProduct(", "getPortfolioItems", "getGuides", "getPage("]) {
-    assert.ok(!route.includes(name), `route must not call ${name}`);
+    assert.ok(!routeBody().includes(name), `route must not call ${name}`);
   }
 });
 
 test('2 getProducts({ type: "simple" }) is used', () => {
-  assert.ok(read(ROUTE).includes('getProducts({ type: "simple" })'));
+  assert.ok(routeSource().includes('getProducts({ type: "simple" })'));
 });
 
 test("3 no JSON, markdown, fixture or asset import exists", () => {
@@ -45,13 +54,14 @@ test("3 no JSON, markdown, fixture or asset import exists", () => {
 });
 
 test("4 the existing route id is preserved", () => {
-  assert.ok(read(ROUTE).includes('createFileRoute("/grave-stones/custom")'));
-  assert.ok(!read(ROUTE).includes("RouteSkeleton"));
+  assert.ok(routeSource().includes('createFileRoute("/grave-stones/custom")'));
+  assert.ok(!routeSource().includes("RouteSkeleton"));
 });
 
 test("5 no new route is declared", () => {
+  // One wrapper per locale, and no third route declaration.
   const occurrences = ALL.match(/createFileRoute\(/g) ?? [];
-  assert.equal(occurrences.length, 1);
+  assert.equal(occurrences.length, 2);
 });
 
 test("6 exactly one h1 with the locked heading exists", () => {
@@ -373,15 +383,10 @@ test("49 no unused price state remains in the stepper", () => {
 
 test("50 option-row pricing helpers are preserved", () => {
   const stepper = read(STEPPER);
-  for (const helper of [
-    "hasValidNumericPrice",
-    "formatAmount",
-    "formatPriceDate",
-    "PRICE_TYPE_LABELS",
-  ]) {
+  for (const helper of ["formatOptionPriceLabel", "formatPriceDate"]) {
     assert.ok(stepper.includes(helper), `must keep ${helper}`);
   }
-  assert.ok(stepper.includes("function optionPriceText"));
+  assert.ok(stepper.includes("formatOptionPriceLabel(option, locale)"));
 });
 
 test("51 no form, network, storage, cookie or PII surface is added", () => {
@@ -397,4 +402,16 @@ test("51 no form, network, storage, cookie or PII surface is added", () => {
   ]) {
     assert.ok(!ALL_CODE.includes(banned), `must not contain ${banned}`);
   }
+});
+
+test("fa and en wrappers declare their route ids and delegate to the shared factory", () => {
+  assert.deepEqual(
+    delegationErrors({
+      rel: ROUTE,
+      faRouteId: "/grave-stones/custom",
+      enRouteId: "/en/grave-stones/custom",
+      exportName: ROUTE_FACTORY,
+    }),
+    [],
+  );
 });

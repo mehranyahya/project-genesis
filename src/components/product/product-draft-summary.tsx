@@ -1,11 +1,12 @@
 import {
   CURRENCY_NOTE,
   PRICE_DATE_LABEL,
-  PRICE_TYPE_LABELS,
   formatPriceDate,
+  formatPriceLabel,
+  priceTypeLabel,
 } from "@/lib/product-detail";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
-import { useT } from "@/lib/i18n/react";
+import { useLocale, useT } from "@/lib/i18n/react";
 
 export const DRAFT_HEADING = "خلاصه انتخاب";
 export const DRAFT_LOGISTICS_NOTE = "هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.";
@@ -13,8 +14,9 @@ export const DRAFT_LOGISTICS_NOTE = "هزینهٔ حمل و نصب جداگان�
 /** Renders derived snapshot data only. No PII, no tracking code, no submission. */
 export function ProductDraftSummary({ draft }: { draft: GraveStoneRequestDraft }) {
   const t = useT();
+  const locale = useLocale();
   const snapshot = draft.displaySnapshot;
-  const date = formatPriceDate(snapshot.priceUpdatedAt);
+  const date = formatPriceDate(snapshot.priceUpdatedAt, locale);
 
   return (
     <section
@@ -41,17 +43,21 @@ export function ProductDraftSummary({ draft }: { draft: GraveStoneRequestDraft }
         </div>
         <div className="flex flex-wrap gap-2">
           <dt className="text-sm text-text-caption">{t("اندازه")}</dt>
-          <dd className="text-sm text-text-primary">{snapshot.sizeLabel}</dd>
+          <dd className="text-sm text-text-primary">{t(snapshot.sizeLabel)}</dd>
         </div>
         <div className="flex flex-wrap gap-2">
           <dt className="text-sm text-text-caption">{t("وضعیت قیمت")}</dt>
           <dd className="text-sm text-text-primary">
-            {t(PRICE_TYPE_LABELS[snapshot.priceType])} — {t(snapshot.priceLabel)}
+            {priceTypeLabel(snapshot.priceType, locale)} —{" "}
+            {formatPriceLabel(
+              { priceType: snapshot.priceType, amountToman: snapshot.amountToman },
+              locale,
+            )}
           </dd>
         </div>
         {date ? (
           <div className="flex flex-wrap gap-2">
-            <dt className="text-sm text-text-caption">{PRICE_DATE_LABEL}</dt>
+            <dt className="text-sm text-text-caption">{t(PRICE_DATE_LABEL)}</dt>
             <dd className="text-sm text-text-primary">{date}</dd>
           </div>
         ) : null}
@@ -63,14 +69,14 @@ export function ProductDraftSummary({ draft }: { draft: GraveStoneRequestDraft }
           <ul className="list-inside list-disc pt-1">
             {snapshot.optionTitles.map((title) => (
               <li key={title} className="text-sm text-text-secondary">
-                {title}
+                {t(title)}
               </li>
             ))}
           </ul>
         </div>
       ) : null}
 
-      <p className="text-sm text-text-caption">{CURRENCY_NOTE}</p>
+      <p className="text-sm text-text-caption">{t(CURRENCY_NOTE)}</p>
       <p className="text-sm text-text-secondary">{t(DRAFT_LOGISTICS_NOTE)}</p>
     </section>
   );

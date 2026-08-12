@@ -11,7 +11,12 @@ import {
   GraveStoneListError,
   GraveStoneListLoading,
 } from "@/components/grave-stones/grave-stone-list-states";
-import { GuideDetailPage, GuideError, GuidesListPage, GuidesLoading } from "@/components/guides/guides";
+import {
+  GuideDetailPage,
+  GuideError,
+  GuidesListPage,
+  GuidesLoading,
+} from "@/components/guides/guides";
 import { HomePage } from "@/components/home/home-page";
 import { PortfolioPage } from "@/components/portfolio/portfolio-page";
 import { PortfolioError, PortfolioLoading } from "@/components/portfolio/portfolio-states";
@@ -41,6 +46,7 @@ import { buildGuideDetailModel, buildGuideListModel } from "@/lib/guides";
 import type { GuideDetailModel, GuideListItem } from "@/lib/guides";
 import { buildHomeViewModel } from "@/lib/home";
 import type { Locale } from "@/lib/i18n/locale";
+import { contentForLocale, contentListForLocale, siteForLocale } from "@/lib/i18n/content-gate";
 import { buildPortfolioModel } from "@/lib/portfolio";
 import { findPortfolioReference, normalizePortfolioReference } from "@/lib/portfolio-reference";
 import { buildProductDetailModel } from "@/lib/product-detail";
@@ -71,7 +77,11 @@ export function homeRouteOptions(locale: Locale) {
         getPortfolioItems({ limit: 1 }),
         getGuides({ limit: 1 }),
       ]);
-      return buildHomeViewModel({ products, portfolioItems, guides });
+      return buildHomeViewModel({
+        products: contentListForLocale(products, locale),
+        portfolioItems: contentListForLocale(portfolioItems, locale),
+        guides: contentListForLocale(guides, locale),
+      });
     },
     component: HomeRoute,
   };
@@ -93,7 +103,7 @@ export function graveStoneListRouteOptions(locale: Locale) {
         title: "سنگ مزار",
         description: "فهرست مدل‌های سنگ مزار",
       }),
-    loader: async () => buildGraveStoneListModel(await getProducts()),
+    loader: async () => buildGraveStoneListModel(contentListForLocale(await getProducts(), locale)),
     pendingComponent: GraveStoneListLoading,
     errorComponent: GraveStoneListError,
     component: GraveStoneListRoute,
@@ -115,9 +125,9 @@ export function customFunnelRouteOptions(locale: Locale) {
         getRequestTermsDocument(),
       ]);
       return {
-        products,
+        products: contentListForLocale(products, locale),
         catalogVersion: catalogVersion ?? null,
-        site: site ?? null,
+        site: siteForLocale(site, locale),
         termsDocument,
       };
     },
@@ -160,13 +170,13 @@ export function productDetailRouteOptions(locale: Locale) {
         getRequestTermsDocument(),
       ]);
 
-      const model = buildProductDetailModel(product, params.slug);
+      const model = buildProductDetailModel(contentForLocale(product, locale), params.slug);
       if (model === null) throw notFound();
 
       return {
         model,
         catalogVersion: catalogVersion ?? null,
-        site: site ?? null,
+        site: siteForLocale(site, locale),
         termsDocument,
       };
     },
@@ -229,7 +239,8 @@ export function portfolioRouteOptions(locale: Locale) {
         title: "نمونه‌کارها",
         description: "نمونه‌کارهای اجراشدهٔ سنگ مزار",
       }),
-    loader: async () => buildPortfolioModel(await getPortfolioItems()),
+    loader: async () =>
+      buildPortfolioModel(contentListForLocale(await getPortfolioItems(), locale)),
     pendingComponent: PortfolioLoading,
     errorComponent: PortfolioError,
     component: PortfolioRoute,
@@ -247,7 +258,7 @@ export function buildingStoneRouteOptions(locale: Locale) {
   return {
     loader: async () => {
       const [site, termsDocument] = await Promise.all([getSite(), getRequestTermsDocument()]);
-      return { site: site ?? null, termsDocument };
+      return { site: siteForLocale(site, locale), termsDocument };
     },
     head: () =>
       localizedHead({
@@ -291,8 +302,11 @@ export function quoteRouteOptions(locale: Locale) {
         getRequestTermsDocument(),
       ]);
       return {
-        portfolioReferenceId: findPortfolioReference(portfolioItems, deps.reference),
-        site: site ?? null,
+        portfolioReferenceId: findPortfolioReference(
+          contentListForLocale(portfolioItems, locale),
+          deps.reference,
+        ),
+        site: siteForLocale(site, locale),
         termsDocument,
       };
     },
@@ -333,7 +347,7 @@ export function guideListRouteOptions(locale: Locale) {
         robots: hasContent ? null : "noindex",
       });
     },
-    loader: async () => buildGuideListModel(await getGuides()),
+    loader: async () => buildGuideListModel(contentListForLocale(await getGuides(), locale)),
     pendingComponent: GuidesLoading,
     errorComponent: GuideError,
     component: GuideListRoute,
@@ -367,7 +381,7 @@ export function guideDetailRouteOptions(locale: Locale) {
       };
     },
     loader: async ({ params }: { params: { slug: string } }) => {
-      const guide = buildGuideDetailModel(await getGuide(params.slug));
+      const guide = buildGuideDetailModel(contentForLocale(await getGuide(params.slug), locale));
       if (!guide) throw notFound();
       return guide;
     },
@@ -415,7 +429,7 @@ function staticPageOptions(
   return {
     head: (ctx: { loaderData?: StaticPageModel | null }) =>
       staticPageHead(locale, basePath, ctx.loaderData ?? null, fallbackTitle),
-    loader: async () => buildStaticPageModel(await getPage(slug), slug),
+    loader: async () => buildStaticPageModel(contentForLocale(await getPage(slug), locale), slug),
     component,
   };
 }
@@ -443,7 +457,7 @@ export function contactRouteOptions(locale: Locale) {
       staticPageHead(locale, "/contact", ctx.loaderData?.page ?? null, "تماس"),
     loader: async (): Promise<ContactPageModel> => {
       const [page, site] = await Promise.all([getPage("contact"), getSite()]);
-      return buildContactPageModel(page, site);
+      return buildContactPageModel(contentForLocale(page, locale), siteForLocale(site, locale));
     },
     component: ContactRoute,
   };

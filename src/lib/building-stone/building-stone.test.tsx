@@ -4,6 +4,8 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import { delegationErrors, routeUnit, routeUnitBody } from "@/lib/route-defs/route-test-source";
+
 import {
   EMPTY_REQUEST_FORM_VALUES,
   buildRequestPayload,
@@ -17,6 +19,13 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
 
 const ROUTE = "routes/building-stone.tsx";
+
+const ROUTE_FACTORY = "buildingStoneRouteOptions";
+/** fa wrapper + en wrapper + the shared factory section that owns this route. */
+const routeSource = () => routeUnit(ROUTE, ROUTE_FACTORY);
+/** Route unit without the shared import header, used for per-route bans. */
+const routeBody = () => routeUnitBody(ROUTE, ROUTE_FACTORY);
+const readUnit = (rel: string) => (rel === ROUTE ? routeSource() : read(rel));
 const PAGE = "components/building-stone/building-stone-page.tsx";
 const FIELDS = "components/building-stone/building-stone-fields.tsx";
 const SUMMARY = "components/building-stone/building-stone-summary.tsx";
@@ -24,11 +33,11 @@ const FORM = "components/request-form/request-form.tsx";
 
 const COMPONENTS = [PAGE, FIELDS, SUMMARY];
 const FILES = [ROUTE, ...COMPONENTS];
-const ALL = FILES.map(read).join("\n");
+const ALL = FILES.map(readUnit).join("\n");
 
 const stripComments = (source: string) =>
   source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-const ALL_CODE = FILES.map((rel) => stripComments(read(rel))).join("\n");
+const ALL_CODE = FILES.map((rel) => stripComments(readUnit(rel))).join("\n");
 
 const HASH = "a".repeat(64);
 const TERMS = { version: "1.0.0", contentHash: HASH };
@@ -60,11 +69,11 @@ const filled = (over: Partial<RequestFormValues> = {}): RequestFormValues => ({
 /* -------------------------------------------------------------------------- */
 
 test("1 the route is the real business route and reads only getSite()", () => {
-  const route = read(ROUTE);
+  const route = routeSource();
   assert.ok(route.includes('createFileRoute("/building-stone")'));
   assert.ok(route.includes("getSite()"));
   for (const name of ["getProducts", "getProduct(", "getGuides", "getGuide(", "getPage"]) {
-    assert.ok(!route.includes(name), `route must not call ${name}`);
+    assert.ok(!routeBody().includes(name), `route must not call ${name}`);
   }
 });
 
@@ -112,7 +121,7 @@ test("7 every extension error is accessible and non-color-coded", () => {
   assert.ok(fields.includes('role="alert"'));
   assert.ok(fields.includes("aria-errormessage"));
   assert.ok(fields.includes("aria-invalid"));
-  assert.ok(fields.includes("خطا: "));
+  assert.ok(fields.includes('{t("خطا")}: '));
 });
 
 test("8 the building-stone error is focused before the general field errors", () => {
@@ -403,4 +412,16 @@ test("29 the focus contract is committed, never applied inline", () => {
   assert.ok(form.includes("}, [pendingFocusId]);"));
   assert.ok(!form.includes("focusById("));
   assert.equal(form.split(".focus();").length - 1, 1);
+});
+
+test("fa and en wrappers declare their route ids and delegate to the shared factory", () => {
+  assert.deepEqual(
+    delegationErrors({
+      rel: ROUTE,
+      faRouteId: "/building-stone",
+      enRouteId: "/en/building-stone",
+      exportName: ROUTE_FACTORY,
+    }),
+    [],
+  );
 });

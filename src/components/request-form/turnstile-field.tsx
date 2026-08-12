@@ -227,7 +227,9 @@ export const TurnstileField = forwardRef<TurnstileFieldHandle>(function Turnstil
         <p className="text-sm text-text-secondary">{t("در حال انجام تأیید امنیتی…")}</p>
       ) : null}
       {state === "unavailable" ? (
-        <p role="alert" className="text-sm text-text-secondary">{t("تأیید امنیتی در دسترس نیست؛ ارسال درخواست همچنان ممکن است.")}</p>
+        <p role="alert" className="text-sm text-text-secondary">
+          {t("تأیید امنیتی در دسترس نیست؛ ارسال درخواست همچنان ممکن است.")}
+        </p>
       ) : null}
     </div>
   );

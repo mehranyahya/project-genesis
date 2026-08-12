@@ -38,7 +38,9 @@ export function GraveStoneListPage({ model }: { model: GraveStoneListModel }) {
     <section className={SECTION}>
       <div className={FULL}>
         <h1 className="text-2xl font-bold text-text-primary">{t("فروشگاه سنگ مزار")}</h1>
-        <p className="pt-3 text-sm text-text-secondary">{t("محصولات فعال را بر اساس نوع اجرا، کد سنگ و اندازه بررسی کنید.")}</p>
+        <p className="pt-3 text-sm text-text-secondary">
+          {t("محصولات فعال را بر اساس نوع اجرا، کد سنگ و اندازه بررسی کنید.")}
+        </p>
       </div>
 
       <div className={`${FULL} flex flex-wrap gap-3`}>
@@ -48,15 +50,21 @@ export function GraveStoneListPage({ model }: { model: GraveStoneListModel }) {
           aria-pressed={filters.type === "simple"}
           onClick={() => setFilters((prev) => ({ ...prev, type: "simple" }))}
           className={`${PATH_BUTTON} ${filters.type === "simple" ? PATH_SELECTED : PATH_IDLE}`}
-        >{t("سنگ مزار ساده")}</button>
+        >
+          {t("سنگ مزار ساده")}
+        </button>
         <button
           type="button"
           aria-controls={RESULTS_ID}
           aria-pressed={filters.type === "cnc_box"}
           onClick={() => setFilters((prev) => ({ ...prev, type: "cnc_box" }))}
           className={`${PATH_BUTTON} ${filters.type === "cnc_box" ? PATH_SELECTED : PATH_IDLE}`}
-        >{t("اجرای CNC")}</button>
-        <LocaleLink to="/grave-stones/custom" className={`${PATH_BUTTON} ${PATH_IDLE}`}>{t("سفارش سفارشی")}</LocaleLink>
+        >
+          {t("اجرای CNC")}
+        </button>
+        <LocaleLink to="/grave-stones/custom" className={`${PATH_BUTTON} ${PATH_IDLE}`}>
+          {t("سفارش سفارشی")}
+        </LocaleLink>
       </div>
 
       {catalogEmpty ? (

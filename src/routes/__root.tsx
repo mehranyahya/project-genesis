@@ -18,6 +18,7 @@ import { getPage, getSite } from "../lib/content/adapters";
 import { buildContentSecurityPolicy } from "../lib/csp";
 import { buildNotFoundModel } from "../lib/static-pages";
 import { LocaleProvider } from "../lib/i18n/react";
+import { contentForLocale, siteForLocale } from "../lib/i18n/content-gate";
 import { htmlDir, htmlLang, localeFromPathname, localizeRawPath } from "../lib/i18n/locale";
 import { translatorFor } from "../lib/i18n/messages";
 
@@ -25,8 +26,9 @@ const CSP_MISSING_NONCE_POLICY = "default-src 'none'; frame-ancestors 'none'";
 
 function NotFoundComponent() {
   const data = Route.useLoaderData() as
-    { notFound: ReturnType<typeof buildNotFoundModel> } | undefined;
-  return <NotFoundView page={data?.notFound ?? null} />;
+    { notFoundPage: Awaited<ReturnType<typeof getPage>> } | undefined;
+  const locale = useActiveLocale();
+  return <NotFoundView page={buildNotFoundModel(contentForLocale(data?.notFoundPage, locale))} />;
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
@@ -95,7 +97,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   }),
   loader: async () => {
     const [site, notFoundPage] = await Promise.all([getSite(), getPage("not-found")]);
-    return { site, notFound: buildNotFoundModel(notFoundPage) };
+    return { site, notFoundPage };
   },
 
   shellComponent: RootShell,
@@ -125,18 +127,19 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const site = Route.useLoaderData()?.site ?? null;
+  const rawSite = Route.useLoaderData()?.site ?? null;
 
   const locale = useActiveLocale();
+  const site = siteForLocale(rawSite, locale);
 
   return (
     <LocaleProvider locale={locale}>
-    <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <AppShell site={site}>
-        <Outlet />
-      </AppShell>
-    </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <AppShell site={site}>
+          <Outlet />
+        </AppShell>
+      </QueryClientProvider>
     </LocaleProvider>
   );
 }

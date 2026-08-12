@@ -81,6 +81,8 @@ export interface ProductVariant {
 }
 
 export interface Product {
+  /** Absent means Persian; explicit "en" marks English editorial content. */
+  locale?: string | null;
   id: string;
   code: string;
   slug: string;
@@ -97,6 +99,7 @@ export interface Product {
 }
 
 export interface PortfolioItem {
+  locale?: string | null;
   publicReferenceId: string;
   media: Media[];
   stoneCode?: string | null;
@@ -105,6 +108,7 @@ export interface PortfolioItem {
 }
 
 export interface Guide {
+  locale?: string | null;
   slug: string;
   title: string;
   summary: string | null;
@@ -120,6 +124,7 @@ export interface SiteLinks {
 }
 
 export interface Site {
+  locale?: string | null;
   displayName: string;
   latinName: string;
   phone: string | null;
@@ -131,6 +136,7 @@ export interface Site {
 }
 
 export interface Page {
+  locale?: string | null;
   slug: PageSlug;
   title: string;
   body: string;

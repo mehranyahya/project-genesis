@@ -4,6 +4,8 @@ import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import { htmlDir } from "./i18n/locale";
+
 /**
  * Scaffold QA gate (Prompt 12).
  * Source-level assertions only. No business logic, no new capability.
@@ -130,7 +132,10 @@ test("no fixed-width or viewport-overflow constructs that break 320px reflow", (
   assert.deepEqual(offenders, [], `reflow risk in: ${offenders.join(", ")}`);
 });
 
-test("root document stays Persian RTL with one html shell", () => {
+test("the single html shell derives lang and dir from the matched locale", () => {
   const root = read("routes/__root.tsx");
-  assert.match(root, /<html lang="fa" dir="rtl">/);
+  assert.equal(root.split("<html").length - 1, 1);
+  assert.match(root, /<html lang=\{htmlLang\(locale\)\} dir=\{htmlDir\(locale\)\}>/);
+  assert.equal(htmlDir("fa"), "rtl");
+  assert.equal(htmlDir("en"), "ltr");
 });

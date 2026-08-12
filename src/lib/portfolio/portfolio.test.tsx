@@ -4,10 +4,19 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
+import { delegationErrors, routeUnit, routeUnitBody } from "@/lib/route-defs/route-test-source";
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = (rel: string) => readFileSync(path.join(root, rel), "utf8");
 
 const ROUTE = "routes/portfolio.tsx";
+
+const ROUTE_FACTORY = "portfolioRouteOptions";
+/** fa wrapper + en wrapper + the shared factory section that owns this route. */
+const routeSource = () => routeUnit(ROUTE, ROUTE_FACTORY);
+/** Route unit without the shared import header, used for per-route bans. */
+const routeBody = () => routeUnitBody(ROUTE, ROUTE_FACTORY);
+const readUnit = (rel: string) => (rel === ROUTE ? routeSource() : read(rel));
 const PAGE = "components/portfolio/portfolio-page.tsx";
 const CARD = "components/portfolio/portfolio-card.tsx";
 const STATES = "components/portfolio/portfolio-states.tsx";
@@ -15,16 +24,16 @@ const MODEL = "lib/portfolio.ts";
 
 const COMPONENTS = [PAGE, CARD, STATES];
 const FILES = [ROUTE, ...COMPONENTS, MODEL];
-const ALL = FILES.map(read).join("\n");
+const ALL = FILES.map(readUnit).join("\n");
 
 const stripComments = (source: string) =>
   source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 
-const ALL_CODE = FILES.map((rel) => stripComments(read(rel))).join("\n");
+const ALL_CODE = FILES.map((rel) => stripComments(readUnit(rel))).join("\n");
 const COMPONENT_CODE = COMPONENTS.map((rel) => stripComments(read(rel))).join("\n");
 
 test("1-4 route consumes only getPortfolioItems() and keeps the existing route id", () => {
-  const route = read(ROUTE);
+  const route = routeSource();
   assert.ok(route.includes('from "@/lib/content/adapters"'));
   assert.ok(route.includes("await getPortfolioItems()"));
   assert.ok(route.includes('createFileRoute("/portfolio")'));
@@ -36,7 +45,7 @@ test("1-4 route consumes only getPortfolioItems() and keeps the existing route i
     "getSite",
     "getPage",
   ]) {
-    assert.ok(!route.includes(name), `route must not call ${name}`);
+    assert.ok(!routeBody().includes(name), `route must not call ${name}`);
   }
 });
 
@@ -207,4 +216,16 @@ test("37-40 single H1, no generated route tree import, no backend surface", () =
   const page = read(PAGE);
   assert.ok(page.includes("cards.length === 0"));
   assert.ok(page.includes("<PortfolioEmpty />"));
+});
+
+test("fa and en wrappers declare their route ids and delegate to the shared factory", () => {
+  assert.deepEqual(
+    delegationErrors({
+      rel: ROUTE,
+      faRouteId: "/portfolio",
+      enRouteId: "/en/portfolio",
+      exportName: ROUTE_FACTORY,
+    }),
+    [],
+  );
 });
