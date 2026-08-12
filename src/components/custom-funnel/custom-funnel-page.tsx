@@ -18,12 +18,12 @@ export const CUSTOM_FUNNEL_DRAFT_READY_TEXT =
   "خلاصه انتخاب آماده است؛ ثبت سفارش در این مرحله انجام نشده است.";
 
 export function CustomFunnelPage({
-  const t = useT();
   products,
   catalogVersion,
   site,
   termsDocument,
 }: {
+  const t = useT();
   products: readonly Product[];
   catalogVersion: string | null;
   site?: Site | null;

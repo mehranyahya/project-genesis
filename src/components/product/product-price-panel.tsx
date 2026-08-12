@@ -13,10 +13,10 @@ export const INCLUDES_HEADING = "شامل";
 export const EXCLUDES_HEADING = "شامل نمی‌شود";
 
 export function ProductPricePanel({
-  const t = useT();
   variant,
   price,
 }: {
+  const t = useT();
   variant: ProductDetailVariant;
   price: SelectionPrice;
 }) {

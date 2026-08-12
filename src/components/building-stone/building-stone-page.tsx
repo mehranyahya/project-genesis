@@ -20,10 +20,10 @@ export const BUILDING_STONE_INTRO =
 export const BUILDING_STONE_SECTION_HEADING = "مشخصات درخواست";
 
 export function BuildingStonePage({
-  const t = useT();
   site,
   termsDocument,
 }: {
+  const t = useT();
   site: Site | null;
   termsDocument: RequestTermsDocument | null;
 }) {

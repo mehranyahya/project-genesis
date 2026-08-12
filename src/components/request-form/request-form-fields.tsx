@@ -10,11 +10,11 @@ import type {
   RequestSource,
 } from "@/lib/request-form";
 import {
-import { useT } from "@/lib/i18n/react";
   LOCATION_UNKNOWN_VALUE,
   PREFERRED_CONTACT_OPTIONS,
   REQUEST_FIELD_LABELS,
 } from "@/lib/request-form";
+import { useT } from "@/lib/i18n/react";
 
 export const FIELD_ID_PREFIX = "request";
 
@@ -86,13 +86,13 @@ function TextField({
 }
 
 export function RequestFormFields({
-  const t = useT();
   values,
   errors,
   source,
   disabled,
   onChange,
 }: {
+  const t = useT();
   values: RequestFormValues;
   errors: RequestFieldErrors;
   source: RequestSource;
