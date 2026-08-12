@@ -1,5 +1,5 @@
 /**
- * Mehrara navigation contract.
+ * Site navigation contract.
  * The single source of truth for allowed business routes, public navigation
  * destinations and the one shop CTA. No content, no fixtures, no URLs.
  */
@@ -26,6 +26,7 @@ export type BusinessRoute = (typeof BUSINESS_ROUTES)[number];
 export type StaticBusinessRoute = Exclude<BusinessRoute, `${string}$${string}`>;
 
 export interface NavItem {
+  /** Persian source label — also the translation key (see src/lib/i18n). */
   readonly label: string;
   readonly to: StaticBusinessRoute;
 }

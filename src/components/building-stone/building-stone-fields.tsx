@@ -11,6 +11,7 @@ import {
   buildingStoneErrorId,
   buildingStoneFieldId,
 } from "@/lib/building-stone";
+import { useT } from "@/lib/i18n/react";
 
 const CONTROL =
   "min-h-11 w-full border border-border-control bg-surface px-3 py-2 text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-45";
@@ -20,10 +21,11 @@ const CHOICE =
   "mt-1 h-5 w-5 shrink-0 accent-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
 function FieldError({ id, message }: { id: string; message: string | undefined }) {
+  const t = useT();
   if (message === undefined) return null;
   return (
     <p id={id} role="alert" className="text-sm text-status-error">
-      خطا: {message}
+      {t("خطا")}: {t(message)}
     </p>
   );
 }
@@ -45,6 +47,7 @@ function RadioGroup<TValue extends string>({
   disabled: boolean;
   onSelect: (next: TValue) => void;
 }) {
+  const t = useT();
   const errId = buildingStoneErrorId(fieldKey);
   return (
     <fieldset className="border border-border-subtle p-4">
@@ -70,7 +73,7 @@ function RadioGroup<TValue extends string>({
                 aria-errormessage={error ? errId : undefined}
                 onChange={() => onSelect(option.value)}
               />
-              <span className="text-sm text-text-primary">{option.label}</span>
+              <span className="text-sm text-text-primary">{t(option.label)}</span>
             </label>
           );
         })}

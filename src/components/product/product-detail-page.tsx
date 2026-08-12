@@ -13,6 +13,7 @@ import { resolveSelectionPrice } from "@/lib/product-detail";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
 import { buildGraveStoneRequestDraft } from "@/lib/request-draft";
 import type { RequestTermsDocument } from "@/lib/request-form";
+import { useT } from "@/lib/i18n/react";
 
 export const REVIEW_BUTTON_LABEL = "بازبینی انتخاب";
 export const DRAFT_BLOCKED_TEXT = "امکان آماده‌سازی خلاصه سفارش در حال حاضر وجود ندارد.";
@@ -31,6 +32,7 @@ export function ProductDetailPage({
   site?: Site | null;
   termsDocument: RequestTermsDocument | null;
 }) {
+  const t = useT();
   const [variantId, setVariantId] = useState(model.variants[0]!.id);
   const [optionIds, setOptionIds] = useState<readonly string[]>([]);
   const [draft, setDraft] = useState<GraveStoneRequestDraft | null>(null);
@@ -73,9 +75,8 @@ export function ProductDetailPage({
     <section className="mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12">
       <div className="col-span-4 md:col-span-8 lg:col-span-12">
         <h1 className="text-2xl font-bold text-text-primary">{model.title}</h1>
-        <p className="pt-2 text-sm text-text-secondary">{model.typeLabel}</p>
-        <p className="pt-1 text-sm text-text-caption">
-          کد محصول: <bdi dir="ltr">{model.code}</bdi>
+        <p className="pt-2 text-sm text-text-secondary">{t(model.typeLabel)}</p>
+        <p className="pt-1 text-sm text-text-caption">{t("کد محصول:")}<bdi dir="ltr">{model.code}</bdi>
         </p>
       </div>
 
@@ -101,9 +102,9 @@ export function ProductDetailPage({
 
         <div className="flex flex-col gap-3">
           <button type="button" className={ACTION} disabled={!canReview} onClick={reviewSelection}>
-            {REVIEW_BUTTON_LABEL}
+            {t(REVIEW_BUTTON_LABEL)}
           </button>
-          {!canReview ? <p className="text-sm text-text-secondary">{DRAFT_BLOCKED_TEXT}</p> : null}
+          {!canReview ? <p className="text-sm text-text-secondary">{t(DRAFT_BLOCKED_TEXT)}</p> : null}
         </div>
 
         <ProductShare slug={model.slug} title={model.title} code={model.code} />

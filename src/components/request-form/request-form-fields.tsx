@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Link } from "@tanstack/react-router";
+import { LocaleLink } from "@/lib/i18n/react";
 
 import type {
   PreferredContact,
@@ -14,6 +14,7 @@ import {
   PREFERRED_CONTACT_OPTIONS,
   REQUEST_FIELD_LABELS,
 } from "@/lib/request-form";
+import { useT } from "@/lib/i18n/react";
 
 export const FIELD_ID_PREFIX = "request";
 
@@ -35,10 +36,11 @@ const CHOICE =
   "mt-1 h-5 w-5 shrink-0 accent-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
 function FieldError({ id, message }: { id: string; message: string | undefined }) {
+  const t = useT();
   if (message === undefined) return null;
   return (
     <p id={id} role="alert" className="text-sm text-status-error">
-      خطا: {message}
+      {t("خطا")}: {t(message)}
     </p>
   );
 }
@@ -97,6 +99,7 @@ export function RequestFormFields({
   disabled: boolean;
   onChange: (next: Partial<RequestFormValues>) => void;
 }): ReactNode {
+  const t = useT();
   const graveStone = source.kind === "grave_stone";
 
   return (
@@ -192,7 +195,7 @@ export function RequestFormFields({
                   onChange({ preferredContact: option.value satisfies PreferredContact })
                 }
               />
-              <span className="text-sm text-text-primary">{option.label}</span>
+              <span className="text-sm text-text-primary">{t(option.label)}</span>
             </label>
           ))}
         </div>
@@ -229,12 +232,12 @@ export function RequestFormFields({
             onChange={(event) => onChange({ termsAccepted: event.currentTarget.checked })}
           />
           <span className="text-sm text-text-primary">
-            <Link
+            <LocaleLink
               to="/terms"
               className="underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
-              {TERMS_LINK_TEXT}
-            </Link>
+              {t(TERMS_LINK_TEXT)}
+            </LocaleLink>
             {TERMS_LABEL_TAIL}
           </span>
         </label>

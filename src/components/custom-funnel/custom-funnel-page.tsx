@@ -7,6 +7,7 @@ import type { Product, Site } from "@/lib/content/types";
 import { CUSTOM_FUNNEL_OPTION_ROLES, buildCustomFunnelModel } from "@/lib/custom-funnel";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
 import type { RequestTermsDocument } from "@/lib/request-form";
+import { useT } from "@/lib/i18n/react";
 
 export const CUSTOM_FUNNEL_HEADING = "ساخت مرحله‌ای سنگ مزار";
 export const CUSTOM_FUNNEL_INTRO =
@@ -27,6 +28,7 @@ export function CustomFunnelPage({
   site?: Site | null;
   termsDocument: RequestTermsDocument | null;
 }) {
+  const t = useT();
   // Draft stays in React memory only: no storage, no URL, no network.
   const [draft, setDraft] = useState<GraveStoneRequestDraft | null>(null);
   const [reloaded, setReloaded] = useState(false);
@@ -45,8 +47,8 @@ export function CustomFunnelPage({
   return (
     <section className="mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12">
       <div className="col-span-4 md:col-span-8 lg:col-span-12">
-        <h1 className="text-2xl font-bold text-text-primary">{CUSTOM_FUNNEL_HEADING}</h1>
-        <p className="pt-2 text-sm text-text-secondary">{CUSTOM_FUNNEL_INTRO}</p>
+        <h1 className="text-2xl font-bold text-text-primary">{t(CUSTOM_FUNNEL_HEADING)}</h1>
+        <p className="pt-2 text-sm text-text-secondary">{t(CUSTOM_FUNNEL_INTRO)}</p>
         <p aria-live="polite" className="pt-2 text-sm text-text-caption">
           {reloaded ? CUSTOM_FUNNEL_RELOAD_TEXT : null}
         </p>

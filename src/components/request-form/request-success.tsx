@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Link } from "@tanstack/react-router";
+import { LocaleLink, useT } from "@/lib/i18n/react";
 
 import type { Site } from "@/lib/content/types";
 
@@ -46,6 +46,7 @@ export function RequestSuccess({
   trackingCode: string;
   site: Site | null;
 }): ReactNode {
+  const t = useT();
   const whatsapp = site?.whatsappUrl ? whatsappSuccessUrl(site.whatsappUrl, trackingCode) : null;
   const phone = site?.phone ?? null;
 
@@ -55,12 +56,8 @@ export function RequestSuccess({
       aria-live="polite"
       className="flex flex-col gap-4 border border-border-subtle bg-surface p-4"
     >
-      <h2 className="text-base font-bold text-text-primary">ثبت درخواست انجام شد</h2>
-      <p className="text-sm text-text-primary">
-        درخواست شما با کد <bdi dir="ltr">{trackingCode}</bdi> ثبت شد. برای تسریع هماهنگی، همین کد را
-        در واتساپ ارسال کنید. موجودی، محل اجرا و جزئیات سفارش بررسی می‌شود و پیش از هر اقدامی برای
-        تأیید نهایی با شما تماس می‌گیریم. هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.
-      </p>
+      <h2 className="text-base font-bold text-text-primary">{t("ثبت درخواست انجام شد")}</h2>
+      <p className="text-sm text-text-primary">{t("درخواست شما با کد")}<bdi dir="ltr">{trackingCode}</bdi>{t("ثبت شد. برای تسریع هماهنگی، همین کد را در واتساپ ارسال کنید. موجودی، محل اجرا و جزئیات سفارش بررسی می‌شود و پیش از هر اقدامی برای تأیید نهایی با شما تماس می‌گیریم. هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.")}</p>
 
       <div className="flex flex-wrap gap-3">
         {whatsapp ? (
@@ -73,12 +70,12 @@ export function RequestSuccess({
             {SUCCESS_ACTIONS.phone}
           </a>
         ) : null}
-        <Link className={LINK} to="/portfolio">
+        <LocaleLink className={LINK} to="/portfolio">
           {SUCCESS_ACTIONS.portfolio}
-        </Link>
-        <Link className={LINK} to="/">
+        </LocaleLink>
+        <LocaleLink className={LINK} to="/">
           {SUCCESS_ACTIONS.home}
-        </Link>
+        </LocaleLink>
       </div>
     </section>
   );
