@@ -36,6 +36,7 @@ const CHOICE =
   "mt-1 h-5 w-5 shrink-0 accent-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
 function FieldError({ id, message }: { id: string; message: string | undefined }) {
+  const t = useT();
   if (message === undefined) return null;
   return (
     <p id={id} role="alert" className="text-sm text-status-error">
@@ -45,7 +46,6 @@ function FieldError({ id, message }: { id: string; message: string | undefined }
 }
 
 function TextField({
-  const t = useT();
   fieldKey,
   value,
   error,

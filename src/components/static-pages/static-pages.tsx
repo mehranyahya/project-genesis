@@ -48,6 +48,7 @@ export function StaticPageView({
 
 /** Contact details, strictly from the Site adapter. Empty input renders nothing. */
 export function ContactDetailsList({ entries }: { entries: ContactEntry[] }) {
+  const t = useT();
   if (entries.length === 0) return null;
 
   return (
