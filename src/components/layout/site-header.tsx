@@ -1,5 +1,5 @@
 import { LanguageSwitcher } from "./language-switcher";
-import { LocaleLink, useT } from "@/lib/i18n/react";
+import { LocaleLink, useLocale, useT } from "@/lib/i18n/react";
 
 import { MobileNavigation } from "./mobile-navigation";
 import { PRIMARY_CTA, PRIMARY_NAV } from "@/lib/navigation";
@@ -11,7 +11,11 @@ export const NEUTRAL_HOME_LABEL = "صفحهٔ اصلی";
 /** The single floating header surface allowed to use Mineral Glass. */
 export function SiteHeader({ site }: { site: Site | null }) {
   const t = useT();
-  const brand = site?.displayName?.trim() ? site.displayName.trim() : null;
+  const locale = useLocale();
+  const latin = site?.latinName?.trim() ?? "";
+  const display = site?.displayName?.trim() ?? "";
+  // English never falls back to a Persian display name.
+  const brand = locale === "en" ? (latin === "" ? null : latin) : display === "" ? null : display;
 
   return (
     <header className="sticky top-0 z-20 px-3 pt-3">
