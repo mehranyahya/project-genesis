@@ -76,7 +76,7 @@ test("lang and dir follow the locale", () => {
 /* --------------------------------------------------------- content gate */
 
 test("absent-locale content is Persian and never surfaces on English routes", () => {
-  const persian = { slug: "a", title: "راهنما" };
+  const persian = { slug: "a", title: "راهنما", locale: null };
   const english = { slug: "a", locale: "en", title: "Guide" };
 
   assert.equal(contentForLocale(persian, "fa"), persian);
@@ -145,21 +145,21 @@ test("option rows and submitted prices are localized", () => {
 });
 
 test("share text and success copy carry no Persian in English", () => {
-  const share = productShareText({ title: "Granite model", code: "GS-001" }, (value, params) =>
+  const share = productShareText("Granite model", "GS-001", (value, params) =>
     translate("en", value, params),
   );
   assert.ok(!ARABIC.test(share));
   assert.ok(share.includes("GS-001"));
 
-  const parts = successTextParts((value, params) => translate("en", value, params), "REQ-1001");
-  const joined = `${parts.lead}${parts.code}${parts.tail}`;
+  const parts = successTextParts((value, params) => translate("en", value, params));
+  const joined = `${parts.before}REQ-1001${parts.after}`;
   assert.ok(!ARABIC.test(joined));
   assert.ok(joined.includes("REQ-1001"));
   // Natural spacing around the tracking code in both languages.
   assert.ok(!joined.includes("  "));
-  const fa = successTextParts((value, params) => translate("fa", value, params), "REQ-1001");
-  assert.ok(ARABIC.test(`${fa.lead}${fa.tail}`));
-  assert.ok(!`${fa.lead}${fa.code}${fa.tail}`.includes("  "));
+  const fa = successTextParts((value, params) => translate("fa", value, params));
+  assert.ok(ARABIC.test(`${fa.before}${fa.after}`));
+  assert.ok(!`${fa.before}REQ-1001${fa.after}`.includes("  "));
 });
 
 /* ----------------------------------------------------- English routes */
