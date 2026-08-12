@@ -12,9 +12,11 @@ import { translate } from "@/lib/i18n/messages";
  * leaf match instead, which is the same value `Route.useLoaderData()` returns.
  */
 export function useRouteData<T>(): T {
-  return useRouterState({
-    select: (state) => state.matches[state.matches.length - 1]?.loaderData as T,
+  const data = useRouterState({
+    select: (state) => state.matches[state.matches.length - 1]?.loaderData as unknown,
+    structuralSharing: false,
   });
+  return data as T;
 }
 
 export interface HeadLink {
