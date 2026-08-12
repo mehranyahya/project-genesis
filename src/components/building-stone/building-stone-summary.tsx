@@ -10,6 +10,7 @@ import { useT } from "@/lib/i18n/react";
  * personal data and any price are never rendered here.
  */
 export function BuildingStoneSummary({ values }: { values: BuildingStoneValues }): ReactNode {
+  const t = useT();
   const rows = buildBuildingStoneSummary(values);
   if (rows.length === 0) return null;
 
