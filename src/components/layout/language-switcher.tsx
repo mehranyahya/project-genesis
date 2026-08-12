@@ -3,10 +3,10 @@ import { useRouterState } from "@tanstack/react-router";
 import { useLocale, useT } from "@/lib/i18n/react";
 import { LOCALES, alternatePathname, safeSwitchSearch, type Locale } from "@/lib/i18n/locale";
 
-const LABEL_KEY = {
-  fa: "layout.languageFa",
-  en: "layout.languageEn",
-} as const;
+const LOCALE_LABEL: Record<Locale, string> = {
+  fa: "فارسی",
+  en: "English",
+};
 
 function withSafeSearch(path: string, search: Record<string, unknown> | undefined): string {
   const safe = safeSwitchSearch(search);
@@ -28,7 +28,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   const location = useRouterState({ select: (state) => state.location });
 
   return (
-    <nav aria-label={t("layout.languageSwitcher")} className={className}>
+    <nav aria-label={t("انتخاب زبان")} className={className}>
       <ul className="flex items-center gap-x-1">
         {LOCALES.map((locale: Locale) => {
           const href = withSafeSearch(
@@ -47,7 +47,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                   isActive ? "font-bold text-action-primary" : "text-text-secondary"
                 }`}
               >
-                {t(LABEL_KEY[locale])}
+                {LOCALE_LABEL[locale]}
               </a>
             </li>
           );
