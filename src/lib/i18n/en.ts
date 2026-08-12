@@ -292,7 +292,6 @@ export const EN_MESSAGES = {
   "اعلام ابعاد و شرایط محل": "Share the dimensions and site conditions",
   "بررسی فنی": "Technical review",
   "تأیید نهایی": "Final confirmation",
-  "وضعیت قیمت": "Price state",
   "درخواست ساخت": "Request a commission",
   "درخواست ساخت: {category}": "Request a commission: {category}",
 
