@@ -18,14 +18,9 @@ import {
   reduceCustomFunnel,
 } from "@/lib/custom-funnel";
 import type { ProductDetailOption } from "@/lib/product-detail";
-import {
-  PRICE_TYPE_LABELS,
-  formatAmount,
-  formatPriceDate,
-  hasValidNumericPrice,
-} from "@/lib/product-detail";
+import { formatOptionPriceLabel, formatPriceDate } from "@/lib/product-detail";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
-import { useT } from "@/lib/i18n/react";
+import { useLocale, useT } from "@/lib/i18n/react";
 
 export const CASCADE_RESET_TEXT = "انتخاب‌های مراحل بعدی به‌دلیل تغییر این مرحله پاک شد.";
 export const NO_STAGE_OPTIONS_TEXT = "گزینه‌ای برای این مرحله ثبت نشده است.";
@@ -43,14 +38,6 @@ const ACTION =
 const SECONDARY =
   "inline-flex min-h-11 items-center justify-center border border-border-strong bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] enabled:hover:border-action-primary disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
-function optionPriceText(option: ProductDetailOption): string {
-  if (!hasValidNumericPrice(option)) return PRICE_TYPE_LABELS.review;
-  const amount = `${formatAmount(option.amountToman as number)} تومان`;
-  return option.priceType === "estimate"
-    ? `${PRICE_TYPE_LABELS.estimate}: ${amount}`
-    : `${PRICE_TYPE_LABELS.fixed}: ${amount}`;
-}
-
 function OptionStage({
   legend,
   name,
@@ -65,16 +52,17 @@ function OptionStage({
   onToggle: (optionId: string) => void;
 }) {
   const t = useT();
+  const locale = useLocale();
   if (options.length === 0) {
     return <p className="text-sm text-text-primary">{t(NO_STAGE_OPTIONS_TEXT)}</p>;
   }
 
   return (
     <fieldset className="border border-border-subtle p-4">
-      <legend className="px-2 text-sm font-bold text-text-primary">{legend}</legend>
+      <legend className="px-2 text-sm font-bold text-text-primary">{t(legend)}</legend>
       <div className="flex flex-col gap-3 pt-2">
         {options.map((option) => {
-          const date = formatPriceDate(option.priceUpdatedAt);
+          const date = formatPriceDate(option.priceUpdatedAt, locale);
           return (
             <label key={option.id} className={ROW} htmlFor={`${name}-${option.id}`}>
               <input
@@ -86,8 +74,8 @@ function OptionStage({
                 onChange={() => onToggle(option.id)}
               />
               <span className="flex flex-col gap-1">
-                <span className="text-sm text-text-primary">{option.title}</span>
-                <span className="text-sm text-text-secondary">{optionPriceText(option)}</span>
+                <span className="text-sm text-text-primary">{t(option.title)}</span>
+                <span className="text-sm text-text-secondary">{formatOptionPriceLabel(option, locale)}</span>
                 {date ? <span className="text-sm text-text-caption">{date}</span> : null}
               </span>
             </label>
