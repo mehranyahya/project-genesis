@@ -114,7 +114,7 @@ type _PortfolioRequired = Expect<
   Equals<RequiredKeys<PortfolioItem>, "publicReferenceId" | "media">
 >;
 type _PortfolioOptional = Expect<
-  Equals<OptionalKeys<PortfolioItem>, "stoneCode" | "sizeCode" | "summary">
+  Equals<OptionalKeys<PortfolioItem>, "locale" | "stoneCode" | "sizeCode" | "summary">
 >;
 type _PortfolioSizeCode = Expect<
   Equals<PortfolioItem["sizeCode"], GraveStoneSizeCode | null | undefined>
