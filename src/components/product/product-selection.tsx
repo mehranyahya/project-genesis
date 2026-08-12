@@ -1,5 +1,5 @@
 import { formatOptionPriceLabel, formatPriceDate } from "@/lib/product-detail";
-import type { ProductDetailOption, ProductDetailVariant } from "@/lib/product-detail";
+import type { ProductDetailVariant } from "@/lib/product-detail";
 import { useLocale, useT } from "@/lib/i18n/react";
 
 export const VARIANT_LEGEND = "انتخاب سنگ و اندازه";
