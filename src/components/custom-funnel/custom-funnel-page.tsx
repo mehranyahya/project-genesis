@@ -23,12 +23,12 @@ export function CustomFunnelPage({
   site,
   termsDocument,
 }: {
-  const t = useT();
   products: readonly Product[];
   catalogVersion: string | null;
   site?: Site | null;
   termsDocument: RequestTermsDocument | null;
 }) {
+  const t = useT();
   // Draft stays in React memory only: no storage, no URL, no network.
   const [draft, setDraft] = useState<GraveStoneRequestDraft | null>(null);
   const [reloaded, setReloaded] = useState(false);

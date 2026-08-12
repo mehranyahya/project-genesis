@@ -23,10 +23,10 @@ export function BuildingStonePage({
   site,
   termsDocument,
 }: {
-  const t = useT();
   site: Site | null;
   termsDocument: RequestTermsDocument | null;
 }) {
+  const t = useT();
   const [selection, setSelection] = useState<BuildingStoneValues>(
     buildingStoneExtension.initialValues ?? EMPTY_BUILDING_STONE_VALUES,
   );

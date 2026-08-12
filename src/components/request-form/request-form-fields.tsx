@@ -92,13 +92,13 @@ export function RequestFormFields({
   disabled,
   onChange,
 }: {
-  const t = useT();
   values: RequestFormValues;
   errors: RequestFieldErrors;
   source: RequestSource;
   disabled: boolean;
   onChange: (next: Partial<RequestFormValues>) => void;
 }): ReactNode {
+  const t = useT();
   const graveStone = source.kind === "grave_stone";
 
   return (

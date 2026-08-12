@@ -19,11 +19,11 @@ export function QuotePage({
   site,
   termsDocument,
 }: {
-  const t = useT();
   portfolioReferenceId: string | null;
   site: Site | null;
   termsDocument: RequestTermsDocument | null;
 }) {
+  const t = useT();
   const navigate = useNavigate({ from: "/quote" });
 
   const clearReference = () => {

@@ -16,10 +16,10 @@ export function ProductPricePanel({
   variant,
   price,
 }: {
-  const t = useT();
   variant: ProductDetailVariant;
   price: SelectionPrice;
 }) {
+  const t = useT();
   const date = price.priceType === "review" ? null : formatPriceDate(variant.priceUpdatedAt);
 
   return (
