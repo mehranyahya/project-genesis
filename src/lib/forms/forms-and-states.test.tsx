@@ -99,10 +99,16 @@ test("7 the terms label is the official sentence, present once, with a real /ter
   const fields = read(FIELDS);
   assert.ok(fields.includes('to="/terms"'));
   assert.ok(fields.includes('TERMS_LINK_TEXT = "شرایط ثبت"'));
-  assert.ok(fields.includes("REQUEST_FIELD_LABELS.termsAccepted.slice(TERMS_LINK_TEXT.length)"));
-  // The sentence is never written twice into the accessible label.
-  assert.equal(fields.split("{TERMS_LABEL_TAIL}").length - 1, 1);
-  assert.equal(fields.split("{TERMS_LINK_TEXT}").length - 1, 1);
+  assert.ok(fields.includes("REQUEST_FIELD_LABELS.termsAccepted"));
+  // The sentence is written once and split around its link text per locale.
+  assert.equal(fields.split("termsLabelParts(t).link").length - 1, 1);
+  assert.equal(fields.split("termsLabelParts(t).tail").length - 1, 1);
+  assert.equal(fields.split("termsLabelParts(t).lead").length - 1, 1);
+  const fa = termsLabelParts((value) => value);
+  assert.equal(`${fa.lead}${fa.link}${fa.tail}`, "شرایط ثبت را خوانده‌ام و می‌پذیرم.");
+  const en = termsLabelParts((value) => translate("en", value));
+  assert.equal(`${en.lead}${en.link}${en.tail}`, "I have read and accept the submission terms.");
+  assert.equal(en.link, "submission terms");
 });
 
 test("8 every field is linked to its label and its error message", () => {
@@ -198,7 +204,7 @@ test("17 personal data never reaches the URL, storage or a log", () => {
 });
 
 test("18 the quote route accepts only an exact portfolio reference", () => {
-  const route = read(QUOTE_ROUTE);
+  const route = routeUnit(QUOTE_ROUTE, "quoteRouteOptions");
   assert.ok(route.includes("findPortfolioReference"));
   assert.ok(route.includes("getPortfolioItems"));
   assert.ok(route.includes("getSite()"));

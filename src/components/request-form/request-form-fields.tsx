@@ -25,6 +25,26 @@ export const FIELD_ID_PREFIX = "request";
 export const TERMS_LINK_TEXT = "شرایط ثبت";
 export const TERMS_LABEL_TAIL = REQUEST_FIELD_LABELS.termsAccepted.slice(TERMS_LINK_TEXT.length);
 
+/**
+ * Splits the official acceptance sentence around its link text in the active
+ * language, so the sentence is written once and never duplicated.
+ */
+export function termsLabelParts(translate: (value: string) => string): {
+  lead: string;
+  link: string;
+  tail: string;
+} {
+  const sentence = translate(REQUEST_FIELD_LABELS.termsAccepted);
+  const link = translate(TERMS_LINK_TEXT);
+  const index = sentence.toLowerCase().indexOf(link.toLowerCase());
+  if (index === -1) return { lead: "", link, tail: ` ${sentence}` };
+  return {
+    lead: sentence.slice(0, index),
+    link: sentence.slice(index, index + link.length),
+    tail: sentence.slice(index + link.length),
+  };
+}
+
 export const fieldId = (key: RequestFieldKey) => `${FIELD_ID_PREFIX}-${key}`;
 export const errorId = (key: RequestFieldKey) => `${FIELD_ID_PREFIX}-${key}-error`;
 
@@ -232,13 +252,14 @@ export function RequestFormFields({
             onChange={(event) => onChange({ termsAccepted: event.currentTarget.checked })}
           />
           <span className="text-sm text-text-primary">
+            {termsLabelParts(t).lead}
             <LocaleLink
               to="/terms"
               className="underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
-              {t(TERMS_LINK_TEXT)}
+              {termsLabelParts(t).link}
             </LocaleLink>
-            {TERMS_LABEL_TAIL}
+            {termsLabelParts(t).tail}
           </span>
         </label>
         <FieldError id={errorId("termsAccepted")} message={errors.termsAccepted} />
