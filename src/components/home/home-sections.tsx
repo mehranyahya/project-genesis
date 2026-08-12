@@ -29,7 +29,7 @@ export function HomeChoicePaths() {
       <h2 id="home-paths" className={`${FULL_SPAN} ${HEADING}`}>{t("مسیر انتخاب")}</h2>
       <div className="col-span-4 grid grid-cols-4 gap-4 md:col-span-8 md:grid-cols-8 lg:col-span-12 lg:grid-cols-12">
         {CHOICE_PATHS.map((item) => (
-          <HomeLinkCard key={item.to} label={item.label} to={item.to} />
+          <HomeLinkCard key={item.to} label={t(item.label)} to={item.to} />
         ))}
       </div>
     </section>
@@ -50,7 +50,7 @@ export function HomeProcess() {
             <span aria-hidden="true" className="text-base font-bold text-decorative-accent">
               {index + 1}
             </span>
-            <span className="text-sm text-text-primary">{label}</span>
+            <span className="text-sm text-text-primary">{t(label)}</span>
           </li>
         ))}
       </ol>
