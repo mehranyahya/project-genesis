@@ -98,11 +98,11 @@ test("the shared head helper owns every canonical and hreflang link", () => {
 });
 
 test("dynamic product canonical is derived from loaded validated product data", () => {
-  assert.match(factorySource, /localizedLinks\(`\/grave-stones\/\$\{data\.model\.slug\}`, locale\)/);
-  assert.equal(
-    /canonicalHref\(`\/grave-stones\/\$\{params\.slug\}`\)/.test(factorySource),
-    false,
+  assert.match(
+    factorySource,
+    /localizedLinks\(`\/grave-stones\/\$\{data\.model\.slug\}`, locale\)/,
   );
+  assert.equal(/canonicalHref\(`\/grave-stones\/\$\{params\.slug\}`\)/.test(factorySource), false);
   assert.match(factorySource, /localizedLinks\(guide\.path, locale\)/);
   assert.match(factorySource, /localizedLinks\(page\.canonicalPath \?\? basePath, locale\)/);
 });

@@ -38,10 +38,7 @@ export function factorySection(exportName: string): string {
 }
 
 /** The shared import header of the factory module. */
-export const FACTORY_IMPORTS = FACTORY_SOURCE.slice(
-  0,
-  FACTORY_SOURCE.indexOf("export function"),
-);
+export const FACTORY_IMPORTS = FACTORY_SOURCE.slice(0, FACTORY_SOURCE.indexOf("export function"));
 
 /** Wrapper sources plus the factory import header and the owning section. */
 export function routeUnit(rel: string, exportName: string): string {

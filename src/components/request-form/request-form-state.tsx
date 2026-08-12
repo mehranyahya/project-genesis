@@ -78,7 +78,9 @@ export function RequestFormState({
   if (outcome.kind === "validation_error") {
     return (
       <section role="alert" className={PANEL}>
-        <p className="text-sm text-text-primary">{t("خطا")}: {t(SUBMIT_MESSAGES.validation_error)}</p>
+        <p className="text-sm text-text-primary">
+          {t("خطا")}: {t(SUBMIT_MESSAGES.validation_error)}
+        </p>
       </section>
     );
   }
@@ -86,7 +88,9 @@ export function RequestFormState({
   if (outcome.kind === "bot_verification_invalid") {
     return (
       <section role="alert" className={PANEL}>
-        <p className="text-sm text-text-primary">{t("خطا")}: {t(SUBMIT_MESSAGES.bot_verification_invalid)}</p>
+        <p className="text-sm text-text-primary">
+          {t("خطا")}: {t(SUBMIT_MESSAGES.bot_verification_invalid)}
+        </p>
         <button type="button" className={ACTION} onClick={onRetry}>
           {t(SUBMIT_MESSAGES.retry_action)}
         </button>
@@ -97,14 +101,18 @@ export function RequestFormState({
   if (outcome.kind === "rate_limited") {
     return (
       <section role="alert" className={PANEL}>
-        <p className="text-sm text-text-primary">{t("خطا")}: {t(SUBMIT_MESSAGES.rate_limited)}</p>
+        <p className="text-sm text-text-primary">
+          {t("خطا")}: {t(SUBMIT_MESSAGES.rate_limited)}
+        </p>
       </section>
     );
   }
 
   return (
     <section role="alert" className={PANEL}>
-      <p className="text-sm text-text-primary">{t("خطا")}: {t(SUBMIT_MESSAGES.temporarily_unavailable)}</p>
+      <p className="text-sm text-text-primary">
+        {t("خطا")}: {t(SUBMIT_MESSAGES.temporarily_unavailable)}
+      </p>
       <button type="button" className={ACTION} onClick={onRetry}>
         {t(SUBMIT_MESSAGES.retry_action)}
       </button>

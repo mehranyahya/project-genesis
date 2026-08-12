@@ -48,7 +48,9 @@ export function GraveStoneFilter({
       <legend className="px-1 text-sm font-bold text-text-primary">{t("فیلتر محصولات")}</legend>
 
       <div className="col-span-4 md:col-span-4 lg:col-span-4">
-        <label className={LABEL} htmlFor="grave-stone-filter-type">{t("نوع اجرا")}</label>
+        <label className={LABEL} htmlFor="grave-stone-filter-type">
+          {t("نوع اجرا")}
+        </label>
         <select
           id="grave-stone-filter-type"
           className={CONTROL}
@@ -67,7 +69,9 @@ export function GraveStoneFilter({
       </div>
 
       <div className="col-span-4 md:col-span-4 lg:col-span-4">
-        <label className={LABEL} htmlFor="grave-stone-filter-stone">{t("سنگ")}</label>
+        <label className={LABEL} htmlFor="grave-stone-filter-stone">
+          {t("سنگ")}
+        </label>
         <select
           id="grave-stone-filter-stone"
           className={CONTROL}
@@ -85,7 +89,9 @@ export function GraveStoneFilter({
       </div>
 
       <div className="col-span-4 md:col-span-4 lg:col-span-4">
-        <label className={LABEL} htmlFor="grave-stone-filter-size">{t("اندازه")}</label>
+        <label className={LABEL} htmlFor="grave-stone-filter-size">
+          {t("اندازه")}
+        </label>
         <select
           id="grave-stone-filter-size"
           className={CONTROL}

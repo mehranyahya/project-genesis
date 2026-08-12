@@ -15,7 +15,12 @@ import {
 } from "./locale";
 import { translate } from "./messages";
 import { contentForLocale, contentListForLocale, siteForLocale } from "./content-gate";
-import { formatMoney, formatOptionPriceLabel, formatPriceLabel, priceTypeLabel } from "../product-detail";
+import {
+  formatMoney,
+  formatOptionPriceLabel,
+  formatPriceLabel,
+  priceTypeLabel,
+} from "../product-detail";
 import { formatSubmitPrice } from "../../components/request-form/request-form-state";
 import { productShareText } from "../../components/product/product-share";
 import { successTextParts } from "../../components/request-form/request-success";
@@ -34,7 +39,10 @@ test("translator falls back to the Persian source string for unknown keys", () =
 test("translator interpolates named placeholders in both locales", () => {
   assert.equal(translate("fa", "{amount} تومان", { amount: "۱۰۰" }), "۱۰۰ تومان");
   assert.equal(translate("en", "{amount} تومان", { amount: "100" }), "100 toman");
-  assert.equal(translate("en", "کد پیگیری: {code}", { code: "REQ-1001" }), "Tracking code: REQ-1001");
+  assert.equal(
+    translate("en", "کد پیگیری: {code}", { code: "REQ-1001" }),
+    "Tracking code: REQ-1001",
+  );
 });
 
 /* ------------------------------------------------------ locale routing */
@@ -121,8 +129,14 @@ test("prices, price states and dates render in the active language", () => {
   assert.ok(!ARABIC.test(formatMoney(1500000, "en")));
   assert.equal(priceTypeLabel("review", "en"), "Requires review");
   assert.equal(priceTypeLabel("estimate", "en"), "Estimate");
-  assert.equal(formatPriceLabel({ priceType: "estimate", amountToman: 1000 }, "en"), "Estimate: 1,000 toman");
-  assert.equal(formatPriceLabel({ priceType: "review", amountToman: null }, "en"), "Requires review");
+  assert.equal(
+    formatPriceLabel({ priceType: "estimate", amountToman: 1000 }, "en"),
+    "Estimate: 1,000 toman",
+  );
+  assert.equal(
+    formatPriceLabel({ priceType: "review", amountToman: null }, "en"),
+    "Requires review",
+  );
   assert.ok(ARABIC.test(formatPriceLabel({ priceType: "review", amountToman: null }, "fa")));
 });
 
@@ -141,7 +155,10 @@ test("option rows and submitted prices are localized", () => {
     formatSubmitPrice({ priceType: "estimate", amountToman: 3000 }, "en"),
     "Estimate: 3,000 toman",
   );
-  assert.equal(formatSubmitPrice({ priceType: "review", amountToman: null }, "en"), "Requires review");
+  assert.equal(
+    formatSubmitPrice({ priceType: "review", amountToman: null }, "en"),
+    "Requires review",
+  );
 });
 
 test("share text and success copy carry no Persian in English", () => {

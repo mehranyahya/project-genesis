@@ -11,7 +11,12 @@ import {
   GraveStoneListError,
   GraveStoneListLoading,
 } from "@/components/grave-stones/grave-stone-list-states";
-import { GuideDetailPage, GuideError, GuidesListPage, GuidesLoading } from "@/components/guides/guides";
+import {
+  GuideDetailPage,
+  GuideError,
+  GuidesListPage,
+  GuidesLoading,
+} from "@/components/guides/guides";
 import { HomePage } from "@/components/home/home-page";
 import { PortfolioPage } from "@/components/portfolio/portfolio-page";
 import { PortfolioError, PortfolioLoading } from "@/components/portfolio/portfolio-states";
@@ -41,11 +46,7 @@ import { buildGuideDetailModel, buildGuideListModel } from "@/lib/guides";
 import type { GuideDetailModel, GuideListItem } from "@/lib/guides";
 import { buildHomeViewModel } from "@/lib/home";
 import type { Locale } from "@/lib/i18n/locale";
-import {
-  contentForLocale,
-  contentListForLocale,
-  siteForLocale,
-} from "@/lib/i18n/content-gate";
+import { contentForLocale, contentListForLocale, siteForLocale } from "@/lib/i18n/content-gate";
 import { buildPortfolioModel } from "@/lib/portfolio";
 import { findPortfolioReference, normalizePortfolioReference } from "@/lib/portfolio-reference";
 import { buildProductDetailModel } from "@/lib/product-detail";

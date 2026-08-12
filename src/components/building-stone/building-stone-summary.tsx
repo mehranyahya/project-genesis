@@ -16,18 +16,14 @@ export function BuildingStoneSummary({ values }: { values: BuildingStoneValues }
 
   return (
     <section className="border border-border-subtle bg-surface p-4">
-      <h2 className="text-base font-bold text-text-primary">
-        {t(BUILDING_STONE_SUMMARY_HEADING)}
-      </h2>
+      <h2 className="text-base font-bold text-text-primary">{t(BUILDING_STONE_SUMMARY_HEADING)}</h2>
       <dl className="flex flex-col gap-2 pt-3">
         {rows.map((row) => (
           <div key={row.key} className="flex flex-wrap items-baseline gap-2">
             <dt className="text-sm text-text-secondary">{t(row.label)}</dt>
             <dd className="text-sm font-bold text-text-primary">
               {row.latin ? <bdi dir="ltr">{row.value}</bdi> : t(row.value)}
-              {row.unit === null ? null : (
-                <span className="pr-1 font-normal">{t(row.unit)}</span>
-              )}
+              {row.unit === null ? null : <span className="pr-1 font-normal">{t(row.unit)}</span>}
             </dd>
           </div>
         ))}

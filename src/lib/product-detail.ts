@@ -169,10 +169,7 @@ export function formatOptionPriceLabel(
     : `${priceTypeLabel("fixed", locale)}: ${amount}`;
 }
 
-export function formatPriceLabel(
-  price: SelectionPrice,
-  locale: Locale = DEFAULT_LOCALE,
-): string {
+export function formatPriceLabel(price: SelectionPrice, locale: Locale = DEFAULT_LOCALE): string {
   if (price.priceType === "review" || !isValidAmount(price.amountToman)) {
     return priceTypeLabel("review", locale);
   }

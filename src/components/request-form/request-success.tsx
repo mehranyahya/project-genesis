@@ -69,9 +69,7 @@ export function RequestSuccess({
   site: Site | null;
 }): ReactNode {
   const t = useT();
-  const whatsapp = site?.whatsappUrl
-    ? whatsappSuccessUrl(site.whatsappUrl, trackingCode, t)
-    : null;
+  const whatsapp = site?.whatsappUrl ? whatsappSuccessUrl(site.whatsappUrl, trackingCode, t) : null;
   const phone = site?.phone ?? null;
   const { before, after } = successTextParts(t);
 

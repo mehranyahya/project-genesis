@@ -260,7 +260,10 @@ test("static routes delegate to the shared factory with their own slug", () => {
     assert.match(factory, new RegExp(`"${slug}", "[^"]+", StaticPageRoute`));
   }
   // The static-page factory reads exactly one page adapter and never the site.
-  assert.match(factory, /buildStaticPageModel\(contentForLocale\(await getPage\(slug\), locale\), slug\)/);
+  assert.match(
+    factory,
+    /buildStaticPageModel\(contentForLocale\(await getPage\(slug\), locale\), slug\)/,
+  );
   const staticSection = factory.slice(
     factory.indexOf("function staticPageOptions("),
     factory.indexOf("export function contactRouteOptions("),

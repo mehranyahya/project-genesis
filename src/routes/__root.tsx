@@ -26,12 +26,9 @@ const CSP_MISSING_NONCE_POLICY = "default-src 'none'; frame-ancestors 'none'";
 
 function NotFoundComponent() {
   const data = Route.useLoaderData() as
-    | { notFoundPage: Awaited<ReturnType<typeof getPage>> }
-    | undefined;
+    { notFoundPage: Awaited<ReturnType<typeof getPage>> } | undefined;
   const locale = useActiveLocale();
-  return (
-    <NotFoundView page={buildNotFoundModel(contentForLocale(data?.notFoundPage, locale))} />
-  );
+  return <NotFoundView page={buildNotFoundModel(contentForLocale(data?.notFoundPage, locale))} />;
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
@@ -137,12 +134,12 @@ function RootComponent() {
 
   return (
     <LocaleProvider locale={locale}>
-    <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <AppShell site={site}>
-        <Outlet />
-      </AppShell>
-    </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <AppShell site={site}>
+          <Outlet />
+        </AppShell>
+      </QueryClientProvider>
     </LocaleProvider>
   );
 }

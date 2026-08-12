@@ -70,7 +70,9 @@ export function ProductSelection({
                   />
                   <span className="flex flex-col gap-1">
                     <span className="text-sm text-text-primary">{t(option.title)}</span>
-                    <span className="text-sm text-text-secondary">{formatOptionPriceLabel(option, locale)}</span>
+                    <span className="text-sm text-text-secondary">
+                      {formatOptionPriceLabel(option, locale)}
+                    </span>
                     {date ? <span className="text-sm text-text-caption">{date}</span> : null}
                   </span>
                 </label>

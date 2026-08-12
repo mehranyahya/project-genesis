@@ -75,7 +75,9 @@ function OptionStage({
               />
               <span className="flex flex-col gap-1">
                 <span className="text-sm text-text-primary">{t(option.title)}</span>
-                <span className="text-sm text-text-secondary">{formatOptionPriceLabel(option, locale)}</span>
+                <span className="text-sm text-text-secondary">
+                  {formatOptionPriceLabel(option, locale)}
+                </span>
                 {date ? <span className="text-sm text-text-caption">{date}</span> : null}
               </span>
             </label>
@@ -161,7 +163,10 @@ export function CustomFunnelStepper({
 
   return (
     <>
-      <nav aria-label={t("مراحل ساخت")} className="col-span-4 md:col-span-8 lg:col-span-3 lg:self-start">
+      <nav
+        aria-label={t("مراحل ساخت")}
+        className="col-span-4 md:col-span-8 lg:col-span-3 lg:self-start"
+      >
         <ol className="flex flex-col gap-2 border border-border-subtle bg-surface p-4">
           {CUSTOM_FUNNEL_STEPS.map((label, index) => (
             <li
@@ -182,7 +187,9 @@ export function CustomFunnelStepper({
       </nav>
 
       <div className="col-span-4 flex flex-col gap-6 md:col-span-8 lg:col-span-9">
-        <h2 className="text-lg font-bold text-text-primary">{t(CUSTOM_FUNNEL_STEPS[step] ?? "")}</h2>
+        <h2 className="text-lg font-bold text-text-primary">
+          {t(CUSTOM_FUNNEL_STEPS[step] ?? "")}
+        </h2>
 
         <div role="status" aria-live="polite" className="text-sm text-text-secondary">
           {cascadeStep === step ? CASCADE_RESET_TEXT : null}
@@ -213,9 +220,13 @@ export function CustomFunnelStepper({
                   />
                   <span className="flex flex-col gap-1">
                     <span className="text-sm text-text-primary">{choice.productTitle}</span>
-                    <span className="text-sm text-text-secondary">{t("سنگ:")}<bdi dir="ltr">{choice.stoneCode}</bdi>
+                    <span className="text-sm text-text-secondary">
+                      {t("سنگ:")}
+                      <bdi dir="ltr">{choice.stoneCode}</bdi>
                     </span>
-                    <span className="text-sm text-text-caption">{t("کد محصول:")}<bdi dir="ltr">{choice.productCode}</bdi>
+                    <span className="text-sm text-text-caption">
+                      {t("کد محصول:")}
+                      <bdi dir="ltr">{choice.productCode}</bdi>
                     </span>
                   </span>
                 </label>
@@ -229,7 +240,9 @@ export function CustomFunnelStepper({
             <p className="text-sm text-text-primary">{t(NO_STAGE_OPTIONS_TEXT)}</p>
           ) : (
             <fieldset className="border border-border-subtle p-4">
-              <legend className="px-2 text-sm font-bold text-text-primary">{t("انتخاب اندازه")}</legend>
+              <legend className="px-2 text-sm font-bold text-text-primary">
+                {t("انتخاب اندازه")}
+              </legend>
               <div className="flex flex-col gap-3 pt-2">
                 {stone.sizes.map((choice) => (
                   <label

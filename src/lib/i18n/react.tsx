@@ -19,13 +19,7 @@ const LocaleContext = createContext<Locale>(DEFAULT_LOCALE);
  * The provider exists so that server rendering and unit rendering share the
  * same value without every component reaching into the router.
  */
-export function LocaleProvider({
-  locale,
-  children,
-}: {
-  locale: Locale;
-  children: ReactNode;
-}) {
+export function LocaleProvider({ locale, children }: { locale: Locale; children: ReactNode }) {
   return <LocaleContext.Provider value={locale}>{children}</LocaleContext.Provider>;
 }
 

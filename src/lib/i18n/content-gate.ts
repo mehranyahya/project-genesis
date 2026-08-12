@@ -42,7 +42,6 @@ export function contentListForLocale<T extends LocalizedContent>(
   return values.filter((value) => isContentForLocale(value, locale));
 }
 
-
 /**
  * Site record narrowed to one locale.
  *
