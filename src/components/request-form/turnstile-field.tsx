@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { useT } from "@/lib/i18n/react";
 
 const SCRIPT_ID = "app-turnstile-script";
 const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
@@ -219,15 +220,13 @@ export const TurnstileField = forwardRef<TurnstileFieldHandle>(function Turnstil
     <div className="flex min-h-11 flex-col gap-2" aria-live="polite">
       <div ref={containerRef} className="min-h-11 w-full" />
       {state === "loading" ? (
-        <p className="text-sm text-text-secondary">در حال آماده‌سازی تأیید امنیتی…</p>
+        <p className="text-sm text-text-secondary">{t("در حال آماده‌سازی تأیید امنیتی…")}</p>
       ) : null}
       {state === "verifying" ? (
-        <p className="text-sm text-text-secondary">در حال انجام تأیید امنیتی…</p>
+        <p className="text-sm text-text-secondary">{t("در حال انجام تأیید امنیتی…")}</p>
       ) : null}
       {state === "unavailable" ? (
-        <p role="alert" className="text-sm text-text-secondary">
-          تأیید امنیتی در دسترس نیست؛ ارسال درخواست همچنان ممکن است.
-        </p>
+        <p role="alert" className="text-sm text-text-secondary">{t("تأیید امنیتی در دسترس نیست؛ ارسال درخواست همچنان ممکن است.")}</p>
       ) : null}
     </div>
   );

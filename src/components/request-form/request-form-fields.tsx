@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Link } from "@tanstack/react-router";
+import { LocaleLink } from "@/lib/i18n/react";
 
 import type {
   PreferredContact,
@@ -229,12 +229,12 @@ export function RequestFormFields({
             onChange={(event) => onChange({ termsAccepted: event.currentTarget.checked })}
           />
           <span className="text-sm text-text-primary">
-            <Link
+            <LocaleLink
               to="/terms"
               className="underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               {TERMS_LINK_TEXT}
-            </Link>
+            </LocaleLink>
             {TERMS_LABEL_TAIL}
           </span>
         </label>

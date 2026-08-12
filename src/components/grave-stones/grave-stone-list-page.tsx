@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { LocaleLink, useT } from "@/lib/i18n/react";
 
 import { GraveStoneCard } from "./grave-stone-card";
 import { GraveStoneFilter } from "./grave-stone-filter";
@@ -24,6 +24,7 @@ const PATH_IDLE = "border-border-control bg-surface text-text-primary hover:bg-s
 const PATH_SELECTED = "border-action-primary bg-action-primary text-text-inverse";
 
 export function GraveStoneListPage({ model }: { model: GraveStoneListModel }) {
+  const t = useT();
   const [filters, setFilters] = useState<GraveStoneFilters>(NEUTRAL_GRAVE_STONE_FILTERS);
 
   const visible = useMemo(
@@ -36,10 +37,8 @@ export function GraveStoneListPage({ model }: { model: GraveStoneListModel }) {
   return (
     <section className={SECTION}>
       <div className={FULL}>
-        <h1 className="text-2xl font-bold text-text-primary">فروشگاه سنگ مزار</h1>
-        <p className="pt-3 text-sm text-text-secondary">
-          محصولات فعال را بر اساس نوع اجرا، کد سنگ و اندازه بررسی کنید.
-        </p>
+        <h1 className="text-2xl font-bold text-text-primary">{t("فروشگاه سنگ مزار")}</h1>
+        <p className="pt-3 text-sm text-text-secondary">{t("محصولات فعال را بر اساس نوع اجرا، کد سنگ و اندازه بررسی کنید.")}</p>
       </div>
 
       <div className={`${FULL} flex flex-wrap gap-3`}>
@@ -49,21 +48,15 @@ export function GraveStoneListPage({ model }: { model: GraveStoneListModel }) {
           aria-pressed={filters.type === "simple"}
           onClick={() => setFilters((prev) => ({ ...prev, type: "simple" }))}
           className={`${PATH_BUTTON} ${filters.type === "simple" ? PATH_SELECTED : PATH_IDLE}`}
-        >
-          سنگ مزار ساده
-        </button>
+        >{t("سنگ مزار ساده")}</button>
         <button
           type="button"
           aria-controls={RESULTS_ID}
           aria-pressed={filters.type === "cnc_box"}
           onClick={() => setFilters((prev) => ({ ...prev, type: "cnc_box" }))}
           className={`${PATH_BUTTON} ${filters.type === "cnc_box" ? PATH_SELECTED : PATH_IDLE}`}
-        >
-          اجرای CNC
-        </button>
-        <Link to="/grave-stones/custom" className={`${PATH_BUTTON} ${PATH_IDLE}`}>
-          سفارش سفارشی
-        </Link>
+        >{t("اجرای CNC")}</button>
+        <LocaleLink to="/grave-stones/custom" className={`${PATH_BUTTON} ${PATH_IDLE}`}>{t("سفارش سفارشی")}</LocaleLink>
       </div>
 
       {catalogEmpty ? (

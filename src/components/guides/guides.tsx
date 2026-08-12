@@ -1,4 +1,5 @@
-import { Link, useRouter } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
+import { LocaleLink } from "@/lib/i18n/react";
 
 import { PRIMARY_CTA } from "@/lib/navigation";
 import type { GuideBlock, GuideDetailModel, GuideInline, GuideListItem } from "@/lib/guides";
@@ -158,13 +159,13 @@ export function GuidesListPage({ items }: { items: GuideListItem[] }) {
             <li key={item.slug} className="border border-border-subtle bg-surface">
               <article className="flex flex-col gap-2 p-4">
                 <h2 className="text-base font-bold text-text-primary">
-                  <Link
+                  <LocaleLink
                     to="/guides/$slug"
                     params={{ slug: item.slug }}
                     className="inline-flex min-h-11 items-center text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                   >
                     {item.title}
-                  </Link>
+                  </LocaleLink>
                 </h2>
                 {item.summary === null ? null : (
                   <p className="text-sm leading-[1.9] text-text-secondary">{item.summary}</p>
@@ -203,12 +204,12 @@ export function GuideDetailPage({ guide }: { guide: GuideDetailModel }) {
         <GuideBody blocks={guide.blocks} />
 
         <div className="flex flex-col items-start gap-4 border-t border-border-subtle pt-6">
-          <Link to={PRIMARY_CTA.to} className={ACTION}>
+          <LocaleLink to={PRIMARY_CTA.to} className={ACTION}>
             {PRIMARY_CTA.label}
-          </Link>
-          <Link to="/guides" className={QUIET_LINK}>
+          </LocaleLink>
+          <LocaleLink to="/guides" className={QUIET_LINK}>
             {GUIDES_BACK_LABEL}
-          </Link>
+          </LocaleLink>
         </div>
       </article>
     </section>

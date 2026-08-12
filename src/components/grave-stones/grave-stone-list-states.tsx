@@ -1,4 +1,5 @@
-import { Link, useRouter } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
+import { LocaleLink, useT } from "@/lib/i18n/react";
 
 export const CATALOG_EMPTY_TEXT = "در حال حاضر محصول فعالی برای نمایش وجود ندارد.";
 export const FILTERED_EMPTY_TEXT = "با این فیلترها محصولی پیدا نشد.";
@@ -13,19 +14,19 @@ const ACTION =
   "inline-flex min-h-11 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] hover:border-surface-inverse hover:bg-surface-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 export function GraveStoneCatalogEmpty() {
+  const t = useT();
   return (
     <div
       className={`${FULL} flex flex-col items-start gap-4 border border-border-subtle bg-surface p-4`}
     >
       <p className="text-sm text-text-primary">{CATALOG_EMPTY_TEXT}</p>
-      <Link to="/grave-stones/custom" className={ACTION}>
-        ثبت سفارش سفارشی
-      </Link>
+      <LocaleLink to="/grave-stones/custom" className={ACTION}>{t("ثبت سفارش سفارشی")}</LocaleLink>
     </div>
   );
 }
 
 export function GraveStoneFilteredEmpty({ onReset }: { onReset: () => void }) {
+  const t = useT();
   return (
     <div
       className={`${FULL} flex flex-col items-start gap-4 border border-border-subtle bg-surface p-4`}
@@ -35,9 +36,7 @@ export function GraveStoneFilteredEmpty({ onReset }: { onReset: () => void }) {
         type="button"
         onClick={onReset}
         className="inline-flex min-h-11 items-center border border-border-control bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
-      >
-        پاک‌کردن فیلترها
-      </button>
+      >{t("پاک‌کردن فیلترها")}</button>
     </div>
   );
 }

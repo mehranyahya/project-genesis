@@ -5,6 +5,7 @@ import {
   hasValidNumericPrice,
 } from "@/lib/product-detail";
 import type { ProductDetailOption, ProductDetailVariant } from "@/lib/product-detail";
+import { useT } from "@/lib/i18n/react";
 
 export const VARIANT_LEGEND = "انتخاب سنگ و اندازه";
 export const OPTION_LEGEND = "گزینه‌های تکمیلی";
@@ -25,6 +26,7 @@ function optionPriceText(option: ProductDetailOption): string {
 }
 
 export function ProductSelection({
+  const t = useT();
   variants,
   selectedVariant,
   selectedOptionIds,
@@ -56,7 +58,7 @@ export function ProductSelection({
               <span className="text-sm text-text-primary">
                 <bdi dir="ltr">{variant.stoneCode}</bdi> — {variant.sizeLabel}
                 {variant.id === selectedVariant.id ? (
-                  <span className="ps-2 text-sm text-text-secondary">(انتخاب‌شده)</span>
+                  <span className="ps-2 text-sm text-text-secondary">{t("(انتخاب‌شده)")}</span>
                 ) : null}
               </span>
             </label>

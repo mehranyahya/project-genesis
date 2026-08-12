@@ -13,6 +13,7 @@ import { resolveSelectionPrice } from "@/lib/product-detail";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
 import { buildGraveStoneRequestDraft } from "@/lib/request-draft";
 import type { RequestTermsDocument } from "@/lib/request-form";
+import { useT } from "@/lib/i18n/react";
 
 export const REVIEW_BUTTON_LABEL = "بازبینی انتخاب";
 export const DRAFT_BLOCKED_TEXT = "امکان آماده‌سازی خلاصه سفارش در حال حاضر وجود ندارد.";
@@ -21,6 +22,7 @@ const ACTION =
   "inline-flex min-h-11 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] enabled:hover:border-surface-inverse enabled:hover:bg-surface-inverse disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 export function ProductDetailPage({
+  const t = useT();
   model,
   catalogVersion,
   site,
@@ -74,8 +76,7 @@ export function ProductDetailPage({
       <div className="col-span-4 md:col-span-8 lg:col-span-12">
         <h1 className="text-2xl font-bold text-text-primary">{model.title}</h1>
         <p className="pt-2 text-sm text-text-secondary">{model.typeLabel}</p>
-        <p className="pt-1 text-sm text-text-caption">
-          کد محصول: <bdi dir="ltr">{model.code}</bdi>
+        <p className="pt-1 text-sm text-text-caption">{t("کد محصول:")}<bdi dir="ltr">{model.code}</bdi>
         </p>
       </div>
 

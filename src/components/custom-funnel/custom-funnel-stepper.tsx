@@ -25,6 +25,7 @@ import {
   hasValidNumericPrice,
 } from "@/lib/product-detail";
 import type { GraveStoneRequestDraft } from "@/lib/request-draft";
+import { useT } from "@/lib/i18n/react";
 
 export const CASCADE_RESET_TEXT = "انتخاب‌های مراحل بعدی به‌دلیل تغییر این مرحله پاک شد.";
 export const NO_STAGE_OPTIONS_TEXT = "گزینه‌ای برای این مرحله ثبت نشده است.";
@@ -97,6 +98,7 @@ function OptionStage({
 }
 
 export function CustomFunnelStepper({
+  const t = useT();
   model,
   catalogVersion,
   onDraftReady,
@@ -170,7 +172,7 @@ export function CustomFunnelStepper({
 
   return (
     <>
-      <nav aria-label="مراحل ساخت" className="col-span-4 md:col-span-8 lg:col-span-3 lg:self-start">
+      <nav aria-label={t("مراحل ساخت")} className="col-span-4 md:col-span-8 lg:col-span-3 lg:self-start">
         <ol className="flex flex-col gap-2 border border-border-subtle bg-surface p-4">
           {CUSTOM_FUNNEL_STEPS.map((label, index) => (
             <li
@@ -184,7 +186,7 @@ export function CustomFunnelStepper({
             >
               <span className="pe-1">{index + 1}.</span>
               {label}
-              {index === step ? <span className="ps-2 text-sm">(مرحلهٔ جاری)</span> : null}
+              {index === step ? <span className="ps-2 text-sm">{t("(مرحلهٔ جاری)")}</span> : null}
             </li>
           ))}
         </ol>
@@ -199,7 +201,7 @@ export function CustomFunnelStepper({
 
         {step === 0 ? (
           <fieldset className="border border-border-subtle p-4">
-            <legend className="px-2 text-sm font-bold text-text-primary">انتخاب سنگ</legend>
+            <legend className="px-2 text-sm font-bold text-text-primary">{t("انتخاب سنگ")}</legend>
             <div className="flex flex-col gap-3 pt-2">
               {model.stones.map((choice) => (
                 <label key={choice.key} className={ROW} htmlFor={`stone-${choice.key}`}>
@@ -222,11 +224,9 @@ export function CustomFunnelStepper({
                   />
                   <span className="flex flex-col gap-1">
                     <span className="text-sm text-text-primary">{choice.productTitle}</span>
-                    <span className="text-sm text-text-secondary">
-                      سنگ: <bdi dir="ltr">{choice.stoneCode}</bdi>
+                    <span className="text-sm text-text-secondary">{t("سنگ:")}<bdi dir="ltr">{choice.stoneCode}</bdi>
                     </span>
-                    <span className="text-sm text-text-caption">
-                      کد محصول: <bdi dir="ltr">{choice.productCode}</bdi>
+                    <span className="text-sm text-text-caption">{t("کد محصول:")}<bdi dir="ltr">{choice.productCode}</bdi>
                     </span>
                   </span>
                 </label>
@@ -240,7 +240,7 @@ export function CustomFunnelStepper({
             <p className="text-sm text-text-primary">{NO_STAGE_OPTIONS_TEXT}</p>
           ) : (
             <fieldset className="border border-border-subtle p-4">
-              <legend className="px-2 text-sm font-bold text-text-primary">انتخاب اندازه</legend>
+              <legend className="px-2 text-sm font-bold text-text-primary">{t("انتخاب اندازه")}</legend>
               <div className="flex flex-col gap-3 pt-2">
                 {stone.sizes.map((choice) => (
                   <label
@@ -275,7 +275,7 @@ export function CustomFunnelStepper({
 
         {step === 2 ? (
           <OptionStage
-            legend="دوری مجاز"
+            legend={t("دوری مجاز")}
             name="dori"
             options={size?.dori ?? []}
             selectedIds={selection.doriIds}
@@ -287,7 +287,7 @@ export function CustomFunnelStepper({
 
         {step === 3 ? (
           <OptionStage
-            legend="قطعه کتیبه"
+            legend={t("قطعه کتیبه")}
             name="inscription"
             options={size?.inscriptionPiece ?? []}
             selectedIds={selection.inscriptionIds}
@@ -299,7 +299,7 @@ export function CustomFunnelStepper({
 
         {step === 4 ? (
           <OptionStage
-            legend="حکاکی"
+            legend={t("حکاکی")}
             name="engraving"
             options={size?.engraving ?? []}
             selectedIds={selection.engravingIds}
