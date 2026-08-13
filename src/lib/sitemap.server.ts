@@ -1,13 +1,22 @@
 import { loadProducts } from "./content/supabase.server";
-import { BASE_STATIC_PATHS, LOCALES, localizeRawPath } from "./i18n/locale";
-
-/**
- * Every static public route exists in both locales. Derive the sitemap from
- * the locale routing contract so new routes cannot silently disappear from SEO.
- */
-export const FIXED_SITEMAP_PATHS: readonly string[] = Object.freeze(
-  BASE_STATIC_PATHS.flatMap((path) => LOCALES.map((locale) => localizeRawPath(path, locale))),
-);
+export const FIXED_SITEMAP_PATHS = [
+  "/",
+  "/about",
+  "/building-stone",
+  "/contact",
+  "/grave-stones",
+  "/grave-stones/custom",
+  "/guides",
+  "/portfolio",
+  "/privacy",
+  "/quote",
+  "/stoneworks",
+  "/terms",
+  // Stoneworks is currently the only English page with fully self-contained,
+  // reviewed catalogue copy. Other English URLs join the sitemap only when
+  // their locale-specific operational content is publication-ready.
+  "/en/stoneworks",
+] as const;
 
 export type SitemapProduct = {
   readonly slug: string;
@@ -69,10 +78,10 @@ export function buildSitemapXml(origin: string, products: readonly SitemapProduc
 
   for (const product of products) {
     if (!product.isActive || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(product.slug)) continue;
-    const productPath = `/grave-stones/${encodeURIComponent(product.slug)}`;
-    for (const locale of LOCALES) {
-      entries.set(localizeRawPath(productPath, locale), normalizedLastModified(product.updatedAt));
-    }
+    entries.set(
+      `/grave-stones/${encodeURIComponent(product.slug)}`,
+      normalizedLastModified(product.updatedAt),
+    );
   }
 
   const body = [...entries.entries()]
