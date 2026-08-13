@@ -1,5 +1,5 @@
 /*
- * Mehrara design tokens — Quiet Material Intelligence.
+ * Mehrara design tokens — Quiet Material Intelligence / Mineral Signature.
  * Raw color values exist ONLY in this file. Components consume semantic roles.
  * Light-first only; no runtime theme switching.
  */
@@ -22,21 +22,22 @@
 
 /* Master semantic roles. These names are the contract. */
 @theme {
-  --color-canvas: #F3F1EB;
-  --color-surface: #FCFBF8;
-  --color-surface-media: #F2F2F0;
-  --color-text-primary: #171918;
-  --color-text-secondary: #5C605B;
-  --color-text-caption: #6B706A;
-  --color-border-subtle: #D8D3C9;
-  --color-border-control: #6B706A;
-  --color-action-primary: #173F3A;
-  --color-accent: #8F4C2F;
-  --color-surface-inverse: #111413;
-  --color-text-inverse: #FCFBF8;
-  --color-focus: #173F3A;
-  --color-focus-inverse: #FCFBF8;
-  --color-status-success: #173F3A;
+  --color-canvas: #F4EFE6;
+  --color-surface: #FBF9F4;
+  --color-surface-media: #F4EFE6;
+  --color-text-primary: #121212;
+  --color-text-secondary: #5C5850;
+  --color-text-caption: #6B665E;
+  --color-border-subtle: #B9AA92;
+  --color-border-control: #6B665E;
+  --color-action-primary: #203B34;
+  --color-accent: #9C6B32;
+  --color-surface-inverse: #121212;
+  --color-text-inverse: #FBF9F4;
+  --color-focus: #203B34;
+  --color-focus-inverse: #FBF9F4;
+  --color-status-success: #203B34;
+  /* Functional exception: reserved for validation/error states, never brand decoration. */
   --color-status-error: #8F4C2F;
 }
 
@@ -73,8 +74,8 @@
   --skeleton: var(--color-surface-media);
 
   /* Mineral Glass is restricted to the three approved floating surfaces. */
-  --color-mineral-glass: rgba(252, 251, 248, 0.88);
-  --color-mineral-glass-fallback: rgba(252, 251, 248, 0.96);
+  --color-mineral-glass: rgba(251, 249, 244, 0.88);
+  --color-mineral-glass-fallback: rgba(251, 249, 244, 0.96);
   --mineral-glass-blur: 14px;
 
   /* Geometry */
