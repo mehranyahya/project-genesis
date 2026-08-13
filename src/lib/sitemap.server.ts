@@ -1,5 +1,4 @@
 import { loadProducts } from "./content/supabase.server";
-
 export const FIXED_SITEMAP_PATHS = [
   "/",
   "/about",
@@ -11,7 +10,12 @@ export const FIXED_SITEMAP_PATHS = [
   "/portfolio",
   "/privacy",
   "/quote",
+  "/stoneworks",
   "/terms",
+  // Stoneworks is currently the only English page with fully self-contained,
+  // reviewed catalogue copy. Other English URLs join the sitemap only when
+  // their locale-specific operational content is publication-ready.
+  "/en/stoneworks",
 ] as const;
 
 export type SitemapProduct = {

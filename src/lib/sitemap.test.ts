@@ -52,7 +52,10 @@ test("sitemap contains fixed public routes and active validated product routes o
   for (const path of FIXED_SITEMAP_PATHS) {
     assert.ok(xml.includes(`<loc>${new URL(path, `${origin}/`).toString()}</loc>`), path);
   }
+  assert.ok(xml.includes("<loc>https://example.com/stoneworks</loc>"));
+  assert.ok(xml.includes("<loc>https://example.com/en/stoneworks</loc>"));
   assert.match(xml, /<loc>https:\/\/example\.com\/grave-stones\/natanz-simple<\/loc>/);
+  assert.equal(xml.includes("/en/grave-stones/natanz-simple"), false);
   assert.match(xml, /<lastmod>2026-08-08T01:02:03\.000Z<\/lastmod>/);
   assert.equal(xml.includes("hidden-product"), false);
   assert.equal(xml.includes("INVALID"), false);
