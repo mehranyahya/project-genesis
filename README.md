@@ -1,53 +1,74 @@
 # Project Genesis
 
-## دستور دقیق به Lovable
+وب‌سایت دوزبانهٔ سفارش‌محور Mehrara برای سنگ مزار، سنگ ساختمانی و آثار و مصنوعات سنگی (Stoneworks). این پروژه فروشگاه پرداخت‌محور نیست؛ کاربر محصول یا خدمت را بررسی می‌کند و درخواست ساخت/بررسی سفارش ثبت می‌کند.
 
-پروژهٔ تازه را فقط Bootstrap کن. هیچ صفحه، Feature، Route، Component، Style، Content، Package، Backend، Database، Cloud resource، Integration، GitHub sync، Deploy یا Publish نساز و هیچ قابلیت محصول را شروع نکن.
+## وضعیت معماری
 
-Package جدید و Route جدید صریحاً ممنوع‌اند.
+- Frontend و SSR: TanStack Start + React 19 + Vite
+- Runtime و Deploy: Cloudflare Workers
+- Database, Storage و Edge Functions: Supabase
+- زبان‌ها: فارسی در `/` و انگلیسی در `/en`
+- محتوا: صفحات بررسی‌شده از Git و داده/رسانهٔ عملیاتی از Supabase، سپس Artifact پاک‌سازی‌شدهٔ Build
+- طراحی: Light-first با سیستم `Mineral Signature` و Dark Momentهای محدود
 
-فقط این چهار نوشتن مجاز است و محتوا باید **byte-for-byte** از پیوست متناظر کپی شود:
+مسیرهای اصلی در هر دو زبان شامل Home، Memorial Stones، Building Stone، Stoneworks، Portfolio، Guides، Quote، About، Contact، Privacy و Terms هستند.
 
-- `AGENTS.md` ← پیوست `AGENTS.md`
-- `public/fonts/vazirmatn-400.woff2` ← پیوست `vazirmatn-400.woff2`
-- `public/fonts/vazirmatn-700.woff2` ← پیوست `vazirmatn-700.woff2`
-- `public/fonts/OFL.txt` ← پیوست `OFL.txt`
+## اجرای محلی
 
-Project Knowledge به این پیام پیوست نشده است؛ آن را حدس نزن، نساز و داخل Repository قرار نده. سامانهٔ بیرونی فقط پس از Bootstrap Pass آن را با API مستقل و Get-empty/Set/Get فعال می‌کند.
-
-فایل‌های Scaffold پایه‌ای که خود پلتفرم هنگام ایجاد پروژه می‌سازد فقط خوانده شوند. به‌جز چهار مسیر مجاز بالا هیچ فایل موجود یا تازه‌ای را تغییر نده. هیچ Command نصب، Upgrade، Format یا Codegen اجرا نکن. `AGENTS.md` و فایل‌های باینری را بازنویسی، Normalize یا تبدیل نکن.
-
-به‌طور خاص همهٔ این مسیرها Protected و خارج Scope هستند: `supabase/`, `wrangler.jsonc`, `.github/workflows/`, `scripts/`, `content/`, `ops/`, `src/server.ts`, `src/worker/`, `src/security/`, هر Migration، فایل Secret/Env واقعی، Project Knowledge و Preflight. `AGENTS.md` فقط همان استثنای چهارمسیرهٔ بالا است و پس از کپی Protected می‌شود.
-
-پس از نوشتن چهار فایل فقط این موارد را گزارش کن:
-
-- Framework و Package manager خوانده‌شده از فایل‌های واقعی پروژه؛
-- فهرست دقیق فایل‌های ایجاد/تغییرکرده؛
-- SHA-256 و اندازهٔ چهار فایل مجاز؛
-- هر Script موجود Baseline که بدون نصب Dependency تازه قابل اجرا بوده و Exit code آن؛
-- تأیید صریح اینکه UI/Route/Package/Backend/Database/Integration/Publish ساخته نشده است.
-
-اگر پیوستی غایب است، مسیر مقصد قابل‌تشخیص نیست، Framework واقعی TanStack Start نیست، یا برای انجام این Scope نیاز به تغییر فایل دیگری داری، هیچ حدسی نزن و با `BOOTSTRAP 00 FAIL / PROMPT_01_NOT_RUN` توقف کن.
-
-در پایان موفق دقیقاً با `BOOTSTRAP 00 PASS / PROMPT_01_NOT_RUN` توقف کن. Prompt ۱ یا هیچ Fix دیگری را خودکار اجرا نکن.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/be793b77-d478-4a00-b423-7d282bd08424).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+نسخهٔ Bun پروژه در `package.json` قفل شده است.
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+git clone <repository-url>
+cd project-genesis
+bun install --frozen-lockfile
+bun run dev
 ```
+
+فرمان‌های اصلی:
+
+```sh
+bun run lint
+bun test
+bun run edge:check
+bun run content:check
+bun run build
+```
+
+## محتوا
+
+صفحات Git در `content/pages/` نگهداری و با فرمان زیر تولید می‌شوند:
+
+```sh
+bun run content:generate
+```
+
+داده و رسانهٔ عملیاتی Supabase فقط در زمان Build خوانده می‌شوند و با این فرمان به Artifact عمومی امن تبدیل می‌شوند:
+
+```sh
+bun run structured:generate
+```
+
+Build انتشار علاوه بر تست‌های معمول، `content:release-check` را اجرا می‌کند تا Privacy/Terms بررسی‌شده، Terms registry و Artifact ساختاریافته موجود باشند. نبود محتوای واقعی باید به Empty state یا `CONTENT_BLOCKED` منجر شود؛ Fixture و اطلاعات ساختگی وارد خروجی انتشار نمی‌شوند.
+
+## تنظیمات و Secretها
+
+نام متغیرهای لازم در `.env.example` مستند شده‌اند. مقدار واقعی Secretها فقط در Secret store مقصد قرار می‌گیرد و نباید در Repository، PR، Log یا پیام ثبت شود.
+
+برای بکاپ و بازیابی Supabase به [ops/supabase-backup-restore.md](ops/supabase-backup-restore.md) مراجعه کنید. هر Migration عملیاتی به بکاپ رمزنگاری‌شدهٔ موفق، Checksum معتبر و Restore drill وابسته است.
+
+## انتشار
+
+Workflowهای GitHub Actions از Secret/Variableهای جداگانهٔ Preview و Production استفاده می‌کنند.
+
+- Preview پیش‌فرض آزمون و تأیید است.
+- Production، DNS و انتشار عمومی فقط با اجازهٔ صریح مالک انجام می‌شود.
+- `rate_limit_policy.enabled` تا پایان E2E موفق Preview خاموش می‌ماند.
+- `PUBLIC_INDEXING` در Preview باید `false` باشد.
+
+## Lovable
+
+پروژه با Lovable همگام است و برای اصلاح UI می‌توان از آن استفاده کرد، اما Backend، Migration، Workflow، محتوای واقعی و Deploy خارج از Scope آن هستند:
+
+https://lovable.dev/projects/be793b77-d478-4a00-b423-7d282bd08424
+
+قرارداد اجرایی کامل و به‌روز در [AGENTS.md](AGENTS.md) قرار دارد.
