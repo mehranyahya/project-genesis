@@ -87,6 +87,14 @@ test("header, mobile panel and action bar use solid semantic surfaces", () => {
   assert.match(read("components/layout/site-footer.tsx"), /text-text-inverse/);
 });
 
+test("desktop header keeps the expanded navigation on one line", () => {
+  const header = read("components/layout/site-header.tsx");
+  assert.match(header, /lg:col-span-2/);
+  assert.match(header, /lg:col-span-7/);
+  assert.match(header, /lg:flex-nowrap/);
+  assert.match(header, /whitespace-nowrap/);
+});
+
 test("layout files carry no raw color and no banned effect", () => {
   const rawColor = /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|oklch\(/;
   const banned =

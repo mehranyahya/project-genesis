@@ -29,6 +29,12 @@ test("hero carries the exact locked H1 and only one H1 exists", () => {
   assert.equal(ALL.split("<h1").length - 1, 1);
 });
 
+test("hero fills the desktop grid when no real media is available", () => {
+  const hero = read("components/home/home-hero.tsx");
+  assert.ok(hero.includes('media ? "lg:col-span-7" : "lg:col-span-12 lg:min-h-[22rem]"'));
+  assert.ok(hero.includes("flex flex-col justify-center"));
+});
+
 test("hero CTAs and destinations are exact", () => {
   const hero = read("components/home/home-hero.tsx");
   assert.ok(hero.includes("انتخاب سنگ مزار"));

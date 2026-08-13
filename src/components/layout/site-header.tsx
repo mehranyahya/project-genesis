@@ -20,7 +20,7 @@ export function SiteHeader({ site }: { site: Site | null }) {
   return (
     <header className="sticky top-0 z-20 px-3 pt-3">
       <div className="mineral-glass mx-auto grid w-full max-w-[80rem] grid-cols-4 items-center gap-x-4 px-4 py-2 md:grid-cols-8 lg:grid-cols-12">
-        <div className="col-span-3 flex items-center md:col-span-4 lg:col-span-3">
+        <div className="col-span-3 flex items-center md:col-span-4 lg:col-span-2">
           <LocaleLink
             to="/"
             className="inline-flex min-h-11 items-center text-lg font-bold text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
@@ -31,13 +31,13 @@ export function SiteHeader({ site }: { site: Site | null }) {
 
         <nav
           aria-label={t("ناوبری اصلی")}
-          className="col-span-6 hidden lg:col-span-6 lg:flex lg:flex-wrap lg:items-center lg:gap-x-4"
+          className="col-span-6 hidden lg:col-span-7 lg:flex lg:flex-nowrap lg:items-center lg:justify-center lg:gap-x-2"
         >
           {PRIMARY_NAV.map((item) => (
             <LocaleLink
               key={item.to}
               to={item.to}
-              className="inline-flex min-h-11 items-center px-1 text-sm text-text-secondary transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+              className="inline-flex min-h-11 items-center whitespace-nowrap px-1 text-xs text-text-secondary transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
               activeProps={{
                 className: "font-bold text-action-primary",
                 "aria-current": "page",
