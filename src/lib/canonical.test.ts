@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { canonicalHref, normalizeCanonicalOrigin } from "./canonical";
+import { BASE_DYNAMIC_PATHS, BASE_STATIC_PATHS } from "./i18n/locale";
 
 const routePaths = [
   "../routes/index.tsx",
@@ -12,6 +13,7 @@ const routePaths = [
   "../routes/portfolio.tsx",
   "../routes/privacy.tsx",
   "../routes/quote.tsx",
+  "../routes/stoneworks.tsx",
   "../routes/terms.tsx",
   "../routes/grave-stones/index.tsx",
   "../routes/grave-stones/custom.tsx",
@@ -68,7 +70,7 @@ test("canonical helper rejects unsafe paths and non-clean production origins", (
 });
 
 test("every public route exists in both locales and delegates to the shared factory", () => {
-  assert.equal(routeSources.length, 13);
+  assert.equal(routeSources.length, BASE_STATIC_PATHS.length + BASE_DYNAMIC_PATHS.length);
   for (const { path, source } of routeSources) {
     assert.match(source, /createFileRoute\("/, `${path} must declare its route id`);
     assert.match(
