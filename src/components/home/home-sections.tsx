@@ -164,18 +164,18 @@ export function HomeFinalCta() {
   const t = useT();
   return (
     <section className={SECTION_GRID} aria-labelledby="home-final-cta">
-      <div className={`${FULL_SPAN} border border-border-subtle bg-surface p-6`}>
-        <h2 id="home-final-cta" className={HEADING}>
+      <div className={`${FULL_SPAN} border border-border-control bg-surface-inverse p-6`}>
+        <h2 id="home-final-cta" className="text-xl font-bold text-text-inverse">
           {t("برای انتخاب سنگ مزار آماده‌اید؟")}
         </h2>
-        <p className="mt-3 max-w-[60ch] text-sm text-text-secondary">
+        <p className="mt-3 max-w-[60ch] text-sm text-text-inverse">
           {t(
             "ثبت سفارش برای بررسی موجودی، محل اجرا و جزئیات نهایی است و به معنی شروع تولید یا الزام به پرداخت نیست.",
           )}
         </p>
         <LocaleLink
           to="/grave-stones"
-          className="mt-6 inline-flex min-h-11 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] hover:border-surface-inverse hover:bg-surface-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+          className="mt-6 inline-flex min-h-11 items-center justify-center border border-text-inverse bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] hover:bg-text-inverse hover:text-surface-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse motion-reduce:transition-none"
         >
           {t("انتخاب و ثبت سفارش")}
         </LocaleLink>
