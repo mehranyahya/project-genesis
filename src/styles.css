@@ -8,7 +8,8 @@
  */
 
 @theme inline {
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-body-family);
+  --font-display: var(--font-heading-family);
 
   --radius-sm: var(--radius-control);
   --radius-md: var(--radius);
@@ -64,14 +65,15 @@
   }
 
   html {
-    font-family: var(--font-sans);
+    font-family: var(--font-body-family);
+    font-synthesis: none;
     letter-spacing: normal;
   }
 
   body {
     background-color: var(--color-canvas);
     color: var(--color-text-primary);
-    font-family: var(--font-sans);
+    font-family: var(--font-body-family);
     font-weight: 400;
     line-height: var(--line-height-body);
     letter-spacing: normal;
@@ -84,7 +86,8 @@
   h4,
   h5,
   h6 {
-    font-weight: 700;
+    font-family: var(--font-heading-family);
+    font-weight: 500;
     line-height: var(--line-height-heading);
     letter-spacing: normal;
   }

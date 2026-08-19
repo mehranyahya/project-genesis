@@ -56,7 +56,7 @@ Promptهای Lovable حق ساخت یا تغییر این مسیرها را ند
 - Mineral Glass فقط برای Header شناور، کنترل Gallery و نوار اقدام شناور مجاز است؛ کارت، Form، Filter، Table و Footer جامد می‌مانند.
 - تصویر سنگ بدون Filter/Tint/Blend و روی Stage خنثی نمایش داده می‌شود.
 - Focus واضح، Keyboard کامل، Reflow در ۳۲۰px، Zoom ۲۰۰٪، Skip Link، `prefers-reduced-motion` و هدف لمسی حداقل ۴۴px اجباری‌اند.
-- متن بدنه `line-height: 1.9` و `letter-spacing: normal` دارد. فونت Vazirmatn محلی وزن ۴۰۰/۷۰۰ است.
+- متن بدنه `line-height: 1.9` و `letter-spacing: normal` دارد. فونت‌های محلی و self-hosted عبارت‌اند از Estedad وزن‌های ۴۰۰–۵۰۰ برای متن و UI و Beiruti وزن ۵۰۰ برای تیترها؛ وابستگی runtime به سرویس فونت خارجی و وزن مصنوعی مجاز نیست.
 
 ## Request, price and privacy safety
 
