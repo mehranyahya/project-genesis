@@ -5,17 +5,17 @@
  */
 
 @font-face {
-  font-family: "Vazirmatn";
-  src: url("/fonts/vazirmatn-400.woff2") format("woff2");
-  font-weight: 400;
+  font-family: "Estedad";
+  src: url("/fonts/estedad-400-500.woff2") format("woff2");
+  font-weight: 400 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Vazirmatn";
-  src: url("/fonts/vazirmatn-700.woff2") format("woff2");
-  font-weight: 700;
+  font-family: "Beiruti";
+  src: url("/fonts/beiruti-500.woff2") format("woff2");
+  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
@@ -39,6 +39,11 @@
   --color-status-success: #203B34;
   /* Functional exception: reserved for validation/error states, never brand decoration. */
   --color-status-error: #8F4C2F;
+
+  /* The visual system intentionally uses only Regular and Medium. */
+  --font-weight-medium: 500;
+  --font-weight-semibold: 500;
+  --font-weight-bold: 500;
 }
 
 :root {
@@ -88,7 +93,8 @@
   --touch-target-min: 44px;
 
   /* Typography */
-  --font-sans: "Vazirmatn", system-ui, sans-serif;
+  --font-body-family: "Estedad", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
+  --font-heading-family: "Beiruti", "Estedad", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
   --line-height-body: 1.9;
   --line-height-heading: 1.45;
 

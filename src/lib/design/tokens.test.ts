@@ -201,18 +201,31 @@ test("field wires label, description, error and invalid state to its control", (
   assert.ok(field.includes("انجام شد:"));
 });
 
-test("typography contract: local Vazirmatn 400/700, swap, rtl-safe metrics", () => {
+test("typography contract: local Estedad body and Beiruti display, swap, rtl-safe metrics", () => {
   const tokens = read(TOKENS);
-  assert.ok(tokens.includes("/fonts/vazirmatn-400.woff2"));
-  assert.ok(tokens.includes("/fonts/vazirmatn-700.woff2"));
+  assert.ok(tokens.includes("/fonts/estedad-400-500.woff2"));
+  assert.ok(tokens.includes("/fonts/beiruti-500.woff2"));
+  assert.match(tokens, /font-family:\s*"Estedad";/);
+  assert.match(tokens, /font-weight:\s*400 500;/);
+  assert.match(tokens, /font-family:\s*"Beiruti";/);
+  assert.match(tokens, /--font-weight-bold:\s*500;/);
+  assert.equal(/Vazirmatn|vazirmatn/i.test(tokens), false);
   assert.equal((tokens.match(/font-display: swap/g) ?? []).length, 2);
   assert.equal(/https?:\/\//.test(tokens), false);
   assert.match(tokens, /--line-height-body:\s*1\.9;/);
 
   const styles = read(STYLE_ENTRY);
+  assert.ok(styles.includes("font-family: var(--font-body-family)"));
+  assert.ok(styles.includes("font-family: var(--font-heading-family)"));
+  assert.ok(styles.includes("font-synthesis: none"));
   assert.ok(styles.includes("letter-spacing: normal"));
   assert.ok(styles.includes("line-height: var(--line-height-body)"));
   assert.ok(styles.includes("tabular-nums"));
+
+  const rootRoute = read("routes/__root.tsx");
+  assert.ok(rootRoute.includes('href: "/fonts/estedad-400-500.woff2"'));
+  assert.ok(rootRoute.includes('href: "/fonts/beiruti-500.woff2"'));
+  assert.equal((rootRoute.match(/crossOrigin: "anonymous"/g) ?? []).length, 2);
 });
 
 test("no theme toggle, data-theme or runtime dark mode", () => {
@@ -221,11 +234,12 @@ test("no theme toggle, data-theme or runtime dark mode", () => {
   }
 });
 
-test("bootstrap font assets are unchanged", () => {
+test("self-hosted font assets and licenses are pinned", () => {
   const expected: Record<string, string> = {
-    "vazirmatn-400.woff2": "f1a8a3fb82ff53a798e5ced93c0925b8805c62c471d11e80706b39f50da55fb0",
-    "vazirmatn-700.woff2": "adf931716e9c1b8ff82c74ddf5826dc158a932e0e43b0d8b30db085078693c47",
-    "OFL.txt": "17e355067c8284f47743a1ee3b1ef7ff684ff0601eda357f9353b10b3016ab31",
+    "beiruti-500.woff2": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb",
+    "estedad-400-500.woff2": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e",
+    "OFL-Beiruti.txt": "bb3b1f597fe14b744ec886feb5c4742e6017adeadc4c1610ca30c5853e172979",
+    "OFL-Estedad.txt": "0417da48fc44780476e074f02f8400028ee704b3e222be5855fa6d960b9200ca",
   };
   for (const [file, sha] of Object.entries(expected)) {
     const bytes = readFileSync(path.join(root, "..", "public", "fonts", file));
