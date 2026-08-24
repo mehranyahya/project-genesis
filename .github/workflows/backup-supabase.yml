@@ -340,12 +340,15 @@ jobs:
 
           if ! cmp --silent "$source_manifest" "$restored_manifest"; then
             manifest_categories=(
-              table
+              table_flags
+              table_acl
               rows
               sequence
               constraint
               index
-              function
+              function_flags
+              function_acl
+              function_definition
               trigger
               policy
               migration
