@@ -75,6 +75,7 @@ select
   || '|' || c.relkind::text
   || '|' || c.relrowsecurity::text
   || '|' || c.relforcerowsecurity::text
+  || '|' || pg_catalog.pg_get_userbyid(c.relowner)
 from pg_catalog.pg_class c
 join pg_catalog.pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public'
@@ -105,6 +106,7 @@ select
           acl_entry.is_grantable
       )
       from pg_catalog.aclexplode(c.relacl) as acl_entry
+      where acl_entry.grantee <> c.relowner
     ),
     ''
   )
@@ -168,6 +170,7 @@ select
   || n.nspname || '.' || p.proname
   || '(' || pg_catalog.pg_get_function_identity_arguments(p.oid) || ')'
   || '|' || p.prosecdef::text
+  || '|' || pg_catalog.pg_get_userbyid(p.proowner)
 from pg_catalog.pg_proc p
 join pg_catalog.pg_namespace n on n.oid = p.pronamespace
 where n.nspname = 'public'
@@ -199,6 +202,7 @@ select
           acl_entry.is_grantable
       )
       from pg_catalog.aclexplode(p.proacl) as acl_entry
+      where acl_entry.grantee <> p.proowner
     ),
     ''
   )
