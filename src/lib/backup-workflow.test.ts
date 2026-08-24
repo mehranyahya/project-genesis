@@ -22,6 +22,7 @@ test("backup workflow is manual, scheduled or self-validating on main", () => {
     workflow,
     /push:[\s\S]*branches:[\s\S]*- main[\s\S]*paths:[\s\S]*backup-supabase\.yml[\s\S]*supabase-backup-preflight\.sql[\s\S]*supabase-restore-manifest\.sql/,
   );
+  assert.match(workflow, /supabase\/migrations\/\*\*/);
   assert.match(workflow, /contents: read/);
   assert.doesNotMatch(workflow, /^\s+pull_request:/m);
   assert.doesNotMatch(workflow, /contents: write/);
@@ -129,6 +130,8 @@ test("backup workflow restores only public data and migration history", () => {
   assert.doesNotMatch(workflow, /source_roles_json/);
   assert.match(restoreManifest, /request rate limit policy must remain present and disabled/);
   assert.match(restoreManifest, /restore manifest is missing a critical RPC/);
+  assert.match(restoreManifest, /claim_gateway_nonce/);
+  assert.match(restoreManifest, /create_request_atomic_storage/);
   assert.match(restoreManifest, /missing the required pgcrypto digest function/);
   assert.match(restoreManifest, /c\.relkind::text/);
   assert.match(restoreManifest, /con\.contype::text/);
