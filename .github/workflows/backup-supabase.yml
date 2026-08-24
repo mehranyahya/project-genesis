@@ -319,11 +319,15 @@ jobs:
               --set ON_ERROR_STOP=1 \
               --username supabase_admin \
               --dbname postgres \
+              --command 'set role postgres' \
               --file /tmp/backup/drill_schema.sql \
+              --command 'reset role' \
               --command 'set session_replication_role = replica' \
               --file /tmp/backup/drill_data.sql \
               --command 'set session_replication_role = origin' \
+              --command 'set role postgres' \
               --file /tmp/backup/history_schema.sql \
+              --command 'reset role' \
               --file /tmp/backup/history_data.sql
 
           docker exec "$drill_container" \

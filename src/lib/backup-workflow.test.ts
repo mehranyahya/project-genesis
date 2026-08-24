@@ -91,6 +91,12 @@ test("backup workflow restores only public data and migration history", () => {
   assert.match(workflow, /--single-transaction/);
   assert.match(workflow, /set session_replication_role = replica/);
   assert.match(workflow, /set session_replication_role = origin/);
+  assert.equal(workflow.match(/--command 'set role postgres'/g)?.length, 2);
+  assert.equal(workflow.match(/--command 'reset role'/g)?.length, 2);
+  assert.match(
+    workflow,
+    /set role postgres'[\s\S]*drill_schema\.sql[\s\S]*reset role'[\s\S]*session_replication_role = replica/,
+  );
   assert.match(workflow, /--file \/tmp\/backup\/drill_schema\.sql/);
   assert.match(workflow, /--file \/tmp\/backup\/drill_data\.sql/);
   assert.match(workflow, /--file \/tmp\/backup\/history_schema\.sql/);
