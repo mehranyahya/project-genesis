@@ -55,6 +55,14 @@ test("backup workflow restores into disposable Postgres and compares a private m
   assert.match(workflow, /source_manifest/);
   assert.match(workflow, /restored_manifest/);
   assert.match(workflow, /cmp --silent "\$source_manifest" "\$restored_manifest"/);
+  assert.match(workflow, /jsonb_agg\(r\.rolname order by r\.rolname\)/);
+  assert.match(
+    workflow,
+    /jsonb_array_elements_text\([\s\S]*:'source_roles_json'::pg_catalog\.jsonb/,
+  );
+  assert.match(workflow, /'create role %I nologin noinherit'/);
+  assert.doesNotMatch(workflow, /create role supabase_realtime_admin/i);
+  assert.doesNotMatch(workflow, /echo .*source_roles_json/);
   assert.match(restoreManifest, /request rate limit policy must remain present and disabled/);
   assert.match(restoreManifest, /restore manifest is missing a critical RPC/);
   assert.match(restoreManifest, /c\.relkind::text/);
