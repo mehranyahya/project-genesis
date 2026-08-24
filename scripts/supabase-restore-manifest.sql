@@ -70,19 +70,41 @@ end
 $manifest_checks$;
 
 select
-  'table|'
+  'table_flags|'
   || n.nspname || '.' || c.relname
   || '|' || c.relkind::text
   || '|' || c.relrowsecurity::text
   || '|' || c.relforcerowsecurity::text
+from pg_catalog.pg_class c
+join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public'
+  and c.relkind in ('r', 'p')
+order by n.nspname, c.relname;
+
+select
+  'table_acl|'
+  || n.nspname || '.' || c.relname
   || '|' || coalesce(
     (
       select pg_catalog.string_agg(
-        acl_item::text,
+        (
+          case
+            when acl_entry.grantee = 0 then 'PUBLIC'
+            else pg_catalog.pg_get_userbyid(acl_entry.grantee)
+          end
+          || ':' || acl_entry.privilege_type
+          || ':' || acl_entry.is_grantable::text
+        ),
         ','
-        order by acl_item::text
+        order by
+          case
+            when acl_entry.grantee = 0 then 'PUBLIC'
+            else pg_catalog.pg_get_userbyid(acl_entry.grantee)
+          end,
+          acl_entry.privilege_type,
+          acl_entry.is_grantable
       )
-      from unnest(c.relacl) as acl_item
+      from pg_catalog.aclexplode(c.relacl) as acl_entry
     ),
     ''
   )
@@ -142,21 +164,54 @@ where n.nspname = 'public'
 order by n.nspname, c.relname, i.relname;
 
 select
-  'function|'
+  'function_flags|'
   || n.nspname || '.' || p.proname
   || '(' || pg_catalog.pg_get_function_identity_arguments(p.oid) || ')'
   || '|' || p.prosecdef::text
+from pg_catalog.pg_proc p
+join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.prokind in ('f', 'p')
+order by n.nspname, p.proname, pg_catalog.pg_get_function_identity_arguments(p.oid);
+
+select
+  'function_acl|'
+  || n.nspname || '.' || p.proname
+  || '(' || pg_catalog.pg_get_function_identity_arguments(p.oid) || ')'
   || '|' || coalesce(
     (
       select pg_catalog.string_agg(
-        acl_item::text,
+        (
+          case
+            when acl_entry.grantee = 0 then 'PUBLIC'
+            else pg_catalog.pg_get_userbyid(acl_entry.grantee)
+          end
+          || ':' || acl_entry.privilege_type
+          || ':' || acl_entry.is_grantable::text
+        ),
         ','
-        order by acl_item::text
+        order by
+          case
+            when acl_entry.grantee = 0 then 'PUBLIC'
+            else pg_catalog.pg_get_userbyid(acl_entry.grantee)
+          end,
+          acl_entry.privilege_type,
+          acl_entry.is_grantable
       )
-      from unnest(p.proacl) as acl_item
+      from pg_catalog.aclexplode(p.proacl) as acl_entry
     ),
     ''
   )
+from pg_catalog.pg_proc p
+join pg_catalog.pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.prokind in ('f', 'p')
+order by n.nspname, p.proname, pg_catalog.pg_get_function_identity_arguments(p.oid);
+
+select
+  'function_definition|'
+  || n.nspname || '.' || p.proname
+  || '(' || pg_catalog.pg_get_function_identity_arguments(p.oid) || ')'
   || '|' || pg_catalog.md5(pg_catalog.pg_get_functiondef(p.oid))
 from pg_catalog.pg_proc p
 join pg_catalog.pg_namespace n on n.oid = p.pronamespace

@@ -118,6 +118,13 @@ test("backup workflow restores only public data and migration history", () => {
   assert.match(restoreManifest, /last_value::text/);
   assert.match(restoreManifest, /is_called::text/);
   assert.match(restoreManifest, /sequence\|/);
+  assert.match(restoreManifest, /table_flags\|/);
+  assert.match(restoreManifest, /table_acl\|/);
+  assert.match(restoreManifest, /function_flags\|/);
+  assert.match(restoreManifest, /function_acl\|/);
+  assert.match(restoreManifest, /function_definition\|/);
+  assert.match(restoreManifest, /aclexplode/);
+  assert.doesNotMatch(restoreManifest, /acl_entry\.grantor/);
   assert.ok((restoreManifest.match(/string_agg/g)?.length ?? 0) >= 3);
   assert.match(workflow, /trap cleanup_restore_drill EXIT/);
 });
