@@ -61,6 +61,9 @@ test("backup workflow restores into disposable Postgres and compares a private m
     /jsonb_array_elements_text\([\s\S]*:'source_roles_json'::pg_catalog\.jsonb/,
   );
   assert.match(workflow, /'create role %I nologin noinherit'/);
+  assert.match(workflow, /--env POSTGRES_USER=supabase_admin/);
+  assert.equal(workflow.match(/--username supabase_admin/g)?.length, 5);
+  assert.doesNotMatch(workflow, /--username postgres/);
   assert.doesNotMatch(workflow, /create role supabase_realtime_admin/i);
   assert.doesNotMatch(workflow, /echo .*source_roles_json/);
   assert.match(restoreManifest, /request rate limit policy must remain present and disabled/);
