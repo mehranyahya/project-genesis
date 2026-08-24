@@ -1,0 +1,158 @@
+name: Preview configuration audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/audit-preview-config.yml"
+      - ".github/workflows/deploy-cloudflare.yml"
+      - ".github/workflows/deploy-cloudflare-reusable.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Validate Preview and Edge configuration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      PREVIEW_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.PREVIEW_CLOUDFLARE_ACCOUNT_ID }}
+      PREVIEW_CLOUDFLARE_API_TOKEN: ${{ secrets.PREVIEW_CLOUDFLARE_API_TOKEN }}
+      PREVIEW_VITE_TURNSTILE_SITE_KEY: ${{ secrets.PREVIEW_VITE_TURNSTILE_SITE_KEY }}
+      PREVIEW_SUPABASE_FUNCTION_BASE_URL: ${{ secrets.PREVIEW_SUPABASE_FUNCTION_BASE_URL }}
+      PREVIEW_EDGE_GATEWAY_KEYS_JSON: ${{ secrets.PREVIEW_EDGE_GATEWAY_KEYS_JSON }}
+      PREVIEW_EDGE_GATEWAY_PRIMARY_KEY_ID: ${{ secrets.PREVIEW_EDGE_GATEWAY_PRIMARY_KEY_ID }}
+      PREVIEW_IP_HASH_SECRET: ${{ secrets.PREVIEW_IP_HASH_SECRET }}
+      PREVIEW_BUILD_SUPABASE_URL: ${{ secrets.PREVIEW_BUILD_SUPABASE_URL }}
+      PREVIEW_BUILD_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PREVIEW_BUILD_SUPABASE_SERVICE_ROLE_KEY }}
+      PREVIEW_SITE_URL: ${{ vars.PREVIEW_SITE_URL }}
+      PREVIEW_ALLOWED_ORIGINS: ${{ vars.PREVIEW_ALLOWED_ORIGINS }}
+
+    steps:
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@aa3515eac405eac768fa4a72147c22d88a283c7b # v3
+        with:
+          version: 2.115.0
+
+      - name: Validate GitHub Preview configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          required_names=(
+            SUPABASE_ACCESS_TOKEN
+            SUPABASE_PROJECT_REF
+            PREVIEW_CLOUDFLARE_ACCOUNT_ID
+            PREVIEW_CLOUDFLARE_API_TOKEN
+            PREVIEW_VITE_TURNSTILE_SITE_KEY
+            PREVIEW_SUPABASE_FUNCTION_BASE_URL
+            PREVIEW_EDGE_GATEWAY_KEYS_JSON
+            PREVIEW_EDGE_GATEWAY_PRIMARY_KEY_ID
+            PREVIEW_IP_HASH_SECRET
+            PREVIEW_BUILD_SUPABASE_URL
+            PREVIEW_BUILD_SUPABASE_SERVICE_ROLE_KEY
+            PREVIEW_SITE_URL
+            PREVIEW_ALLOWED_ORIGINS
+          )
+          missing_names=()
+          for name in "${required_names[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              missing_names+=("$name")
+            fi
+          done
+          if (( ${#missing_names[@]} > 0 )); then
+            echo "::error::Missing GitHub Preview configuration: ${missing_names[*]}"
+            exit 1
+          fi
+
+          expected_project_url="https://${SUPABASE_PROJECT_REF}.supabase.co"
+          if [[ "${PREVIEW_SUPABASE_FUNCTION_BASE_URL%/}" != "$expected_project_url/functions/v1" ]]; then
+            echo "::error::PREVIEW_SUPABASE_FUNCTION_BASE_URL does not match SUPABASE_PROJECT_REF."
+            exit 1
+          fi
+          if [[ "${PREVIEW_BUILD_SUPABASE_URL%/}" != "$expected_project_url" ]]; then
+            echo "::error::PREVIEW_BUILD_SUPABASE_URL does not match SUPABASE_PROJECT_REF."
+            exit 1
+          fi
+          if (( ${#PREVIEW_IP_HASH_SECRET} < 32 )); then
+            echo "::error::PREVIEW_IP_HASH_SECRET must contain at least 32 characters."
+            exit 1
+          fi
+
+          if ! jq -e --arg primary "$PREVIEW_EDGE_GATEWAY_PRIMARY_KEY_ID" '
+            type == "object"
+            and (keys | length) >= 1
+            and (keys | length) <= 2
+            and has($primary)
+            and all(
+              to_entries[];
+              (.key | test("^[A-Za-z0-9._-]{1,64}$"))
+              and (.value | type == "string" and length >= 32)
+            )
+          ' <<< "$PREVIEW_EDGE_GATEWAY_KEYS_JSON" >/dev/null; then
+            echo "::error::PREVIEW_EDGE_GATEWAY_KEYS_JSON or its primary key id is invalid."
+            exit 1
+          fi
+
+          node <<'NODE'
+          const site = new URL(process.env.PREVIEW_SITE_URL);
+          if (site.protocol !== "https:") throw new Error("PREVIEW_SITE_URL must use HTTPS");
+          const allowed = process.env.PREVIEW_ALLOWED_ORIGINS
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean)
+            .map((value) => new URL(value).origin);
+          if (!allowed.includes(site.origin)) {
+            throw new Error("PREVIEW_ALLOWED_ORIGINS must contain PREVIEW_SITE_URL origin");
+          }
+          NODE
+
+      - name: Validate Supabase Edge secret names
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          secret_list_json="$(
+            supabase secrets list \
+              --project-ref "$SUPABASE_PROJECT_REF" \
+              --output json
+          )"
+          present_names="$(
+            jq -r '
+              if type == "array" then
+                .[] | (.name // .Name // empty)
+              else
+                empty
+              end
+            ' <<< "$secret_list_json"
+          )"
+          required_edge_names=(
+            EDGE_GATEWAY_KEYS_JSON
+            REQUEST_FINGERPRINT_KEYS_JSON
+            REQUEST_FINGERPRINT_PRIMARY_KEY_ID
+            TRACKING_CODE_PREFIX
+            TURNSTILE_SECRET_KEY
+            TURNSTILE_ALLOWED_HOSTNAMES
+            TURNSTILE_EXPECTED_ACTION
+            SITEVERIFY_NAMESPACE_UUID
+            TELEGRAM_BOT_TOKEN
+            TELEGRAM_ADMIN_CHAT_ID
+          )
+          missing_edge_names=()
+          for name in "${required_edge_names[@]}"; do
+            if ! grep -Fqx "$name" <<< "$present_names"; then
+              missing_edge_names+=("$name")
+            fi
+          done
+          if (( ${#missing_edge_names[@]} > 0 )); then
+            echo "::error::Missing Supabase Edge secret names: ${missing_edge_names[*]}"
+            exit 1
+          fi
+
+          echo "GitHub Preview configuration and Supabase Edge secret names are complete."
+
