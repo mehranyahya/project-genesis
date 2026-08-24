@@ -68,10 +68,17 @@ jobs:
             echo "Deployment target is invalid." >&2
             exit 1
           }
-          [[ "$CONTENT_CONFIRMATION" == "CONTENT_FINALIZED" ]] || {
-            echo "Reviewed content and Catalog have not been confirmed." >&2
-            exit 1
-          }
+          if [[ "$DEPLOY_TARGET" == "preview" ]]; then
+            [[ "$CONTENT_CONFIRMATION" == "PREVIEW_TECHNICAL" || "$CONTENT_CONFIRMATION" == "CONTENT_FINALIZED" ]] || {
+              echo "Preview content confirmation is invalid." >&2
+              exit 1
+            }
+          else
+            [[ "$CONTENT_CONFIRMATION" == "CONTENT_FINALIZED" ]] || {
+              echo "Reviewed content and Catalog have not been confirmed for production." >&2
+              exit 1
+            }
+          fi
           [[ "$MIGRATION_CONFIRMATION" == "MIGRATIONS_VERIFIED_AFTER_BACKUP" ]] || {
             echo "Ordered migrations have not been confirmed after backup." >&2
             exit 1
@@ -115,6 +122,7 @@ jobs:
         run: bun run content:check
 
       - name: Enforce release content gate
+        if: ${{ inputs.target == 'production' || inputs.content_confirmation == 'CONTENT_FINALIZED' }}
         run: bun run content:release-check
 
       - name: Lint

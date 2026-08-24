@@ -32,7 +32,7 @@ const forbiddenWorkerSecrets = [
   "TELEGRAM_BOT_TOKEN",
 ] as const;
 
-test("Cloudflare deployment is manual-only and production requires main plus exact confirmation", () => {
+test("Cloudflare deployment is manual-only and production keeps every release confirmation", () => {
   assert.match(workflow, /workflow_dispatch:/);
   assert.equal(/^\s*push:/m.test(entryWorkflow), false);
   assert.equal(/^\s*pull_request:/m.test(entryWorkflow), false);
@@ -41,9 +41,21 @@ test("Cloudflare deployment is manual-only and production requires main plus exa
   assert.match(workflow, /DEPLOY_TARGET: \$\{\{ inputs\.target \}\}/);
   assert.match(workflow, /GITHUB_REF.*refs\/heads\/main/);
   assert.match(workflow, /PRODUCTION_CONFIRMATION.*DEPLOY_PRODUCTION/);
-  assert.match(workflow, /CONTENT_CONFIRMATION.*CONTENT_FINALIZED/);
+  assert.match(entryWorkflow, /PREVIEW_TECHNICAL/);
+  assert.match(entryWorkflow, /CONTENT_FINALIZED/);
+  assert.match(
+    reusableWorkflow,
+    /DEPLOY_TARGET" == "preview"[\s\S]*CONTENT_CONFIRMATION" == "PREVIEW_TECHNICAL"[\s\S]*CONTENT_CONFIRMATION" == "CONTENT_FINALIZED"/,
+  );
+  assert.match(
+    reusableWorkflow,
+    /else[\s\S]*CONTENT_CONFIRMATION" == "CONTENT_FINALIZED"[\s\S]*for production/,
+  );
   assert.match(workflow, /MIGRATION_CONFIRMATION.*MIGRATIONS_VERIFIED_AFTER_BACKUP/);
-  assert.match(reusableWorkflow, /bun run content:release-check/);
+  assert.match(
+    reusableWorkflow,
+    /if: \$\{\{ inputs\.target == 'production' \|\| inputs\.content_confirmation == 'CONTENT_FINALIZED' \}\}[\s\S]*bun run content:release-check/,
+  );
 });
 
 test("repository variables select SITE_URL, ALLOWED_ORIGINS and indexing without GitHub Environments", () => {
