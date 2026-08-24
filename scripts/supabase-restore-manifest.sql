@@ -68,7 +68,7 @@ $manifest_checks$;
 select
   'table|'
   || n.nspname || '.' || c.relname
-  || '|' || c.relkind
+  || '|' || c.relkind::text
   || '|' || c.relrowsecurity::text
   || '|' || c.relforcerowsecurity::text
   || '|' || coalesce(pg_catalog.array_to_string(c.relacl, ','), '')
@@ -103,7 +103,7 @@ select
   'constraint|'
   || n.nspname || '.' || c.relname
   || '|' || con.conname
-  || '|' || con.contype
+  || '|' || con.contype::text
   || '|' || pg_catalog.md5(pg_catalog.pg_get_constraintdef(con.oid, true))
 from pg_catalog.pg_constraint con
 join pg_catalog.pg_class c on c.oid = con.conrelid
@@ -140,7 +140,7 @@ select
   'trigger|'
   || n.nspname || '.' || c.relname
   || '|' || t.tgname
-  || '|' || t.tgenabled
+  || '|' || t.tgenabled::text
   || '|' || pn.nspname || '.' || p.proname
 from pg_catalog.pg_trigger t
 join pg_catalog.pg_class c on c.oid = t.tgrelid
