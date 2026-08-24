@@ -73,7 +73,7 @@ Hosted Supabase Auth and Storage schemas can be newer than those in a raw Postgr
 3. The gate requires no Auth application data, no Storage objects or multipart uploads, and either no bucket or exactly the expected private `catalog-media` bucket metadata.
 4. It verifies that `public` has no unsupported managed-schema dependency and uses only the expected database roles.
 5. It restores only `public` plus `supabase_migrations` into the pinned raw image. `roles.sql` and the hosted managed-schema rows are deliberately not applied to that image.
-6. It compares private, deterministic source and restored manifests. Manifest files are deleted before encryption and never uploaded separately.
+6. It compares private, deterministic source and restored manifests, including both `last_value` and `is_called` for every application sequence. On mismatch, logs expose only the affected manifest categories—not manifest rows. Manifest files are deleted before encryption and never uploaded separately.
 
 If Auth application data, Storage objects, another bucket, a custom application schema, or a managed-schema dependency appears later, the workflow fails closed. Extend and test the backup strategy instead of weakening the preflight.
 

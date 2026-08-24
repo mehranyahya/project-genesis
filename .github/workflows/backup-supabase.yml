@@ -339,7 +339,36 @@ jobs:
             > "$restored_manifest"
 
           if ! cmp --silent "$source_manifest" "$restored_manifest"; then
-            echo "::error::Source and restored database manifests differ."
+            manifest_categories=(
+              table
+              rows
+              sequence
+              constraint
+              index
+              function
+              trigger
+              policy
+              migration
+            )
+            mismatched_categories=()
+            for category in "${manifest_categories[@]}"; do
+              source_category_digest="$(
+                awk -F '|' -v category="$category" \
+                  '$1 == category' "$source_manifest" \
+                  | sha256sum \
+                  | cut -d ' ' -f 1
+              )"
+              restored_category_digest="$(
+                awk -F '|' -v category="$category" \
+                  '$1 == category' "$restored_manifest" \
+                  | sha256sum \
+                  | cut -d ' ' -f 1
+              )"
+              if [[ "$source_category_digest" != "$restored_category_digest" ]]; then
+                mismatched_categories+=("$category")
+              fi
+            done
+            echo "::error::Source and restored database manifests differ in categories: ${mismatched_categories[*]}"
             exit 1
           fi
 
