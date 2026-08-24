@@ -1,10 +1,19 @@
 # Supabase backup and restore runbook
 
-This project is currently on the Supabase Free plan, so production changes must not rely on managed daily backups. The repository workflow creates a logical database backup before launch work, every day at 02:17 UTC, and whenever its own workflow or restore-manifest implementation changes on `main`.
+This project is currently on the Supabase Free plan, so launch work must not rely on managed daily backups. The repository workflow creates a logical database backup every day at 02:17 UTC and whenever the workflow, compatibility preflight, or restore manifest changes on `main`.
 
 ## Backup outputs
 
-The workflow `.github/workflows/backup-supabase.yml` creates separate dumps for roles, schema, data, and `supabase_migrations` history. Before encryption it restores those files into an isolated Supabase PostgreSQL 17 container and compares a deterministic, data-minimizing source/restore manifest covering table counts, RLS, constraints, indexes, functions, triggers, policies, sequences and migration history. It then packs the dump, encrypts the archive with `age`, and deletes every plaintext copy before upload.
+The encrypted archive contains:
+
+- `roles.sql`, the complete CLI-filtered role dump;
+- `schema.sql`, the complete CLI-filtered application schema dump;
+- `data.sql`, the complete CLI platform-data dump, including managed Auth and Storage database rows;
+- `drill_schema.sql` and `drill_data.sql`, the isolated `public` restore-drill scope;
+- `history_schema.sql` and `history_data.sql`, the `supabase_migrations` history;
+- data-minimizing metadata, compatibility evidence, and internal SHA-256 checksums.
+
+The workflow pins Supabase CLI `2.115.0` and the exact digest of the Supabase PostgreSQL `17.6.1.136` drill image. Before encryption it validates the hosted project's restore assumptions, restores the supported drill scope into an isolated container, and compares a deterministic source/restore manifest covering table counts, RLS, constraints, indexes, functions, triggers, policies, sequences, and migration history. It then encrypts the archive with `age` and deletes every plaintext copy before upload.
 
 Every successful run keeps:
 
@@ -33,7 +42,7 @@ If none of the four R2 secrets is set, the workflow succeeds with only the encry
 
 1. Configure the three required secrets.
 2. Preferably configure all four R2 secrets and a private bucket lifecycle policy.
-3. Run **Supabase database backup** manually from GitHub Actions.
+3. Merge a reviewed backup-workflow change or run **Supabase database backup** manually.
 4. Confirm the dump, automatic restore drill, encryption and artifact steps are green.
 5. Download the encrypted artifact plus checksum and verify the checksum locally.
 6. Do not apply production migrations until this gate passes.
@@ -57,9 +66,18 @@ Never commit the private identity, decrypted archive, SQL dumps, database URL, o
 
 ## Automatic restore drill
 
-Every backup run restores the plaintext files before encryption into a disposable container based on the pinned Supabase PostgreSQL 17 image. Because the raw database image does not initialize every hosted Supabase service role, the workflow first reads only the source role names, validates the list, and idempotently creates missing roles as `NOLOGIN NOINHERIT`; `roles.sql` then restores their dumped attributes and memberships. Reserved-role setup and restore commands run as the image's isolated `supabase_admin` superuser, while the hosted source remains read-only. Role names and restore manifests are never logged or uploaded. The workflow generates the same private manifest against the source and restored databases and fails closed if they differ. Manifest files contain counts and schema hashes rather than row values and are deleted before the encrypted archive is created.
+Hosted Supabase Auth and Storage schemas can be newer than those in a raw PostgreSQL image. Restoring the hosted `data.sql` into that raw image can therefore fail on valid platform-only columns or tables. The automatic drill does not pretend those schemas are version-identical:
 
-This automatic drill satisfies the Preview migration gate without putting the offline `age` private identity in GitHub. A managed-project drill remains the stronger release exercise before the first Production launch or after a major PostgreSQL/platform upgrade.
+1. It keeps the complete `data.sql` encrypted for real managed-project recovery.
+2. A read-only preflight counts every Auth, Storage, and `supabase_functions` relation without reading or logging row values.
+3. The gate requires no Auth application data, no Storage objects or multipart uploads, and either no bucket or exactly the expected private `catalog-media` bucket metadata.
+4. It verifies that `public` has no unsupported managed-schema dependency and uses only the expected database roles.
+5. It restores only `public` plus `supabase_migrations` into the pinned raw image. `roles.sql` and the hosted managed-schema rows are deliberately not applied to that image.
+6. It compares private, deterministic source and restored manifests. Manifest files are deleted before encryption and never uploaded separately.
+
+If Auth application data, Storage objects, another bucket, a custom application schema, or a managed-schema dependency appears later, the workflow fails closed. Extend and test the backup strategy instead of weakening the preflight.
+
+This scoped automatic drill satisfies the current Preview migration gate because the live project has no Auth accounts or Storage objects and `public` is self-contained. A managed-project drill remains the stronger release exercise before the first Production launch or after a major PostgreSQL/platform upgrade.
 
 ## Managed-project restore exercise
 

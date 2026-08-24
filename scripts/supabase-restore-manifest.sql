@@ -33,6 +33,10 @@ begin
     raise exception 'request rate limit policy must remain present and disabled';
   end if;
 
+  if pg_catalog.to_regprocedure('extensions.digest(bytea,text)') is null then
+    raise exception 'restore manifest is missing the required pgcrypto digest function';
+  end if;
+
   if exists (
     select required.name
       from (
@@ -71,7 +75,17 @@ select
   || '|' || c.relkind::text
   || '|' || c.relrowsecurity::text
   || '|' || c.relforcerowsecurity::text
-  || '|' || coalesce(pg_catalog.array_to_string(c.relacl, ','), '')
+  || '|' || coalesce(
+    (
+      select pg_catalog.string_agg(
+        acl_item::text,
+        ','
+        order by acl_item::text
+      )
+      from unnest(c.relacl) as acl_item
+    ),
+    ''
+  )
 from pg_catalog.pg_class c
 join pg_catalog.pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public'
@@ -128,7 +142,17 @@ select
   || n.nspname || '.' || p.proname
   || '(' || pg_catalog.pg_get_function_identity_arguments(p.oid) || ')'
   || '|' || p.prosecdef::text
-  || '|' || coalesce(pg_catalog.array_to_string(p.proacl, ','), '')
+  || '|' || coalesce(
+    (
+      select pg_catalog.string_agg(
+        acl_item::text,
+        ','
+        order by acl_item::text
+      )
+      from unnest(p.proacl) as acl_item
+    ),
+    ''
+  )
   || '|' || pg_catalog.md5(pg_catalog.pg_get_functiondef(p.oid))
 from pg_catalog.pg_proc p
 join pg_catalog.pg_namespace n on n.oid = p.pronamespace
@@ -156,7 +180,17 @@ select
   || schemaname || '.' || tablename
   || '|' || policyname
   || '|' || permissive
-  || '|' || coalesce(pg_catalog.array_to_string(roles, ','), '')
+  || '|' || coalesce(
+    (
+      select pg_catalog.string_agg(
+        role_name::text,
+        ','
+        order by role_name::text
+      )
+      from unnest(roles) as role_name
+    ),
+    ''
+  )
   || '|' || cmd
   || '|' || pg_catalog.md5(coalesce(qual, '') || '|' || coalesce(with_check, ''))
 from pg_catalog.pg_policies

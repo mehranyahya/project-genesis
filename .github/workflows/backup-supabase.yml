@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - ".github/workflows/backup-supabase.yml"
+      - "scripts/supabase-backup-preflight.sql"
       - "scripts/supabase-restore-manifest.sql"
   schedule:
     - cron: "17 2 * * *"
@@ -36,7 +37,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: auto
       AWS_EC2_METADATA_DISABLED: "true"
-      RESTORE_DRILL_IMAGE: supabase/postgres:17.6.1.136
+      RESTORE_DRILL_IMAGE: "supabase/postgres:17.6.1.136@sha256:f371b5f3f2ac0a05703f33d6e6134515fb2498cab708fb948a0aeb7481467c00"
 
     steps:
       - name: Checkout
@@ -45,7 +46,7 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@aa3515eac405eac768fa4a72147c22d88a283c7b # v3
         with:
-          version: 2.84.2
+          version: 2.115.0
 
       - name: Validate backup configuration
         id: preflight
@@ -112,7 +113,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends age
 
-      - name: Dump, restore drill, checksum and encrypt
+      - name: Dump, scoped restore drill, checksum and encrypt
         id: backup
         shell: bash
         run: |
@@ -133,11 +134,21 @@ jobs:
             -f "$backup_dir/schema.sql"
           supabase db dump \
             --db-url "$SUPABASE_DB_SESSION_POOLER_URL" \
+            -f "$backup_dir/drill_schema.sql" \
+            --schema public
+          supabase db dump \
+            --db-url "$SUPABASE_DB_SESSION_POOLER_URL" \
             -f "$backup_dir/data.sql" \
             --use-copy \
             --data-only \
             -x "storage.buckets_vectors" \
             -x "storage.vector_indexes"
+          supabase db dump \
+            --db-url "$SUPABASE_DB_SESSION_POOLER_URL" \
+            -f "$backup_dir/drill_data.sql" \
+            --use-copy \
+            --data-only \
+            --schema public
           supabase db dump \
             --db-url "$SUPABASE_DB_SESSION_POOLER_URL" \
             -f "$backup_dir/history_schema.sql" \
@@ -148,17 +159,6 @@ jobs:
             --use-copy \
             --data-only \
             --schema supabase_migrations
-
-          (
-            cd "$backup_dir"
-            sha256sum \
-              roles.sql \
-              schema.sql \
-              data.sql \
-              history_schema.sql \
-              history_data.sql \
-              > SHA256SUMS
-          )
 
           jq -n \
             --arg project_ref "$SUPABASE_PROJECT_REF" \
@@ -177,7 +177,10 @@ jobs:
               run_id: $run_id,
               run_attempt: $run_attempt,
               supabase_cli_version: $supabase_cli_version,
-              restore_drill_image: $restore_drill_image
+              restore_drill_image: $restore_drill_image,
+              encrypted_archive_scope: "roles, complete CLI application schema, complete CLI platform data, and migration history",
+              restore_drill_scope: ["public", "supabase_migrations"],
+              managed_data_guard: "no Auth application data, no Storage objects, optional validated catalog-media bucket metadata"
             }' > "$backup_dir/METADATA.json"
 
           drill_container="supabase-restore-drill-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
@@ -217,10 +220,13 @@ jobs:
           docker exec "$drill_container" mkdir -p /tmp/backup
           docker cp "$backup_dir/." "$drill_container:/tmp/backup/"
           docker cp \
+            scripts/supabase-backup-preflight.sql \
+            "$drill_container:/tmp/backup-preflight.sql"
+          docker cp \
             scripts/supabase-restore-manifest.sql \
             "$drill_container:/tmp/restore-manifest.sql"
 
-          source_roles_json="$(
+          managed_preflight_json="$(
             docker exec "$drill_container" \
               psql \
                 --no-psqlrc \
@@ -229,69 +235,70 @@ jobs:
                 --tuples-only \
                 --no-align \
                 --dbname "$SUPABASE_DB_SESSION_POOLER_URL" \
-                --command "
-                  select coalesce(
-                    pg_catalog.jsonb_agg(r.rolname order by r.rolname),
-                    '[]'::pg_catalog.jsonb
-                  )
-                  from pg_catalog.pg_roles r
-                  where r.rolname !~* '^pg_';
-                "
+                --file /tmp/backup-preflight.sql
           )"
           if ! jq -e \
-            'type == "array" and length > 0 and all(.[]; type == "string" and (test("^pg_"; "i") | not))' \
-            <<< "$source_roles_json" \
+            '
+              type == "object"
+              and .application_schema_scope_valid == true
+              and .public_restore_scope_valid == true
+              and .public_roles_valid == true
+              and .storage_bucket_config_valid == true
+              and (.managed_relation_counts | type == "array" and length > 0)
+              and all(
+                .managed_relation_counts[];
+                (.relation == "auth.schema_migrations")
+                or (.relation == "storage.migrations")
+                or (.relation == "supabase_functions.migrations")
+                or (
+                  .relation == "storage.buckets"
+                  and (.rows == 0 or .rows == 1)
+                )
+                or (.rows == 0)
+              )
+            ' \
+            <<< "$managed_preflight_json" \
             >/dev/null; then
-            echo "::error::Could not derive a safe source-role manifest for the restore drill."
+            echo "::error::Managed Auth/Storage data or application schema dependencies exceed the validated restore-drill scope. Update the backup strategy before continuing."
             exit 1
           fi
+          printf '%s\n' "$managed_preflight_json" \
+            > "$backup_dir/MANAGED_PREFLIGHT.json"
+          unset managed_preflight_json
 
           docker exec -i "$drill_container" \
             psql \
               --no-psqlrc \
               --quiet \
               --set ON_ERROR_STOP=1 \
-              --set=source_roles_json="$source_roles_json" \
               --username supabase_admin \
               --dbname postgres \
             <<'SQL'
-          begin;
-          create temporary table restore_drill_source_roles (
-            rolname text primary key
-          ) on commit drop;
-
-          insert into restore_drill_source_roles (rolname)
-          select value
-            from pg_catalog.jsonb_array_elements_text(
-              :'source_roles_json'::pg_catalog.jsonb
-            );
-
           do $restore_drill$
           declare
-            source_role_name text;
+            application_role text;
           begin
-            for source_role_name in
-              select r.rolname
-                from restore_drill_source_roles r
-               order by r.rolname
+            foreach application_role in array array[
+              'anon',
+              'authenticated',
+              'service_role'
+            ]
             loop
               if not exists (
                 select 1
                   from pg_catalog.pg_roles r
-                 where r.rolname = source_role_name
+                 where r.rolname = application_role
               ) then
                 execute pg_catalog.format(
                   'create role %I nologin noinherit',
-                  source_role_name
+                  application_role
                 );
               end if;
             end loop;
           end
           $restore_drill$;
           create schema if not exists extensions authorization postgres;
-          commit;
           SQL
-          unset source_roles_json
 
           docker exec "$drill_container" \
             psql \
@@ -312,19 +319,10 @@ jobs:
               --set ON_ERROR_STOP=1 \
               --username supabase_admin \
               --dbname postgres \
-              --file /tmp/backup/roles.sql \
-              --file /tmp/backup/schema.sql \
+              --file /tmp/backup/drill_schema.sql \
               --command 'set session_replication_role = replica' \
-              --file /tmp/backup/data.sql
-
-          docker exec "$drill_container" \
-            psql \
-              --no-psqlrc \
-              --quiet \
-              --single-transaction \
-              --set ON_ERROR_STOP=1 \
-              --username supabase_admin \
-              --dbname postgres \
+              --file /tmp/backup/drill_data.sql \
+              --command 'set session_replication_role = origin' \
               --file /tmp/backup/history_schema.sql \
               --file /tmp/backup/history_data.sql
 
@@ -353,9 +351,27 @@ jobs:
             echo "### Supabase backup restore drill"
             echo
             echo "- Image: \`$RESTORE_DRILL_IMAGE\`"
-            echo "- Result: source and restored manifests match"
+            echo "- Encrypted archive: complete Supabase CLI logical dump"
+            echo "- Local restore drill: \`public\` + \`supabase_migrations\`"
+            echo "- Managed-data guard: passed (no Auth application data or Storage objects)"
+            echo "- Result: scoped source and restored manifests match"
             echo "- Plaintext retained outside runner: no"
           } >> "$GITHUB_STEP_SUMMARY"
+
+          (
+            cd "$backup_dir"
+            sha256sum \
+              roles.sql \
+              schema.sql \
+              data.sql \
+              drill_schema.sql \
+              drill_data.sql \
+              history_schema.sql \
+              history_data.sql \
+              METADATA.json \
+              MANAGED_PREFLIGHT.json \
+              > SHA256SUMS
+          )
 
           archive="$backup_root/supabase-$SUPABASE_PROJECT_REF-$stamp.tar.gz"
           encrypted="$archive.age"
@@ -421,7 +437,15 @@ jobs:
             --query ContentLength \
             --output text)"
           local_size="$(stat -c '%s' "$encrypted")"
-          if [[ "$remote_size" != "$local_size" ]]; then
+          remote_checksum_size="$(aws s3api head-object \
+            --bucket "$R2_BACKUP_BUCKET" \
+            --key "$object_key.sha256" \
+            --endpoint-url "$endpoint" \
+            --query ContentLength \
+            --output text)"
+          local_checksum_size="$(stat -c '%s' "$checksum")"
+          if [[ "$remote_size" != "$local_size" ]] \
+            || [[ "$remote_checksum_size" != "$local_checksum_size" ]]; then
             echo "::error::R2 backup size verification failed."
             exit 1
           fi
