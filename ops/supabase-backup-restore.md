@@ -1,6 +1,6 @@
 # Supabase backup and restore runbook
 
-This project is currently on the Supabase Free plan, so production changes must not rely on managed daily backups. The repository workflow creates a logical database backup before launch work and every day at 02:17 UTC.
+This project is currently on the Supabase Free plan, so production changes must not rely on managed daily backups. The repository workflow creates a logical database backup before launch work, every day at 02:17 UTC, and whenever its own workflow or restore-manifest implementation changes on `main`.
 
 ## Backup outputs
 
