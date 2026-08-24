@@ -57,6 +57,9 @@ test("backup workflow restores into disposable Postgres and compares a private m
   assert.match(workflow, /cmp --silent "\$source_manifest" "\$restored_manifest"/);
   assert.match(restoreManifest, /request rate limit policy must remain present and disabled/);
   assert.match(restoreManifest, /restore manifest is missing a critical RPC/);
+  assert.match(restoreManifest, /c\.relkind::text/);
+  assert.match(restoreManifest, /con\.contype::text/);
+  assert.match(restoreManifest, /t\.tgenabled::text/);
   assert.match(workflow, /trap cleanup_restore_drill EXIT/);
 });
 
