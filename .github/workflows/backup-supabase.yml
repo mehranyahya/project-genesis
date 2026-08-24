@@ -9,6 +9,7 @@ on:
       - ".github/workflows/backup-supabase.yml"
       - "scripts/supabase-backup-preflight.sql"
       - "scripts/supabase-restore-manifest.sql"
+      - "supabase/migrations/**"
   schedule:
     - cron: "17 2 * * *"
 

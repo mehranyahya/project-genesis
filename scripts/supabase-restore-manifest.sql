@@ -41,10 +41,12 @@ begin
     select required.name
       from (
         values
+          ('claim_gateway_nonce'),
           ('claim_telegram_notifications'),
           ('complete_telegram_notification'),
           ('compute_operational_catalog_version'),
           ('create_request_atomic'),
+          ('create_request_atomic_storage'),
           ('inspect_request_idempotency'),
           ('requests_before_update'),
           ('touch_updated_at')
