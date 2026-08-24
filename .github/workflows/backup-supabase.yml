@@ -193,6 +193,7 @@ jobs:
           docker run \
             --detach \
             --name "$drill_container" \
+            --env POSTGRES_USER=supabase_admin \
             --env POSTGRES_PASSWORD="$drill_password" \
             --env POSTGRES_DB=postgres \
             "$RESTORE_DRILL_IMAGE" \
@@ -201,7 +202,7 @@ jobs:
           drill_ready=0
           for _ in $(seq 1 60); do
             if docker exec "$drill_container" \
-              pg_isready --username postgres --dbname postgres \
+              pg_isready --username supabase_admin --dbname postgres \
               >/dev/null 2>&1; then
               drill_ready=1
               break
@@ -251,7 +252,7 @@ jobs:
               --quiet \
               --set ON_ERROR_STOP=1 \
               --set=source_roles_json="$source_roles_json" \
-              --username postgres \
+              --username supabase_admin \
               --dbname postgres \
             <<'SQL'
           begin;
@@ -309,7 +310,7 @@ jobs:
               --quiet \
               --single-transaction \
               --set ON_ERROR_STOP=1 \
-              --username postgres \
+              --username supabase_admin \
               --dbname postgres \
               --file /tmp/backup/roles.sql \
               --file /tmp/backup/schema.sql \
@@ -322,7 +323,7 @@ jobs:
               --quiet \
               --single-transaction \
               --set ON_ERROR_STOP=1 \
-              --username postgres \
+              --username supabase_admin \
               --dbname postgres \
               --file /tmp/backup/history_schema.sql \
               --file /tmp/backup/history_data.sql
@@ -334,7 +335,7 @@ jobs:
               --set ON_ERROR_STOP=1 \
               --tuples-only \
               --no-align \
-              --username postgres \
+              --username supabase_admin \
               --dbname postgres \
               --file /tmp/restore-manifest.sql \
             > "$restored_manifest"
