@@ -11,9 +11,12 @@ on:
           - preview
           - production
       content_confirmation:
-        description: Type CONTENT_FINALIZED after reviewed content and Catalog are loaded
+        description: Select PREVIEW_TECHNICAL for a noindex technical preview or CONTENT_FINALIZED after review
         required: true
-        type: string
+        type: choice
+        options:
+          - PREVIEW_TECHNICAL
+          - CONTENT_FINALIZED
       migration_confirmation:
         description: Type MIGRATIONS_VERIFIED_AFTER_BACKUP after the ordered DB gate
         required: true

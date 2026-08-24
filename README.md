@@ -84,7 +84,7 @@ bun run build
 
 Secrets are documented by name in `.env.example` and must live only in the destination secret store. Real credentials must never be committed to Git, pull requests, logs, issues or release artifacts.
 
-Preview and production use separate GitHub Actions secrets/variables. Production DNS and public release remain explicitly gated, while preview indexing is controlled through `PUBLIC_INDEXING`.
+Preview and production use separate GitHub Actions secrets/variables. A noindex technical preview may use `PREVIEW_TECHNICAL` before final content exists; `CONTENT_FINALIZED` and the release-content check remain mandatory for production. Production DNS and public release stay explicitly gated, while preview indexing is controlled through `PUBLIC_INDEXING`.
 
 Operational Supabase migrations are coupled to encrypted backups, checksum validation and restore drills. See [`ops/supabase-backup-restore.md`](ops/supabase-backup-restore.md).
 
