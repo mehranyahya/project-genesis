@@ -6,6 +6,10 @@ const workflow = readFileSync(
   new URL("../../.github/workflows/backup-supabase.yml", import.meta.url),
   "utf8",
 );
+const restoreManifest = readFileSync(
+  new URL("../../scripts/supabase-restore-manifest.sql", import.meta.url),
+  "utf8",
+);
 
 test("backup workflow is manual or scheduled and keeps repository permissions read-only", () => {
   assert.match(workflow, /workflow_dispatch:/);
@@ -37,6 +41,19 @@ test("only encrypted backup files leave the runner", () => {
   assert.match(artifactStep, /steps\.backup\.outputs\.encrypted/);
   assert.match(artifactStep, /steps\.backup\.outputs\.checksum/);
   assert.doesNotMatch(artifactStep, /roles\.sql|schema\.sql|data\.sql/);
+});
+
+test("backup workflow restores into disposable Postgres and compares a private manifest", () => {
+  assert.match(workflow, /RESTORE_DRILL_IMAGE: supabase\/postgres:17\.6\.1\.136/);
+  assert.match(workflow, /scripts\/supabase-restore-manifest\.sql/);
+  assert.match(workflow, /--single-transaction/);
+  assert.match(workflow, /set session_replication_role = replica/);
+  assert.match(workflow, /source_manifest/);
+  assert.match(workflow, /restored_manifest/);
+  assert.match(workflow, /cmp --silent "\$source_manifest" "\$restored_manifest"/);
+  assert.match(restoreManifest, /request rate limit policy must remain present and disabled/);
+  assert.match(restoreManifest, /restore manifest is missing a critical RPC/);
+  assert.match(workflow, /trap cleanup_restore_drill EXIT/);
 });
 
 test("backup workflow verifies the durable R2 copy and always cleans the runner", () => {

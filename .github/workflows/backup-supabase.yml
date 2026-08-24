@@ -30,6 +30,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: auto
       AWS_EC2_METADATA_DISABLED: "true"
+      RESTORE_DRILL_IMAGE: supabase/postgres:17.6.1.136
 
     steps:
       - name: Checkout
@@ -105,7 +106,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends age
 
-      - name: Dump, checksum and encrypt
+      - name: Dump, restore drill, checksum and encrypt
         id: backup
         shell: bash
         run: |
@@ -161,6 +162,7 @@ jobs:
             --arg run_id "$GITHUB_RUN_ID" \
             --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
             --arg supabase_cli_version "$(supabase --version)" \
+            --arg restore_drill_image "$RESTORE_DRILL_IMAGE" \
             '{
               project_ref: $project_ref,
               created_at: $created_at,
@@ -168,8 +170,139 @@ jobs:
               git_sha: $git_sha,
               run_id: $run_id,
               run_attempt: $run_attempt,
-              supabase_cli_version: $supabase_cli_version
+              supabase_cli_version: $supabase_cli_version,
+              restore_drill_image: $restore_drill_image
             }' > "$backup_dir/METADATA.json"
+
+          drill_container="supabase-restore-drill-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          drill_password="$(openssl rand -hex 24)"
+          source_manifest="$backup_root/source-manifest.txt"
+          restored_manifest="$backup_root/restored-manifest.txt"
+
+          cleanup_restore_drill() {
+            docker rm --force "$drill_container" >/dev/null 2>&1 || true
+          }
+          trap cleanup_restore_drill EXIT
+
+          docker run \
+            --detach \
+            --name "$drill_container" \
+            --env POSTGRES_PASSWORD="$drill_password" \
+            --env POSTGRES_DB=postgres \
+            "$RESTORE_DRILL_IMAGE" \
+            >/dev/null
+
+          drill_ready=0
+          for _ in $(seq 1 60); do
+            if docker exec "$drill_container" \
+              pg_isready --username postgres --dbname postgres \
+              >/dev/null 2>&1; then
+              drill_ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [[ "$drill_ready" != "1" ]]; then
+            echo "::error::Disposable restore database did not become ready."
+            exit 1
+          fi
+
+          docker exec "$drill_container" mkdir -p /tmp/backup
+          docker cp "$backup_dir/." "$drill_container:/tmp/backup/"
+          docker cp \
+            scripts/supabase-restore-manifest.sql \
+            "$drill_container:/tmp/restore-manifest.sql"
+
+          docker exec -i "$drill_container" \
+            psql \
+              --no-psqlrc \
+              --quiet \
+              --set ON_ERROR_STOP=1 \
+              --username postgres \
+              --dbname postgres \
+            <<'SQL'
+          do $restore_drill$
+          begin
+            if not exists (select 1 from pg_roles where rolname = 'anon') then
+              execute 'create role anon nologin noinherit';
+            end if;
+            if not exists (select 1 from pg_roles where rolname = 'authenticated') then
+              execute 'create role authenticated nologin noinherit';
+            end if;
+            if not exists (select 1 from pg_roles where rolname = 'service_role') then
+              execute 'create role service_role nologin noinherit bypassrls';
+            end if;
+            if not exists (select 1 from pg_roles where rolname = 'authenticator') then
+              execute 'create role authenticator nologin noinherit';
+            end if;
+          end
+          $restore_drill$;
+          create schema if not exists extensions authorization postgres;
+          SQL
+
+          docker exec "$drill_container" \
+            psql \
+              --no-psqlrc \
+              --quiet \
+              --set ON_ERROR_STOP=1 \
+              --tuples-only \
+              --no-align \
+              --dbname "$SUPABASE_DB_SESSION_POOLER_URL" \
+              --file /tmp/restore-manifest.sql \
+            > "$source_manifest"
+
+          docker exec "$drill_container" \
+            psql \
+              --no-psqlrc \
+              --quiet \
+              --single-transaction \
+              --set ON_ERROR_STOP=1 \
+              --username postgres \
+              --dbname postgres \
+              --file /tmp/backup/roles.sql \
+              --file /tmp/backup/schema.sql \
+              --command 'set session_replication_role = replica' \
+              --file /tmp/backup/data.sql
+
+          docker exec "$drill_container" \
+            psql \
+              --no-psqlrc \
+              --quiet \
+              --single-transaction \
+              --set ON_ERROR_STOP=1 \
+              --username postgres \
+              --dbname postgres \
+              --file /tmp/backup/history_schema.sql \
+              --file /tmp/backup/history_data.sql
+
+          docker exec "$drill_container" \
+            psql \
+              --no-psqlrc \
+              --quiet \
+              --set ON_ERROR_STOP=1 \
+              --tuples-only \
+              --no-align \
+              --username postgres \
+              --dbname postgres \
+              --file /tmp/restore-manifest.sql \
+            > "$restored_manifest"
+
+          if ! cmp --silent "$source_manifest" "$restored_manifest"; then
+            echo "::error::Source and restored database manifests differ."
+            exit 1
+          fi
+
+          rm -f "$source_manifest" "$restored_manifest"
+          cleanup_restore_drill
+          trap - EXIT
+
+          {
+            echo "### Supabase backup restore drill"
+            echo
+            echo "- Image: \`$RESTORE_DRILL_IMAGE\`"
+            echo "- Result: source and restored manifests match"
+            echo "- Plaintext retained outside runner: no"
+          } >> "$GITHUB_STEP_SUMMARY"
 
           archive="$backup_root/supabase-$SUPABASE_PROJECT_REF-$stamp.tar.gz"
           encrypted="$archive.age"
