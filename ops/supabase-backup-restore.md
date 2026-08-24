@@ -4,7 +4,7 @@ This project is currently on the Supabase Free plan, so production changes must 
 
 ## Backup outputs
 
-The workflow `.github/workflows/backup-supabase.yml` creates separate dumps for roles, schema, data, and `supabase_migrations` history. It checksums the plaintext files, packs them, encrypts the archive with `age`, and deletes the plaintext copy before upload.
+The workflow `.github/workflows/backup-supabase.yml` creates separate dumps for roles, schema, data, and `supabase_migrations` history. Before encryption it restores those files into an isolated Supabase PostgreSQL 17 container and compares a deterministic, data-minimizing source/restore manifest covering table counts, RLS, constraints, indexes, functions, triggers, policies, sequences and migration history. It then packs the dump, encrypts the archive with `age`, and deletes every plaintext copy before upload.
 
 Every successful run keeps:
 
@@ -34,8 +34,8 @@ If none of the four R2 secrets is set, the workflow succeeds with only the encry
 1. Configure the three required secrets.
 2. Preferably configure all four R2 secrets and a private bucket lifecycle policy.
 3. Run **Supabase database backup** manually from GitHub Actions.
-4. Confirm the run is green and download the encrypted artifact plus checksum.
-5. Verify the checksum locally.
+4. Confirm the dump, automatic restore drill, encryption and artifact steps are green.
+5. Download the encrypted artifact plus checksum and verify the checksum locally.
 6. Do not apply production migrations until this gate passes.
 
 ## Decrypt and inspect
@@ -55,9 +55,15 @@ sha256sum --check SHA256SUMS
 
 Never commit the private identity, decrypted archive, SQL dumps, database URL, or customer data.
 
-## Restore drill
+## Automatic restore drill
 
-Always restore into a new disposable Supabase project first. Obtain its session-pooler URL, then restore with `psql` and stop on the first error:
+Every backup run restores the plaintext files before encryption into a disposable container based on the pinned Supabase PostgreSQL 17 image. The workflow generates the same private manifest against the source and restored databases and fails closed if they differ. Manifest files contain counts and schema hashes rather than row values, are never uploaded, and are deleted before the encrypted archive is created.
+
+This automatic drill satisfies the Preview migration gate without putting the offline `age` private identity in GitHub. A managed-project drill remains the stronger release exercise before the first Production launch or after a major PostgreSQL/platform upgrade.
+
+## Managed-project restore exercise
+
+For the stronger release exercise, restore into a new disposable Supabase project first. Obtain its session-pooler URL, then restore with `psql` and stop on the first error:
 
 ```bash
 psql \
