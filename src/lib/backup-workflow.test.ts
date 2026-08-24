@@ -95,7 +95,19 @@ test("backup workflow restores only public data and migration history", () => {
   assert.equal(workflow.match(/--command 'reset role'/g)?.length, 2);
   assert.match(
     workflow,
-    /set role postgres'[\s\S]*drill_schema\.sql[\s\S]*reset role'[\s\S]*session_replication_role = replica/,
+    /alter default privileges for role postgres in schema public revoke all on tables from anon, authenticated, service_role/,
+  );
+  assert.match(
+    workflow,
+    /alter default privileges for role postgres in schema public revoke all on sequences from anon, authenticated, service_role/,
+  );
+  assert.match(
+    workflow,
+    /alter default privileges for role postgres in schema public revoke all on functions from anon, authenticated, service_role/,
+  );
+  assert.match(
+    workflow,
+    /set role postgres'[\s\S]*alter default privileges for role postgres in schema public revoke all on tables[\s\S]*alter default privileges for role postgres in schema public revoke all on sequences[\s\S]*alter default privileges for role postgres in schema public revoke all on functions[\s\S]*drill_schema\.sql[\s\S]*reset role'[\s\S]*session_replication_role = replica/,
   );
   assert.match(workflow, /--file \/tmp\/backup\/drill_schema\.sql/);
   assert.match(workflow, /--file \/tmp\/backup\/drill_data\.sql/);

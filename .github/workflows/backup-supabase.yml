@@ -320,6 +320,9 @@ jobs:
               --username supabase_admin \
               --dbname postgres \
               --command 'set role postgres' \
+              --command 'alter default privileges for role postgres in schema public revoke all on tables from anon, authenticated, service_role' \
+              --command 'alter default privileges for role postgres in schema public revoke all on sequences from anon, authenticated, service_role' \
+              --command 'alter default privileges for role postgres in schema public revoke all on functions from anon, authenticated, service_role' \
               --file /tmp/backup/drill_schema.sql \
               --command 'reset role' \
               --command 'set session_replication_role = replica' \
