@@ -105,13 +105,17 @@ where n.nspname = 'public'
 order by n.nspname, c.relname
 \gexec
 
-select
-  'sequence|'
-  || schemaname || '.' || sequencename
-  || '|' || coalesce(last_value::text, '')
+select pg_catalog.format(
+  'select %L || last_value::text || %L || is_called::text from %I.%I;',
+  'sequence|' || schemaname || '.' || sequencename || '|',
+  '|',
+  schemaname,
+  sequencename
+)
 from pg_catalog.pg_sequences
 where schemaname = 'public'
-order by schemaname, sequencename;
+order by schemaname, sequencename
+\gexec
 
 select
   'constraint|'

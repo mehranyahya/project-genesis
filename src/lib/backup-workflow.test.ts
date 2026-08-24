@@ -100,6 +100,8 @@ test("backup workflow restores only public data and migration history", () => {
   assert.match(workflow, /source_manifest/);
   assert.match(workflow, /restored_manifest/);
   assert.match(workflow, /cmp --silent "\$source_manifest" "\$restored_manifest"/);
+  assert.match(workflow, /mismatched_categories/);
+  assert.match(workflow, /awk -F '\|'/);
   assert.match(workflow, /'anon',[\s\S]*'authenticated',[\s\S]*'service_role'/);
   assert.match(workflow, /'create role %I nologin noinherit'/);
   assert.match(workflow, /--env POSTGRES_USER=supabase_admin/);
@@ -113,6 +115,9 @@ test("backup workflow restores only public data and migration history", () => {
   assert.match(restoreManifest, /c\.relkind::text/);
   assert.match(restoreManifest, /con\.contype::text/);
   assert.match(restoreManifest, /t\.tgenabled::text/);
+  assert.match(restoreManifest, /last_value::text/);
+  assert.match(restoreManifest, /is_called::text/);
+  assert.match(restoreManifest, /sequence\|/);
   assert.ok((restoreManifest.match(/string_agg/g)?.length ?? 0) >= 3);
   assert.match(workflow, /trap cleanup_restore_drill EXIT/);
 });
