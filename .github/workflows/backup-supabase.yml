@@ -2,6 +2,12 @@ name: Supabase database backup
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/backup-supabase.yml"
+      - "scripts/supabase-restore-manifest.sql"
   schedule:
     - cron: "17 2 * * *"
 

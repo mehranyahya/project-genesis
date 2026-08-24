@@ -11,11 +11,15 @@ const restoreManifest = readFileSync(
   "utf8",
 );
 
-test("backup workflow is manual or scheduled and keeps repository permissions read-only", () => {
+test("backup workflow is manual, scheduled or self-validating on main", () => {
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /schedule:/);
+  assert.match(
+    workflow,
+    /push:[\s\S]*branches:[\s\S]*- main[\s\S]*paths:[\s\S]*backup-supabase\.yml[\s\S]*supabase-restore-manifest\.sql/,
+  );
   assert.match(workflow, /contents: read/);
-  assert.doesNotMatch(workflow, /^\s+(?:push|pull_request):/m);
+  assert.doesNotMatch(workflow, /^\s+pull_request:/m);
   assert.doesNotMatch(workflow, /contents: write/);
 });
 
