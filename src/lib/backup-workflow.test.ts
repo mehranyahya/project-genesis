@@ -78,6 +78,7 @@ test("backup workflow fails closed when the scoped drill is no longer representa
   assert.match(backupPreflight, /id = 'catalog-media'/);
   assert.match(backupPreflight, /public_restore_scope_valid/);
   assert.match(backupPreflight, /public_roles_valid/);
+  assert.match(backupPreflight, /'postgres',[\s\S]*'public',[\s\S]*'service_role'/);
   assert.doesNotMatch(backupPreflight, /select \*/i);
 });
 

@@ -192,6 +192,7 @@ select pg_catalog.jsonb_build_object(
       'authenticated',
       'pg_database_owner',
       'postgres',
+      'public',
       'service_role'
     )
   )
