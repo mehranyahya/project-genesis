@@ -7,7 +7,7 @@ import { toAvifSrcSet } from "@/components/media/public-media";
 const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
 const PIPELINE = read("../../../scripts/generate-structured-content.mjs");
 const MIGRATION = read(
-  "../../../supabase/migrations/20260811023000_secure_catalog_media_and_whatsapp_url.sql",
+  "../../../supabase/migrations/20260824190853_secure_catalog_media_and_whatsapp_url.sql",
 );
 const TYPES = read("./types.ts");
 const RUNTIME_REPOSITORY = read("./supabase.server.ts");
