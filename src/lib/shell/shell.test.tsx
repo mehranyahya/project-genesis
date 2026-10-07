@@ -79,18 +79,18 @@ test("shell landmarks and accessible navigation labels exist", () => {
   assert.match(read("components/layout/mobile-navigation.tsx"), /aria-expanded=\{open\}/);
 });
 
-test("header, mobile panel and action bar use solid semantic surfaces", () => {
+test("header and mobile panel use opaque surfaces without a fixed action bar", () => {
   assert.match(read("components/layout/site-header.tsx"), /bg-surface\b/);
   assert.match(read("components/layout/mobile-navigation.tsx"), /bg-surface\b/);
-  assert.match(read("components/layout/app-shell.tsx"), /bg-surface\b/);
+  assert.doesNotMatch(read("components/layout/app-shell.tsx"), /fixed inset-x-0/);
   assert.match(read("components/layout/site-footer.tsx"), /bg-surface-inverse/);
   assert.match(read("components/layout/site-footer.tsx"), /text-text-inverse/);
 });
 
 test("desktop header keeps the expanded navigation on one line", () => {
   const header = read("components/layout/site-header.tsx");
-  assert.match(header, /lg:col-span-2/);
-  assert.match(header, /lg:col-span-7/);
+  assert.match(header, /lg:max-w-\[12rem\]/);
+  assert.match(header, /lg:flex-1/);
   assert.match(header, /lg:flex-nowrap/);
   assert.match(header, /whitespace-nowrap/);
 });
@@ -108,7 +108,7 @@ test("layout files carry no raw color and no banned effect", () => {
   }
 });
 
-test("every interactive shell control keeps a 44px target and visible focus", () => {
+test("every interactive shell control keeps a 48px target and visible focus", () => {
   for (const file of [
     "components/layout/app-shell.tsx",
     "components/layout/site-header.tsx",
@@ -116,7 +116,7 @@ test("every interactive shell control keeps a 44px target and visible focus", ()
     "components/layout/mobile-navigation.tsx",
   ]) {
     const source = read(file);
-    assert.match(source, /min-h-11/, `${file} missing touch target`);
+    assert.match(source, /min-h-12/, `${file} missing touch target`);
     assert.match(source, /focus-visible:outline-2/, `${file} missing focus ring`);
   }
 });

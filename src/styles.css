@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @import "./styles/tokens.css";
 @source "../src";
+@source not "../src/**/*.test.{ts,tsx}";
 
 /*
  * Mehrara — Quiet Material Intelligence.
@@ -68,6 +69,7 @@
     font-family: var(--font-body-family);
     font-synthesis: none;
     letter-spacing: normal;
+    scroll-padding-top: 1.5rem;
   }
 
   body {
@@ -79,6 +81,11 @@
     letter-spacing: normal;
     text-rendering: optimizeLegibility;
   }
+
+  html[lang="en"] body { line-height: 1.7; }
+  button, input, textarea, select { border-radius: var(--radius-control); }
+  input, textarea, select { min-width: 0; font-size: 1rem; }
+  p, h1, h2, h3, li { overflow-wrap: anywhere; }
 
   h1,
   h2,
@@ -110,20 +117,24 @@
 }
 
 @layer components {
-  /* Only approved floating surfaces may opt into this class. */
-  .mineral-glass {
-    border: var(--edge-width) solid var(--color-border-subtle);
-    border-radius: var(--radius-glass);
-    background-color: var(--color-mineral-glass-fallback);
+  .page-section { width: 100%; max-width: 80rem; margin-inline: auto; padding: 3rem 1.25rem; }
+  .page-title { font-size: clamp(2rem, 4vw, 3.5rem); max-width: 28ch; }
+  .section-title { font-size: clamp(1.75rem, 3vw, 2.5rem); }
+  .editorial-link {
+    text-decoration: underline;
+    text-underline-offset: 0.45em;
+    text-decoration-thickness: 1px;
+    transition: color var(--motion-control) var(--motion-ease);
   }
-
-  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .mineral-glass {
-      background-color: var(--color-mineral-glass);
-      -webkit-backdrop-filter: blur(var(--mineral-glass-blur));
-      backdrop-filter: blur(var(--mineral-glass-blur));
-    }
+  .editorial-link:hover { color: var(--color-action-primary); }
+  .on-dark {
+    --color-focus: var(--color-focus-inverse);
+    color: var(--color-text-inverse);
+    background-color: var(--color-surface-inverse);
   }
+  .media-enter { animation: media-enter var(--motion-media) var(--motion-ease); }
+  @keyframes media-enter { from { opacity: 0; } to { opacity: 1; } }
+  @media (min-width: 768px) { .page-section { padding: 5rem 1.5rem; } }
 }
 
 @utility numeric {

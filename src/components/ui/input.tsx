@@ -13,7 +13,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         type={type}
         aria-invalid={invalid ? true : props["aria-invalid"]}
         className={cn(
-          "block min-h-11 w-full border border-border-control bg-surface px-3 py-2 text-base text-text-primary",
+          "block min-h-12 w-full border border-border-control bg-surface px-3 py-2 text-base text-text-primary",
           "placeholder:text-text-caption",
           "transition-colors duration-[180ms] motion-reduce:transition-none",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",

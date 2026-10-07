@@ -1,8 +1,6 @@
 import { HomeHero } from "./home-hero";
 import {
-  HomeBuildingStone,
   HomeChoicePaths,
-  HomeFeaturedProducts,
   HomeFinalCta,
   HomeGuide,
   HomePortfolio,
@@ -14,12 +12,10 @@ export function HomePage({ model }: { model: HomeViewModel }) {
   return (
     <>
       <HomeHero media={model.heroMedia} />
-      <HomeChoicePaths />
+      <HomeChoicePaths media={model.serviceMedia} />
+      {model.showPortfolio ? <HomePortfolio projects={model.projects} /> : null}
       <HomeProcess />
-      {model.showProducts ? <HomeFeaturedProducts products={model.products} /> : null}
-      {model.showPortfolio ? <HomePortfolio /> : null}
       {model.showGuide && model.guide ? <HomeGuide guide={model.guide} /> : null}
-      <HomeBuildingStone />
       <HomeFinalCta />
     </>
   );

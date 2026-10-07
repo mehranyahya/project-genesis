@@ -132,9 +132,9 @@ test("8 the building-stone error is focused before the general field errors", ()
   assert.ok(form.includes("buildingStoneFieldId("));
 });
 
-test("9 controls keep a 44px target and a visible focus ring", () => {
+test("9 controls keep a 48px target and a visible focus ring", () => {
   const fields = read(FIELDS);
-  assert.ok(fields.includes("min-h-11"));
+  assert.ok(fields.includes("min-h-12"));
   assert.ok(fields.includes("focus-visible:outline-2"));
   assert.ok(fields.includes("focus-visible:outline-focus"));
 });
@@ -351,7 +351,10 @@ test("25 the shared form consumes the bound contract and never a hard-coded one"
   const form = stripComments(read(FORM));
   assert.ok(form.includes("extension.contract?.kind === source.kind"));
   assert.ok(form.includes("const contract = binding === null ? null : binding.contract;"));
-  assert.ok(form.includes("validateRequestForm({ values, source, extension: contract })"));
+  assert.match(
+    form,
+    /validateRequestForm\(\{\s*values: submittedValues,\s*source,\s*extension: contract,\s*\}\)/,
+  );
   assert.ok(form.includes("extension: contract"));
   // The building model is reached only through the contract and the field id.
   assert.ok(!form.includes("validateBuildingStoneSelection"));

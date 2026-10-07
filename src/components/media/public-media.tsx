@@ -1,3 +1,4 @@
+import type { ReactEventHandler } from "react";
 import type { Media } from "@/lib/content/types";
 
 export type PublicMediaFit = "contain" | "cover";
@@ -22,6 +23,9 @@ export interface PublicMediaProps {
   sizes?: string;
   fit?: PublicMediaFit;
   priority?: boolean;
+  eager?: boolean;
+  onLoad?: ReactEventHandler<HTMLImageElement>;
+  onError?: ReactEventHandler<HTMLImageElement>;
 }
 
 /**
@@ -35,6 +39,9 @@ export function PublicMedia({
   sizes,
   fit = "cover",
   priority = false,
+  eager = false,
+  onLoad,
+  onError,
 }: PublicMediaProps) {
   const avifSrcSet = toAvifSrcSet(media.srcSet);
   const fitClass = fit === "contain" ? "object-contain" : "object-cover";
@@ -49,9 +56,11 @@ export function PublicMedia({
         width={media.width}
         height={media.height}
         alt={alt}
-        loading={priority ? "eager" : "lazy"}
+        loading={priority || eager ? "eager" : "lazy"}
         fetchPriority={priority ? "high" : "auto"}
         decoding="async"
+        onLoad={onLoad}
+        onError={onError}
         className={`h-full w-full ${fitClass}`}
       />
     </picture>

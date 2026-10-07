@@ -6,6 +6,44 @@
  * `{name}` placeholders are substituted by `formatMessage`.
  */
 export const EN_MESSAGES = {
+  "ساخت سفارشی: {category}": "Bespoke stonework: {category}",
+  "حذف دستهٔ انتخاب‌شده": "Remove the selected category",
+  "ابعاد و جزئیات ساخت": "Dimensions and making details",
+  "شروع گفت‌وگو": "Start a conversation",
+  "ساخت سفارشی": "Bespoke stonework",
+  "زیبایی سنگ، دقت ساخت.": "Natural stone. Crafted with care.",
+  "سنگ مزار · سنگ ساختمانی · ساخت سفارشی":
+    "Memorial stone · Architectural stone · Bespoke stonework",
+  "بررسی خدمات": "Explore our services",
+  "سه مسیر، یک مادهٔ ماندگار": "Three paths. One enduring material.",
+  "بررسی این خدمت": "Explore this service",
+  "بررسی مدل، اندازه و جزئیات یک یادمان.":
+    "Explore the model, dimensions and details of a memorial.",
+  "انتخاب سنگ متناسب با کاربرد و مشخصات پروژه.":
+    "Find stone suited to your project and its requirements.",
+  "بررسی ایده، ابعاد و جزئیات ساخت یک قطعهٔ سنگی.":
+    "Explore your idea, dimensions and the making of a stone piece.",
+  "انتخاب مسیر": "Choose a service",
+  "ثبت مشخصات": "Share the specifications",
+  "بررسی درخواست": "Review the request",
+  "هماهنگی جزئیات": "Discuss the details",
+  "از انتخاب تا بررسی": "From selection to review",
+  "نمونه‌کارهای منتخب": "Selected projects",
+  "برای انتخاب یا ساخت سنگ، گفت‌وگو را شروع کنیم.":
+    "Let's discuss the stone you want to choose or create.",
+  "ثبت درخواست برای بررسی جزئیات است و به معنی شروع تولید یا الزام به پرداخت نیست.":
+    "Submitting a request starts a review of the details. It does not start production or commit you to payment.",
+  "سنگ مزار، سنگ ساختمانی و ساخت سفارشی":
+    "Memorial stone, architectural stone and bespoke stonework",
+  "بررسی سنگ طبیعی برای یادمان، معماری و ساخت سفارشی و ثبت درخواست بررسی.":
+    "Explore natural stone for memorials, architecture and bespoke stonework, and submit a request for review.",
+  "محل پروژه یا اجرا (اختیاری)": "Project or installation location (optional)",
+  "{count} محصول": "{count} products",
+  "{current} از {total}": "{current} of {total}",
+  "بارگذاری تصویر انجام نشد. تصویر قبلی حفظ شده است.":
+    "The image could not be loaded. The previous image is still displayed.",
+  "بارگذاری دوبارهٔ تصویر": "Retry loading the image",
+  "در حال بارگذاری تصویر…": "Loading image…",
   // Layout, navigation and global actions
   "رفتن به محتوای اصلی": "Skip to main content",
   "صفحهٔ اصلی": "Home",

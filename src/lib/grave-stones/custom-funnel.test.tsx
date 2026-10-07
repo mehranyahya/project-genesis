@@ -291,7 +291,7 @@ test("36 the desktop 3/9 split is present", () => {
 
 test("37 touch targets and focus-visible are present", () => {
   const stepper = read(STEPPER);
-  assert.ok(stepper.includes("min-h-11"));
+  assert.ok(stepper.includes("min-h-12"));
   assert.ok(stepper.includes("focus-visible:outline-2"));
 });
 

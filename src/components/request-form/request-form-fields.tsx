@@ -49,9 +49,9 @@ export const fieldId = (key: RequestFieldKey) => `${FIELD_ID_PREFIX}-${key}`;
 export const errorId = (key: RequestFieldKey) => `${FIELD_ID_PREFIX}-${key}-error`;
 
 const CONTROL =
-  "min-h-11 w-full border border-border-control bg-surface px-3 py-2 text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-45";
+  "min-h-12 w-full border border-border-control bg-surface px-3 py-2 text-base text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-45";
 const ROW =
-  "flex min-h-11 items-start gap-3 border border-border-subtle bg-surface p-3 has-[:checked]:border-2 has-[:checked]:border-action-primary";
+  "flex min-h-12 items-start gap-3 border border-border-subtle bg-surface p-3 has-[:checked]:border-2 has-[:checked]:border-action-primary";
 const CHOICE =
   "mt-1 h-5 w-5 shrink-0 accent-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
@@ -71,6 +71,7 @@ function TextField({
   error,
   disabled,
   multiline,
+  label,
   onChange,
 }: {
   fieldKey: RequestFieldKey;
@@ -78,8 +79,10 @@ function TextField({
   error: string | undefined;
   disabled: boolean;
   multiline?: boolean;
+  label?: string;
   onChange: (next: string) => void;
 }) {
+  const t = useT();
   const id = fieldId(fieldKey);
   const errId = errorId(fieldKey);
   const shared = {
@@ -94,7 +97,7 @@ function TextField({
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className="text-sm font-bold text-text-primary">
-        {REQUEST_FIELD_LABELS[fieldKey]}
+        {t(label ?? REQUEST_FIELD_LABELS[fieldKey])}
       </label>
       {multiline ? (
         <textarea {...shared} rows={4} onChange={(event) => onChange(event.currentTarget.value)} />
@@ -111,12 +114,14 @@ export function RequestFormFields({
   errors,
   source,
   disabled,
+  bespoke = false,
   onChange,
 }: {
   values: RequestFormValues;
   errors: RequestFieldErrors;
   source: RequestSource;
   disabled: boolean;
+  bespoke?: boolean;
   onChange: (next: Partial<RequestFormValues>) => void;
 }): ReactNode {
   const t = useT();
@@ -134,13 +139,14 @@ export function RequestFormFields({
 
       <div className="flex flex-col gap-2">
         <label htmlFor={fieldId("phone")} className="text-sm font-bold text-text-primary">
-          {REQUEST_FIELD_LABELS.phone}
+          {t(REQUEST_FIELD_LABELS.phone)}
         </label>
         <input
           id={fieldId("phone")}
           type="tel"
           inputMode="tel"
           dir="ltr"
+          autoComplete="tel"
           className={CONTROL}
           value={values.phone}
           disabled={disabled}
@@ -162,6 +168,7 @@ export function RequestFormFields({
       <div className="flex flex-col gap-2">
         <TextField
           fieldKey="locationText"
+          label={graveStone ? REQUEST_FIELD_LABELS.locationText : "محل پروژه یا اجرا (اختیاری)"}
           value={values.locationText}
           error={errors.locationText}
           disabled={disabled || (graveStone && values.locationUnknown)}
@@ -183,14 +190,14 @@ export function RequestFormFields({
                 )
               }
             />
-            <span className="text-sm text-text-primary">{LOCATION_UNKNOWN_VALUE}</span>
+            <span className="text-sm text-text-primary">{t(LOCATION_UNKNOWN_VALUE)}</span>
           </label>
         ) : null}
       </div>
 
       <fieldset className="border border-border-subtle p-4">
         <legend className="px-2 text-sm font-bold text-text-primary">
-          {REQUEST_FIELD_LABELS.preferredContact}
+          {t(REQUEST_FIELD_LABELS.preferredContact)}
         </legend>
         <div className="flex flex-col gap-3 pt-2">
           {PREFERRED_CONTACT_OPTIONS.map((option) => (
@@ -232,6 +239,7 @@ export function RequestFormFields({
 
       <TextField
         fieldKey="customerNote"
+        label={bespoke ? "ابعاد و جزئیات ساخت" : REQUEST_FIELD_LABELS.customerNote}
         value={values.customerNote}
         error={errors.customerNote}
         disabled={disabled}

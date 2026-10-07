@@ -93,7 +93,7 @@ test("10 error state is accessible with a real router retry", () => {
 test("11-13 CTA text is exact and only the view-model quote path is used", () => {
   const card = read(CARD);
   assert.ok(card.includes("مشابه این را می‌خواهم"));
-  assert.ok(card.includes("href={card.quotePath}"));
+  assert.ok(card.includes("href={localizeRawPath(card.quotePath, locale)}"));
   assert.ok(!card.includes("?source="));
   assert.ok(!card.includes("URLSearchParams"));
   assert.ok(!card.includes("window.location"));
@@ -124,7 +124,7 @@ test("19-23 portfolio imagery is intentional while private media state stays abs
   const card = read(CARD);
   const code = COMPONENT_CODE.replaceAll("text-text-caption", "");
   assert.ok(card.includes("<PublicMedia"));
-  assert.ok(card.includes("aspect-[4/5]"));
+  assert.ok(card.includes("aspect-[3/2]"));
   assert.ok(card.includes("media={card.media}"));
   for (const banned of [
     "mediaKey",
@@ -142,10 +142,10 @@ test("19-23 portfolio imagery is intentional while private media state stays abs
 
 test("24-26 reference and stone code are bidi-isolated; the size label is reused", () => {
   const card = read(CARD);
-  assert.equal(card.split('<bdi dir="ltr">').length - 1, 2);
+  assert.equal(card.split('<bdi dir="ltr">').length - 1, 3);
   assert.ok(card.includes("{card.publicReferenceId}"));
   assert.ok(card.includes("{card.stoneCode}"));
-  assert.ok(card.includes("{card.sizeLabel}"));
+  assert.ok(card.includes("t(card.sizeLabel)"));
   assert.ok(read(MODEL).includes('SIZE_LABELS } from "./product-detail"'));
 });
 
@@ -175,10 +175,10 @@ test("27-32 no carousel, filter, price, contact CTA, storage or PII surface", ()
   }
 });
 
-test("33-35 the 4:5 card, 4/8/12 grid, touch target and focus are present", () => {
+test("33-35 the 3:2 card, 4/8/12 grid, touch target and focus are present", () => {
   const card = read(CARD);
-  assert.ok(card.includes("aspect-[4/5]"));
-  assert.ok(card.includes("min-h-11"));
+  assert.ok(card.includes("aspect-[3/2]"));
+  assert.ok(card.includes("min-h-12"));
   assert.ok(card.includes("focus-visible:outline"));
   const page = read(PAGE);
   assert.ok(page.includes("grid-cols-4"));
@@ -228,4 +228,9 @@ test("fa and en wrappers declare their route ids and delegate to the shared fact
     }),
     [],
   );
+});
+
+test("project loading and final media share the same 3:2 geometry", () => {
+  assert.ok(read(CARD).includes("aspect-[3/2]"));
+  assert.ok(read(STATES).includes("aspect-[3/2]"));
 });

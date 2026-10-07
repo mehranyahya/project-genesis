@@ -40,6 +40,12 @@ export function factorySection(exportName: string): string {
 /** The shared import header of the factory module. */
 export const FACTORY_IMPORTS = FACTORY_SOURCE.slice(0, FACTORY_SOURCE.indexOf("export function"));
 
+/** Include the corresponding async view so route-level UI assertions remain meaningful. */
+function lazyViewSource(exportName: string): string {
+  const match = /import\("\.\/views\/([^"]+)"\)/.exec(factorySection(exportName));
+  return match?.[1] ? readSource(`lib/route-defs/views/${match[1]}.tsx`) : "";
+}
+
 /** Wrapper sources plus the factory import header and the owning section. */
 export function routeUnit(rel: string, exportName: string): string {
   return [
@@ -47,6 +53,7 @@ export function routeUnit(rel: string, exportName: string): string {
     readSource(englishWrapperPath(rel)),
     FACTORY_IMPORTS,
     factorySection(exportName),
+    lazyViewSource(exportName),
   ].join("\n");
 }
 
@@ -55,9 +62,12 @@ export function routeUnit(rel: string, exportName: string): string {
  * "must not call X" bans are not satisfied by another route's import.
  */
 export function routeUnitBody(rel: string, exportName: string): string {
-  return [readSource(rel), readSource(englishWrapperPath(rel)), factorySection(exportName)].join(
-    "\n",
-  );
+  return [
+    readSource(rel),
+    readSource(englishWrapperPath(rel)),
+    factorySection(exportName),
+    lazyViewSource(exportName),
+  ].join("\n");
 }
 
 export interface DelegationExpectation {

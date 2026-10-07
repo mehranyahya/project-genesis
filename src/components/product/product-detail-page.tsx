@@ -19,7 +19,7 @@ export const REVIEW_BUTTON_LABEL = "بازبینی انتخاب";
 export const DRAFT_BLOCKED_TEXT = "امکان آماده‌سازی خلاصه سفارش در حال حاضر وجود ندارد.";
 
 const ACTION =
-  "inline-flex min-h-11 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] enabled:hover:border-surface-inverse enabled:hover:bg-surface-inverse disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
+  "inline-flex min-h-12 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] enabled:hover:border-surface-inverse enabled:hover:bg-action-hover disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 export function ProductDetailPage({
   model,
@@ -72,9 +72,9 @@ export function ProductDetailPage({
   };
 
   return (
-    <section className="mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12">
+    <section className="mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-5 py-12 md:grid-cols-8 md:px-6 md:py-20 lg:grid-cols-12">
       <div className="col-span-4 md:col-span-8 lg:col-span-12">
-        <h1 className="text-2xl font-bold text-text-primary">{model.title}</h1>
+        <h1 className="page-title font-medium text-text-primary">{model.title}</h1>
         <p className="pt-2 text-sm text-text-secondary">{t(model.typeLabel)}</p>
         <p className="pt-1 text-sm text-text-caption">
           {t("کد محصول:")}

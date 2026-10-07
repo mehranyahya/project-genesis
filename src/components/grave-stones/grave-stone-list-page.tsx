@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { LocaleLink, useT } from "@/lib/i18n/react";
+import { LocaleLink, useLocale, useT } from "@/lib/i18n/react";
 
 import { GraveStoneCard } from "./grave-stone-card";
 import { GraveStoneFilter } from "./grave-stone-filter";
@@ -12,19 +12,19 @@ import {
 } from "@/lib/grave-stone-list";
 
 const SECTION =
-  "mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12";
+  "mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-5 py-12 md:grid-cols-8 md:px-6 md:py-20 lg:grid-cols-12";
 const FULL = "col-span-4 md:col-span-8 lg:col-span-12";
 const RESULTS_ID = "grave-stone-results";
 
-const numberFormatter = new Intl.NumberFormat("fa-IR");
-
 const PATH_BUTTON =
-  "inline-flex min-h-11 items-center justify-center border px-5 py-2 text-sm font-bold transition-colors duration-[180ms] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
+  "inline-flex min-h-12 items-center justify-center border px-5 py-2 text-sm font-bold transition-colors duration-[180ms] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 const PATH_IDLE = "border-border-control bg-surface text-text-primary hover:bg-surface-media";
 const PATH_SELECTED = "border-action-primary bg-action-primary text-text-inverse";
 
 export function GraveStoneListPage({ model }: { model: GraveStoneListModel }) {
   const t = useT();
+  const locale = useLocale();
+  const numberFormatter = new Intl.NumberFormat(locale === "en" ? "en" : "fa");
   const [filters, setFilters] = useState<GraveStoneFilters>(NEUTRAL_GRAVE_STONE_FILTERS);
 
   const visible = useMemo(
@@ -37,7 +37,7 @@ export function GraveStoneListPage({ model }: { model: GraveStoneListModel }) {
   return (
     <section className={SECTION}>
       <div className={FULL}>
-        <h1 className="text-2xl font-bold text-text-primary">{t("فروشگاه سنگ مزار")}</h1>
+        <h1 className="page-title font-medium text-text-primary">{t("فروشگاه سنگ مزار")}</h1>
         <p className="pt-3 text-sm text-text-secondary">
           {t("محصولات فعال را بر اساس نوع اجرا، کد سنگ و اندازه بررسی کنید.")}
         </p>
@@ -81,7 +81,7 @@ export function GraveStoneListPage({ model }: { model: GraveStoneListModel }) {
           />
 
           <p className={`${FULL} text-sm text-text-secondary`} aria-live="polite">
-            {numberFormatter.format(visible.length)} محصول
+            {t("{count} محصول", { count: numberFormatter.format(visible.length) })}
           </p>
 
           <div id={RESULTS_ID} className={FULL}>
