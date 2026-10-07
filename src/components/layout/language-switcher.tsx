@@ -20,7 +20,7 @@ function withSafeSearch(path: string, search: Record<string, unknown> | undefine
  * Equivalent-route language switcher.
  *
  * The target is the same route in the other locale — dynamic slugs stay
- * stable, and only the non-PII portfolio referral pair survives the switch.
+ * stable, and only public portfolio references and category IDs survive the switch.
  */
 export function LanguageSwitcher({ className }: { className?: string }) {
   const active = useLocale();
@@ -43,7 +43,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                 hrefLang={locale}
                 lang={locale}
                 {...(isActive ? { "aria-current": "true" as const } : {})}
-                className={`inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${
+                className={`inline-flex min-h-12 min-w-12 items-center justify-center px-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${
                   isActive ? "font-bold text-action-primary" : "text-text-secondary"
                 }`}
               >

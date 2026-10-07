@@ -127,11 +127,11 @@ test("home layout honours the 4/8/12 grid, touch targets and focus", () => {
     assert.ok(source.includes("grid-cols-4"), `${rel} missing mobile grid`);
     assert.ok(source.includes("md:grid-cols-8"), `${rel} missing tablet grid`);
     assert.ok(source.includes("lg:grid-cols-12"), `${rel} missing desktop grid`);
-    assert.ok(source.includes("min-h-11"), `${rel} missing touch target`);
+    assert.ok(source.includes("min-h-12"), `${rel} missing touch target`);
     assert.ok(source.includes("focus-visible:outline"), `${rel} missing focus indicator`);
   }
   const card = read("components/home/home-link-card.tsx");
-  assert.ok(card.includes("min-h-11"));
+  assert.ok(card.includes("min-h-12"));
   assert.ok(card.includes("focus-visible:outline"));
 });
 

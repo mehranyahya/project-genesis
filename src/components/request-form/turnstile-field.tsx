@@ -218,8 +218,8 @@ export const TurnstileField = forwardRef<TurnstileFieldHandle>(function Turnstil
   }, []);
 
   return (
-    <div className="flex min-h-11 flex-col gap-2" aria-live="polite">
-      <div ref={containerRef} className="min-h-11 w-full" />
+    <div className="flex min-h-12 flex-col gap-2" aria-live="polite">
+      <div ref={containerRef} className="min-h-12 w-full" />
       {state === "loading" ? (
         <p className="text-sm text-text-secondary">{t("در حال آماده‌سازی تأیید امنیتی…")}</p>
       ) : null}

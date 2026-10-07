@@ -178,7 +178,7 @@ test("27-32 no carousel, filter, price, contact CTA, storage or PII surface", ()
 test("33-35 the 4:5 card, 4/8/12 grid, touch target and focus are present", () => {
   const card = read(CARD);
   assert.ok(card.includes("aspect-[4/5]"));
-  assert.ok(card.includes("min-h-11"));
+  assert.ok(card.includes("min-h-12"));
   assert.ok(card.includes("focus-visible:outline"));
   const page = read(PAGE);
   assert.ok(page.includes("grid-cols-4"));

@@ -6,11 +6,11 @@ import {
   FOOTER_LEGAL_NAV,
   PRIMARY_CTA,
   PRIMARY_NAV,
+  SECONDARY_NAV,
   MAIN_CONTENT_ID,
   SKIP_LINK_LABEL,
   isBusinessRoute,
 } from "./navigation";
-import { CHOICE_PATHS } from "../components/home/home-sections";
 
 const EXPECTED = [
   "/",
@@ -58,15 +58,7 @@ test("primary navigation targets are allowed, static and public", () => {
   }
   assert.deepEqual(
     PRIMARY_NAV.map((item) => item.to),
-    [
-      "/grave-stones",
-      "/portfolio",
-      "/building-stone",
-      "/stoneworks",
-      "/guides",
-      "/about",
-      "/contact",
-    ],
+    ["/grave-stones", "/building-stone", "/stoneworks", "/portfolio"],
   );
 });
 
@@ -81,8 +73,8 @@ test("legal routes live in the footer only", () => {
 });
 
 test("primary CTA label and destination are exact", () => {
-  assert.equal(PRIMARY_CTA.label, "انتخاب و ثبت سفارش");
-  assert.equal(PRIMARY_CTA.to, "/grave-stones");
+  assert.equal(PRIMARY_CTA.label, "شروع گفت‌وگو");
+  assert.equal(PRIMARY_CTA.to, "/quote");
   for (const stale of ["ثبت درخواست", "خرید آنلاین", "افزودن به سبد", "پرداخت"]) {
     assert.notEqual(PRIMARY_CTA.label, stale);
   }
@@ -93,22 +85,24 @@ test("skip link contract", () => {
   assert.equal(MAIN_CONTENT_ID, "main-content");
 });
 
-test("the custom funnel keeps its route and its home-page access after the nav swap", () => {
-  // Primary navigation swapped the custom-order entry for Stoneworks to keep
-  // the desktop header uncrowded; the route itself must stay reachable.
+test("the navigation exposes three equal services while the memorial builder remains a memorial subflow", () => {
   assert.ok(isBusinessRoute("/grave-stones/custom"));
+  assert.deepEqual(
+    PRIMARY_NAV.slice(0, 3).map((item) => item.to),
+    ["/grave-stones", "/building-stone", "/stoneworks"],
+  );
   assert.equal(
     PRIMARY_NAV.some((item) => item.to === "/grave-stones/custom"),
     false,
   );
   assert.deepEqual(
-    CHOICE_PATHS.map((item) => item.to).filter((to) => to === "/grave-stones/custom"),
-    ["/grave-stones/custom"],
+    SECONDARY_NAV.map((item) => item.to),
+    ["/guides", "/about", "/contact"],
   );
 });
 
 test("the Stoneworks entry is present exactly once with its official label", () => {
   const entries = PRIMARY_NAV.filter((item) => item.to === "/stoneworks");
   assert.equal(entries.length, 1);
-  assert.equal(entries[0]?.label, "محصولات سنگی خاص");
+  assert.equal(entries[0]?.label, "ساخت سفارشی");
 });

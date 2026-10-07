@@ -181,7 +181,7 @@ test("zero raw colors and zero banned effects", () => {
 test("touch targets and focus-visible indicators are present", () => {
   for (const rel of [PAGE, FILTER, CARD, STATES]) {
     const source = read(rel);
-    assert.ok(source.includes("min-h-11"), `${rel} needs min-h-11`);
+    assert.ok(source.includes("min-h-12"), `${rel} needs min-h-12`);
     assert.ok(source.includes("focus-visible:outline-2"), `${rel} needs focus-visible outline`);
   }
 });

@@ -20,35 +20,41 @@ const COMPONENTS = [
 ];
 
 const MASTER_TOKENS: Record<string, string> = {
-  "--color-canvas": "#f4efe6",
+  "--color-canvas": "#f7f6f2",
   "--color-surface": "#fbf9f4",
-  "--color-surface-media": "#f4efe6",
+  "--color-surface-media": "#f7f6f2",
   "--color-text-primary": "#121212",
-  "--color-text-secondary": "#5c5850",
-  "--color-text-caption": "#6b665e",
-  "--color-border-subtle": "#b9aa92",
-  "--color-border-control": "#6b665e",
+  "--color-text-secondary": "#59615c",
+  "--color-text-caption": "#59615c",
+  "--color-border-subtle": "#d8d8d1",
+  "--color-border-control": "#81877f",
   "--color-action-primary": "#203b34",
-  "--color-accent": "#9c6b32",
-  "--color-surface-inverse": "#121212",
-  "--color-text-inverse": "#fbf9f4",
+  "--color-action-hover": "#172d27",
+  "--color-text-on-action": "#fbf9f4",
+  "--color-surface-inverse": "#121312",
+  "--color-text-inverse": "#f5f1e8",
+  "--color-text-inverse-secondary": "#d0d1ca",
   "--color-focus": "#203b34",
-  "--color-focus-inverse": "#fbf9f4",
+  "--color-focus-inverse": "#f5f1e8",
   "--color-status-success": "#203b34",
-  "--color-status-error": "#8f4c2f",
+  "--color-status-error": "#8b2727",
 };
 
 const APPROVED_PRIMITIVES = [
-  "#f4efe6",
+  "#f7f6f2",
   "#fbf9f4",
   "#121212",
-  "#5c5850",
-  "#6b665e",
-  "#b9aa92",
+  "#59615c",
+  "#59615c",
+  "#d8d8d1",
   "#203b34",
-  "#9c6b32",
+  "#81877f",
+  "#172d27",
+  "#121312",
+  "#f5f1e8",
+  "#d0d1ca",
   // Functional validation/error color; excluded from brand decoration.
-  "#8f4c2f",
+  "#8b2727",
 ];
 
 const RUNTIME_EXTENSIONS = new Set([".ts", ".tsx", ".css", ".js", ".jsx"]);
@@ -93,7 +99,7 @@ test("recursive runtime scan finds zero raw colors outside tokens.css", () => {
   assert.ok(rawColor.test(read(TOKENS)));
 });
 
-test("token file declares only the approved primitive palette and Mineral Glass alpha", () => {
+test("token file declares only the final approved palette, without alpha effects", () => {
   const tokenSource = read(TOKENS).toLowerCase();
   const foundHex = tokenSource.match(/#[0-9a-f]{3,8}\b/g) ?? [];
   const allowed = new Set(APPROVED_PRIMITIVES);
@@ -101,43 +107,21 @@ test("token file declares only the approved primitive palette and Mineral Glass 
     assert.ok(allowed.has(hex), `unexpected raw color ${hex} in tokens`);
   }
   assert.deepEqual([...new Set(foundHex)].sort(), [...allowed].sort());
-  assert.match(tokenSource, /rgba\(251, 249, 244, 0\.88\)/);
-  assert.match(tokenSource, /rgba\(251, 249, 244, 0\.96\)/);
+  assert.doesNotMatch(tokenSource, /rgba?\(|hsla?\(/);
 });
 
-test("effects stay quiet and Mineral Glass is restricted to approved floating surfaces", () => {
-  const banned = /gradient|tw-animate|animate-pulse|shimmer|spinner|parallax/i;
+test("effects stay quiet and every public surface is opaque", () => {
+  const banned =
+    /gradient|tw-animate|animate-pulse|shimmer|spinner|parallax|backdrop-filter|backdrop-blur|mineral-glass/i;
   const offenders = runtimeFiles().filter((rel) => banned.test(stripComments(read(rel))));
   assert.deepEqual(offenders, [], `banned effect in: ${offenders.join(", ")}`);
-
-  const glassImplementationOffenders = runtimeFiles()
-    .filter((rel) => rel !== TOKENS && rel !== STYLE_ENTRY)
-    .filter((rel) => /backdrop-filter|backdrop-blur|blur\(/i.test(stripComments(read(rel))));
-  assert.deepEqual(
-    glassImplementationOffenders,
-    [],
-    `glass implementation escaped style entry: ${glassImplementationOffenders.join(", ")}`,
-  );
-
-  const styles = stripComments(read(STYLE_ENTRY));
-  assert.match(styles, /\.mineral-glass\s*\{/);
-  assert.match(styles, /backdrop-filter:\s*blur\(var\(--mineral-glass-blur\)\)/);
-
-  const glassConsumers = runtimeFiles()
-    .filter((rel) => rel !== TOKENS && rel !== STYLE_ENTRY)
-    .filter((rel) => /mineral-glass/.test(stripComments(read(rel))))
-    .sort();
-  assert.deepEqual(glassConsumers, [
-    "components/layout/app-shell.tsx",
-    "components/layout/site-header.tsx",
-  ]);
 });
 
-test("accent aliases keep interactive green separate from aged bronze", () => {
+test("compatibility accent aliases keep interactive green and neutral decoration separate", () => {
   const tokens = stripComments(read(TOKENS));
   assert.match(tokens, /--accent:\s*var\(--color-action-primary\);/);
-  assert.match(tokens, /--accent-foreground:\s*var\(--color-text-inverse\);/);
-  assert.match(tokens, /--decorative-accent:\s*var\(--color-accent\);/);
+  assert.match(tokens, /--accent-foreground:\s*var\(--color-text-on-action\);/);
+  assert.match(tokens, /--decorative-accent:\s*var\(--color-text-secondary\);/);
 
   const styles = stripComments(read(STYLE_ENTRY));
   assert.match(styles, /--color-decorative-accent:\s*var\(--decorative-accent\);/);
@@ -156,10 +140,10 @@ test("accent aliases keep interactive green separate from aged bronze", () => {
   assert.equal(resolve("--accent"), MASTER_TOKENS["--color-action-primary"]);
   assert.equal(resolve("--color-sidebar-accent"), MASTER_TOKENS["--color-action-primary"]);
   assert.equal(resolve("--color-sidebar-accent-foreground"), MASTER_TOKENS["--color-text-inverse"]);
-  assert.equal(resolve("--decorative-accent"), MASTER_TOKENS["--color-accent"]);
+  assert.equal(resolve("--decorative-accent"), MASTER_TOKENS["--color-text-secondary"]);
 });
 
-test("CTA, focus and success use deep serpentine; aged bronze stays decorative", () => {
+test("CTA, focus and success use deep green on light surfaces", () => {
   const button = read("components/ui/button.tsx");
   assert.match(button, /bg-action-primary/);
   assert.match(button, /outline-focus/);
@@ -180,7 +164,7 @@ test("button honours motion, focus, touch target and disabled contract", () => {
   assert.match(button, /duration-\[180ms\]/);
   assert.match(button, /focus-visible:outline-2/);
   assert.match(button, /focus-visible:outline-offset-2/);
-  assert.match(button, /min-h-11/);
+  assert.match(button, /min-h-12/);
   assert.match(button, /disabled:opacity-45/);
   assert.match(button, /disabled:cursor-not-allowed/);
   assert.match(button, /aria-busy=\{loading \? true : undefined\}/);
@@ -260,4 +244,39 @@ test("fixture covers Persian, Latin, all digit sets and punctuation", () => {
   assert.ok(/[۰-۹]/.test(TYPOGRAPHY_FIXTURE));
   assert.ok(/[٠-٩]/.test(TYPOGRAPHY_FIXTURE));
   assert.ok(/[0-9]/.test(TYPOGRAPHY_FIXTURE));
+});
+
+function contrast(a: string, b: string): number {
+  const luminance = (hex: string) => {
+    const rgb = [1, 3, 5]
+      .map((offset) => parseInt(hex.slice(offset, offset + 2), 16) / 255)
+      .map((value) => (value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4));
+    return rgb[0]! * 0.2126 + rgb[1]! * 0.7152 + rgb[2]! * 0.0722;
+  };
+  const first = luminance(a),
+    second = luminance(b);
+  return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+}
+
+test("actual solid token pairs meet text and essential-control contrast thresholds", () => {
+  const source = read(TOKENS).toLowerCase();
+  const value = (name: string) => source.match(new RegExp(name + ":\\s*(#[a-f0-9]{6});"))![1]!;
+  const textPairs = [
+    ["--color-text-primary", "--color-canvas"],
+    ["--color-text-secondary", "--color-canvas"],
+    ["--color-text-secondary", "--color-surface"],
+    ["--color-status-error", "--color-surface"],
+    ["--color-text-on-action", "--color-action-primary"],
+    ["--color-text-on-action", "--color-action-hover"],
+    ["--color-text-inverse", "--color-surface-inverse"],
+    ["--color-text-inverse-secondary", "--color-surface-inverse"],
+  ];
+  for (const [foreground, background] of textPairs)
+    assert.ok(
+      contrast(value(foreground!), value(background!)) >= 4.5,
+      foreground + " on " + background,
+    );
+  for (const background of ["--color-canvas", "--color-surface"])
+    assert.ok(contrast(value("--color-border-control"), value(background)) >= 3);
+  assert.ok(contrast(value("--color-focus-inverse"), value("--color-surface-inverse")) >= 3);
 });

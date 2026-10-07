@@ -19,7 +19,7 @@ const RESULTS_ID = "grave-stone-results";
 const numberFormatter = new Intl.NumberFormat("fa-IR");
 
 const PATH_BUTTON =
-  "inline-flex min-h-11 items-center justify-center border px-5 py-2 text-sm font-bold transition-colors duration-[180ms] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
+  "inline-flex min-h-12 items-center justify-center border px-5 py-2 text-sm font-bold transition-colors duration-[180ms] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 const PATH_IDLE = "border-border-control bg-surface text-text-primary hover:bg-surface-media";
 const PATH_SELECTED = "border-action-primary bg-action-primary text-text-inverse";
 

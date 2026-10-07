@@ -9,7 +9,7 @@ export function HomeHero({ media }: { media: Media | null }) {
   return (
     <section className="mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-12 md:grid-cols-8 lg:grid-cols-12">
       <div
-        className={`col-span-4 flex flex-col justify-center border border-border-control bg-surface-inverse p-6 md:col-span-8 lg:p-10 ${media ? "lg:col-span-7" : "lg:col-span-12 lg:min-h-[22rem]"}`}
+        className={`inverse-surface col-span-4 flex flex-col justify-center border border-border-control bg-surface-inverse p-6 md:col-span-8 lg:p-10 ${media ? "lg:col-span-7" : "lg:col-span-12 lg:min-h-[22rem]"}`}
       >
         <h1 className="max-w-[36ch] text-2xl font-bold text-text-inverse lg:text-3xl">
           {t("انتخاب و اجرای سنگ مزار با طراحی دقیق و متریال ماندگار")}
@@ -17,13 +17,13 @@ export function HomeHero({ media }: { media: Media | null }) {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <LocaleLink
             to="/grave-stones"
-            className="inline-flex min-h-11 items-center justify-center border border-text-inverse bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] hover:bg-text-inverse hover:text-surface-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse motion-reduce:transition-none"
+            className="ui-action ui-action-inverse min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse motion-reduce:transition-none"
           >
             {t("انتخاب سنگ مزار")}
           </LocaleLink>
           <LocaleLink
             to="/portfolio"
-            className="inline-flex min-h-11 items-center justify-center border border-text-inverse bg-surface-inverse px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] hover:bg-text-inverse hover:text-surface-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse motion-reduce:transition-none"
+            className="inline-flex min-h-12 items-center justify-center border border-text-inverse bg-surface-inverse px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] hover:bg-text-inverse hover:text-surface-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse motion-reduce:transition-none"
           >
             {t("مشاهده نمونه‌کارها")}
           </LocaleLink>
