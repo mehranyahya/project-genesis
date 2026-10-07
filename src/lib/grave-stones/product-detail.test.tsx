@@ -107,7 +107,7 @@ test("11 public media owns img/srcSet/fixed dimensions and AVIF source", () => {
   assert.ok(media.includes("srcSet={media.srcSet}"));
   assert.ok(media.includes("width={media.width}"));
   assert.ok(media.includes("height={media.height}"));
-  assert.ok(media.includes('loading={priority ? "eager" : "lazy"}'));
+  assert.ok(media.includes('loading={priority || eager ? "eager" : "lazy"}'));
   assert.ok(media.includes('fetchPriority={priority ? "high" : "auto"}'));
 });
 
@@ -137,14 +137,17 @@ test("13 gallery controls and a polite live position are present", () => {
   assert.ok(stage.includes("رسانه بعدی"));
   assert.ok(stage.includes('aria-live="polite"'));
   assert.ok(stage.includes("total > 1"));
-  assert.ok(stage.includes('Intl.NumberFormat("fa-IR")'));
+  assert.ok(stage.includes('Intl.NumberFormat(locale === "en" ? "en" : "fa")'));
 });
 
-test("14 gallery surfaces are solid and unanimated", () => {
+test("14 gallery is static until selected and retains its image until decode", () => {
   const stage = read(STAGE);
   assert.ok(stage.includes("bg-surface-media"));
   const stageCode = stage.replace(/disabled:opacity-45/g, "");
-  assert.ok(!/\/\d0\b|animate-|autoplay|carousel|embla/i.test(stageCode));
+  assert.ok(!/animate-|autoplay|carousel|embla/i.test(stageCode));
+  assert.ok(stage.includes("await image.decode()"));
+  assert.ok(stage.includes("generation.current !== ticket"));
+  assert.ok(stage.includes("setFailed(target)"));
 });
 
 test("15 the locked M5 size order is reused, not redefined", () => {
@@ -266,10 +269,10 @@ test("31 the 4/8/12 grid and the seven/five desktop split are present", () => {
 
 test("32 touch targets and focus-visible rings are present on controls", () => {
   for (const rel of [PAGE, STAGE, STATES]) {
-    assert.ok(read(rel).includes("min-h-11"), `min-h-11 missing in ${rel}`);
+    assert.ok(read(rel).includes("min-h-12"), `min-h-12 missing in ${rel}`);
     assert.ok(read(rel).includes("focus-visible:outline-2"), `focus ring missing in ${rel}`);
   }
-  assert.ok(read(SELECTION).includes("min-h-11"));
+  assert.ok(read(SELECTION).includes("min-h-12"));
   assert.ok(read(SELECTION).includes("focus-visible:outline-2"));
 });
 

@@ -6,7 +6,7 @@ export const VARIANT_LEGEND = "انتخاب سنگ و اندازه";
 export const OPTION_LEGEND = "گزینه‌های تکمیلی";
 
 const ROW =
-  "flex min-h-11 items-start gap-3 border border-border-subtle bg-surface p-3 has-[:checked]:border-action-primary has-[:checked]:border-2";
+  "flex min-h-12 items-start gap-3 border border-border-subtle bg-surface p-3 has-[:checked]:border-action-primary has-[:checked]:border-2";
 const CONTROL =
   "mt-1 h-5 w-5 shrink-0 accent-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 

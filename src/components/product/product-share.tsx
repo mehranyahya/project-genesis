@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { useT } from "@/lib/i18n/react";
+import { useLocale, useT } from "@/lib/i18n/react";
+import { localizeRawPath, type Locale } from "@/lib/i18n/locale";
 import { translatorFor, type Translator } from "@/lib/i18n/messages";
 
 export const SHARE_BUTTON_LABEL = "اشتراک‌گذاری مدل";
@@ -9,14 +10,17 @@ export const COPY_FAILURE_TEXT = "کپی لینک انجام نشد. لطفاً 
 export const SHARE_FAILURE_TEXT = "اشتراک‌گذاری انجام نشد.";
 
 const ACTION =
-  "inline-flex min-h-11 items-center justify-center border border-border-strong bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:border-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
+  "inline-flex min-h-12 items-center justify-center border border-border-strong bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:border-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 /**
  * Share identity is derived from the stable public route key (slug) only.
  * Product.code is display text and never part of the URL.
  */
-export function productShareUrl(slug: string, origin: string): string {
-  return new URL(`/grave-stones/${encodeURIComponent(slug)}`, origin).toString();
+export function productShareUrl(slug: string, origin: string, locale: Locale = "fa"): string {
+  return new URL(
+    localizeRawPath(`/grave-stones/${encodeURIComponent(slug)}`, locale),
+    origin,
+  ).toString();
 }
 
 export const SHARE_CODE_TEMPLATE = "کد {code}";
@@ -31,12 +35,13 @@ export function productShareText(title: string, code: string, t: Translator = FA
 
 export function ProductShare({ slug, title, code }: { slug: string; title: string; code: string }) {
   const t = useT();
+  const locale = useLocale();
   const [status, setStatus] = useState<string | null>(null);
   const busy = useRef(false);
 
   const currentUrl = (): string | null => {
     if (typeof window === "undefined") return null;
-    return productShareUrl(slug, window.location.origin);
+    return productShareUrl(slug, window.location.origin, locale);
   };
 
   const copyLink = async () => {

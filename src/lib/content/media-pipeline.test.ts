@@ -109,7 +109,7 @@ test("only route-level LCP candidates opt into high priority", () => {
   const graveCard = read("../../components/grave-stones/grave-stone-card.tsx");
   const portfolio = read("../../components/portfolio/portfolio-card.tsx");
   assert.match(hero, /\bpriority\b/);
-  assert.match(product, /priority=\{index === 0\}/);
+  assert.match(product, /priority=\{visibleIndex === 0\}/);
   assert.doesNotMatch(graveCard, /\bpriority\b/);
   assert.doesNotMatch(portfolio, /\bpriority\b/);
 });

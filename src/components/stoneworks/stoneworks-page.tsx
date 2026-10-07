@@ -1,4 +1,5 @@
 import { LocaleLink, useT } from "@/lib/i18n/react";
+import { useStoneworkRequest } from "@/lib/stonework-request-context";
 import {
   STONEWORKS_CATEGORIES_HEADING,
   STONEWORKS_CTA_LABEL,
@@ -15,7 +16,7 @@ import {
 } from "@/lib/stoneworks";
 
 const SECTION =
-  "mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12";
+  "mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-5 py-12 md:grid-cols-8 md:px-6 md:py-20 lg:grid-cols-12";
 const FULL = "col-span-4 md:col-span-8 lg:col-span-12";
 
 /**
@@ -27,12 +28,13 @@ const FULL = "col-span-4 md:col-span-8 lg:col-span-12";
  */
 export function StoneworksPage() {
   const t = useT();
+  const { selectCategory } = useStoneworkRequest();
 
   return (
     <div className="flex flex-col">
       <section className={SECTION}>
         <div className={FULL}>
-          <h1 className="text-2xl font-bold text-text-primary">{t(STONEWORKS_HEADING)}</h1>
+          <h1 className="page-title font-medium text-text-primary">{t(STONEWORKS_HEADING)}</h1>
           <p className="max-w-[60ch] pt-3 text-sm text-text-secondary">{t(STONEWORKS_INTRO)}</p>
         </div>
       </section>
@@ -63,8 +65,9 @@ export function StoneworksPage() {
               </p>
               <LocaleLink
                 to="/quote"
+                onClick={() => selectCategory(category.id)}
                 aria-label={t(STONEWORKS_CTA_TEMPLATE, { category: t(category.label) })}
-                className="inline-flex min-h-11 w-fit items-center rounded-sm border border-action-primary bg-action-primary px-5 text-sm font-bold text-text-inverse transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] hover:bg-surface-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse motion-reduce:transition-none"
+                className="inline-flex min-h-12 w-fit items-center rounded-sm border border-action-primary bg-action-primary px-5 text-sm font-bold text-text-inverse transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
               >
                 {t(STONEWORKS_CTA_LABEL)}
               </LocaleLink>
@@ -81,7 +84,7 @@ export function StoneworksPage() {
           {STONEWORKS_PROCESS_STEPS.map((step, index) => (
             <li
               key={step}
-              className="col-span-4 flex min-h-11 items-center gap-3 border border-border-subtle bg-surface px-4 py-4 md:col-span-4 lg:col-span-3"
+              className="col-span-4 flex min-h-12 items-center gap-3 border border-border-subtle bg-surface px-4 py-4 md:col-span-4 lg:col-span-3"
             >
               <span aria-hidden="true" className="text-base font-bold text-decorative-accent">
                 {index + 1}

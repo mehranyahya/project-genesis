@@ -47,16 +47,16 @@ Promptهای Lovable حق ساخت یا تغییر این مسیرها را ند
 ## UI contract
 
 - شخصیت بصری `Quiet Material Intelligence / Mineral Signature` است: لوکس، آرام، معماری‌محور، دقیق و متریال‌محور.
-- ساختار کلی Light-first است؛ Obsidian فقط برای Dark Momentهای کنترل‌شده، Header/Footer یا بخش روایی مناسب استفاده می‌شود. Dark-mode toggle و Theme fork نداریم.
+- ساختار کلی Light-first است؛ Hero و Footer تیره، Header جامد و غیرچسبان و بدنه روشن‌اند. صفحهٔ اول سه خدمت را برابر معرفی می‌کند؛ CTA مشترک «شروع گفت‌وگو» به `/quote` است و تصویر مزار جای تصویر خنثی Hero قرار نمی‌گیرد. Dark-mode toggle و Theme fork نداریم.
 - Primitiveهای برند فقط در `src/styles/tokens.css` تعریف می‌شوند:
-  `#F4EFE6`, `#FBF9F4`, `#121212`, `#5C5850`, `#6B665E`, `#B9AA92`, `#203B34`, `#9C6B32`, و `#8F4C2F` فقط برای خطا.
+  `#F7F6F2` زمینه، `#FBF9F4` سطح، `#121212` متن، `#59615C` متن ثانویه، `#81877F` مرز ضروری، `#D8D8D1` خط تزئینی، `#203B34` هویت/اکشن، `#172D27` Hover، `#121312` زمینهٔ تیره، `#F5F1E8` متن/دکمه روی تیرگی، `#D0D1CA` متن ثانویه روی تیرگی و `#8B2727` فقط برای خطا.
 - Componentها فقط Token معنایی مصرف می‌کنند؛ Raw Color بیرون Token/Test ممنوع است.
 - کارت و قاب محتوا radius صفر دارند. Input و دکمه حداکثر `2px` و Border استاندارد `1px` است.
 - Gradient تزئینی، Carousel خودکار، Spinner، Parallax و Animation library ممنوع‌اند.
-- Mineral Glass فقط برای Header شناور، کنترل Gallery و نوار اقدام شناور مجاز است؛ کارت، Form، Filter، Table و Footer جامد می‌مانند.
+- سطوح جامدند؛ Header شیشه‌ای، نوار اقدام ثابت عمومی و Blur نداریم. Focus روی زمینهٔ روشن سبز و روی زمینهٔ تیره عاجی است.
 - تصویر سنگ بدون Filter/Tint/Blend و روی Stage خنثی نمایش داده می‌شود.
-- Focus واضح، Keyboard کامل، Reflow در ۳۲۰px، Zoom ۲۰۰٪، Skip Link، `prefers-reduced-motion` و هدف لمسی حداقل ۴۴px اجباری‌اند.
-- متن بدنه `line-height: 1.9` و `letter-spacing: normal` دارد. فونت‌های محلی و self-hosted عبارت‌اند از Estedad وزن‌های ۴۰۰–۵۰۰ برای متن و UI و Beiruti وزن ۵۰۰ برای تیترها؛ وابستگی runtime به سرویس فونت خارجی و وزن مصنوعی مجاز نیست.
+- Focus واضح، Keyboard کامل، Reflow در ۳۲۰px، Zoom ۲۰۰٪، Skip Link، `prefers-reduced-motion` و هدف لمسی حداقل ۴۸px اجباری‌اند.
+- متن بدنه فارسی `line-height: 1.9` و انگلیسی `1.7` و `letter-spacing: normal` دارد. فونت‌های محلی و self-hosted عبارت‌اند از Estedad وزن‌های ۴۰۰–۵۰۰ برای متن و UI و Beiruti وزن ۵۰۰ برای تیترها؛ وابستگی runtime به سرویس فونت خارجی و وزن مصنوعی مجاز نیست.
 
 ## Request, price and privacy safety
 

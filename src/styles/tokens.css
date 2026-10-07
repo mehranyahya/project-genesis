@@ -22,23 +22,25 @@
 
 /* Master semantic roles. These names are the contract. */
 @theme {
-  --color-canvas: #F4EFE6;
+  --color-canvas: #F7F6F2;
   --color-surface: #FBF9F4;
-  --color-surface-media: #F4EFE6;
+  --color-surface-media: #F7F6F2;
   --color-text-primary: #121212;
-  --color-text-secondary: #5C5850;
-  --color-text-caption: #6B665E;
-  --color-border-subtle: #B9AA92;
-  --color-border-control: #6B665E;
+  --color-text-secondary: #59615C;
+  --color-text-caption: #59615C;
+  --color-border-subtle: #D8D8D1;
+  --color-border-control: #81877F;
   --color-action-primary: #203B34;
-  --color-accent: #9C6B32;
-  --color-surface-inverse: #121212;
-  --color-text-inverse: #FBF9F4;
+  --color-action-hover: #172D27;
+  --color-accent: #203B34;
+  --color-surface-inverse: #121312;
+  --color-text-inverse: #F5F1E8;
+  --color-text-inverse-secondary: #D0D1CA;
   --color-focus: #203B34;
-  --color-focus-inverse: #FBF9F4;
+  --color-focus-inverse: #F5F1E8;
   --color-status-success: #203B34;
   /* Functional exception: reserved for validation/error states, never brand decoration. */
-  --color-status-error: #8F4C2F;
+  --color-status-error: #8B2727;
 
   /* The visual system intentionally uses only Regular and Medium. */
   --font-weight-medium: 500;
@@ -78,19 +80,13 @@
   --disabled-foreground: var(--color-text-caption);
   --skeleton: var(--color-surface-media);
 
-  /* Mineral Glass is restricted to the three approved floating surfaces. */
-  --color-mineral-glass: rgba(251, 249, 244, 0.88);
-  --color-mineral-glass-fallback: rgba(251, 249, 244, 0.96);
-  --mineral-glass-blur: 14px;
-
   /* Geometry */
   --radius: 0px;
   --radius-control: 2px;
-  --radius-glass: 14px;
   --edge-width: 1px;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
-  --touch-target-min: 44px;
+  --touch-target-min: 48px;
 
   /* Typography */
   --font-body-family: "Estedad", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
@@ -101,6 +97,6 @@
   /* Motion */
   --motion-control: 180ms;
   --motion-panel: 250ms;
-  --motion-media: 360ms;
+  --motion-media: 240ms;
   --motion-ease: cubic-bezier(0.2, 0, 0, 1);
 }

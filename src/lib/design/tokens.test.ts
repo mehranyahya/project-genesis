@@ -20,35 +20,40 @@ const COMPONENTS = [
 ];
 
 const MASTER_TOKENS: Record<string, string> = {
-  "--color-canvas": "#f4efe6",
+  "--color-canvas": "#f7f6f2",
   "--color-surface": "#fbf9f4",
-  "--color-surface-media": "#f4efe6",
+  "--color-surface-media": "#f7f6f2",
   "--color-text-primary": "#121212",
-  "--color-text-secondary": "#5c5850",
-  "--color-text-caption": "#6b665e",
-  "--color-border-subtle": "#b9aa92",
-  "--color-border-control": "#6b665e",
+  "--color-text-secondary": "#59615c",
+  "--color-text-caption": "#59615c",
+  "--color-border-subtle": "#d8d8d1",
+  "--color-border-control": "#81877f",
   "--color-action-primary": "#203b34",
-  "--color-accent": "#9c6b32",
-  "--color-surface-inverse": "#121212",
-  "--color-text-inverse": "#fbf9f4",
+  "--color-action-hover": "#172d27",
+  "--color-text-inverse-secondary": "#d0d1ca",
+  "--color-accent": "#203b34",
+  "--color-surface-inverse": "#121312",
+  "--color-text-inverse": "#f5f1e8",
   "--color-focus": "#203b34",
-  "--color-focus-inverse": "#fbf9f4",
+  "--color-focus-inverse": "#f5f1e8",
   "--color-status-success": "#203b34",
-  "--color-status-error": "#8f4c2f",
+  "--color-status-error": "#8b2727",
 };
 
 const APPROVED_PRIMITIVES = [
-  "#f4efe6",
+  "#f7f6f2",
   "#fbf9f4",
   "#121212",
-  "#5c5850",
-  "#6b665e",
-  "#b9aa92",
+  "#59615c",
+  "#d8d8d1",
   "#203b34",
-  "#9c6b32",
   // Functional validation/error color; excluded from brand decoration.
-  "#8f4c2f",
+  "#8b2727",
+  "#81877f",
+  "#172d27",
+  "#121312",
+  "#f5f1e8",
+  "#d0d1ca",
 ];
 
 const RUNTIME_EXTENSIONS = new Set([".ts", ".tsx", ".css", ".js", ".jsx"]);
@@ -93,7 +98,7 @@ test("recursive runtime scan finds zero raw colors outside tokens.css", () => {
   assert.ok(rawColor.test(read(TOKENS)));
 });
 
-test("token file declares only the approved primitive palette and Mineral Glass alpha", () => {
+test("token file declares only the approved primitive palette without translucent surfaces", () => {
   const tokenSource = read(TOKENS).toLowerCase();
   const foundHex = tokenSource.match(/#[0-9a-f]{3,8}\b/g) ?? [];
   const allowed = new Set(APPROVED_PRIMITIVES);
@@ -101,11 +106,10 @@ test("token file declares only the approved primitive palette and Mineral Glass 
     assert.ok(allowed.has(hex), `unexpected raw color ${hex} in tokens`);
   }
   assert.deepEqual([...new Set(foundHex)].sort(), [...allowed].sort());
-  assert.match(tokenSource, /rgba\(251, 249, 244, 0\.88\)/);
-  assert.match(tokenSource, /rgba\(251, 249, 244, 0\.96\)/);
+  assert.doesNotMatch(tokenSource, /rgba?\(/);
 });
 
-test("effects stay quiet and Mineral Glass is restricted to approved floating surfaces", () => {
+test("effects stay quiet and surfaces remain opaque", () => {
   const banned = /gradient|tw-animate|animate-pulse|shimmer|spinner|parallax/i;
   const offenders = runtimeFiles().filter((rel) => banned.test(stripComments(read(rel))));
   assert.deepEqual(offenders, [], `banned effect in: ${offenders.join(", ")}`);
@@ -120,20 +124,16 @@ test("effects stay quiet and Mineral Glass is restricted to approved floating su
   );
 
   const styles = stripComments(read(STYLE_ENTRY));
-  assert.match(styles, /\.mineral-glass\s*\{/);
-  assert.match(styles, /backdrop-filter:\s*blur\(var\(--mineral-glass-blur\)\)/);
+  assert.doesNotMatch(styles, /backdrop-filter|backdrop-blur|blur\(/);
 
   const glassConsumers = runtimeFiles()
     .filter((rel) => rel !== TOKENS && rel !== STYLE_ENTRY)
     .filter((rel) => /mineral-glass/.test(stripComments(read(rel))))
     .sort();
-  assert.deepEqual(glassConsumers, [
-    "components/layout/app-shell.tsx",
-    "components/layout/site-header.tsx",
-  ]);
+  assert.deepEqual(glassConsumers, []);
 });
 
-test("accent aliases keep interactive green separate from aged bronze", () => {
+test("accent aliases keep the identity in deep green", () => {
   const tokens = stripComments(read(TOKENS));
   assert.match(tokens, /--accent:\s*var\(--color-action-primary\);/);
   assert.match(tokens, /--accent-foreground:\s*var\(--color-text-inverse\);/);
@@ -159,7 +159,7 @@ test("accent aliases keep interactive green separate from aged bronze", () => {
   assert.equal(resolve("--decorative-accent"), MASTER_TOKENS["--color-accent"]);
 });
 
-test("CTA, focus and success use deep serpentine; aged bronze stays decorative", () => {
+test("CTA, focus and success use the approved deep green", () => {
   const button = read("components/ui/button.tsx");
   assert.match(button, /bg-action-primary/);
   assert.match(button, /outline-focus/);
@@ -180,7 +180,7 @@ test("button honours motion, focus, touch target and disabled contract", () => {
   assert.match(button, /duration-\[180ms\]/);
   assert.match(button, /focus-visible:outline-2/);
   assert.match(button, /focus-visible:outline-offset-2/);
-  assert.match(button, /min-h-11/);
+  assert.match(button, /min-h-12/);
   assert.match(button, /disabled:opacity-45/);
   assert.match(button, /disabled:cursor-not-allowed/);
   assert.match(button, /aria-busy=\{loading \? true : undefined\}/);
@@ -260,4 +260,38 @@ test("fixture covers Persian, Latin, all digit sets and punctuation", () => {
   assert.ok(/[۰-۹]/.test(TYPOGRAPHY_FIXTURE));
   assert.ok(/[٠-٩]/.test(TYPOGRAPHY_FIXTURE));
   assert.ok(/[0-9]/.test(TYPOGRAPHY_FIXTURE));
+});
+
+function luminance(hex: string): number {
+  const channel = (offset: number) => {
+    const value = parseInt(hex.slice(offset, offset + 2), 16) / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  };
+  return channel(1) * 0.2126 + channel(3) * 0.7152 + channel(5) * 0.0722;
+}
+
+function contrast(first: string, second: string): number {
+  const a = luminance(first);
+  const b = luminance(second);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+
+test("essential text and controls meet their flat-color contrast thresholds", () => {
+  const pairs: [string, string, number][] = [
+    ["--color-text-primary", "--color-canvas", 4.5],
+    ["--color-text-secondary", "--color-canvas", 4.5],
+    ["--color-text-inverse", "--color-action-primary", 4.5],
+    ["--color-text-inverse", "--color-surface-inverse", 4.5],
+    ["--color-text-inverse-secondary", "--color-surface-inverse", 4.5],
+    ["--color-border-control", "--color-surface", 3],
+    ["--color-focus", "--color-canvas", 3],
+    ["--color-focus-inverse", "--color-surface-inverse", 3],
+    ["--color-status-error", "--color-surface", 4.5],
+  ];
+  for (const [first, second, minimum] of pairs) {
+    assert.ok(contrast(MASTER_TOKENS[first]!, MASTER_TOKENS[second]!) >= minimum);
+  }
+  assert.ok(
+    contrast(MASTER_TOKENS["--color-action-primary"]!, MASTER_TOKENS["--color-surface-inverse"]!) < 3,
+  );
 });

@@ -35,7 +35,7 @@ import { useT } from "@/lib/i18n/react";
 export const SUBMIT_LABEL = "ثبت درخواست بررسی";
 
 const ACTION =
-  "inline-flex min-h-11 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] enabled:hover:border-surface-inverse enabled:hover:bg-surface-inverse disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
+  "inline-flex min-h-12 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] enabled:hover:border-surface-inverse enabled:hover:bg-action-hover disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 type Phase = "editing" | "submitting" | "success";
 
@@ -161,6 +161,7 @@ export function RequestForm({
   submitRequest: transport,
   extension,
   onSuccess,
+  notePrefix = "",
 }: {
   source: RequestSource;
   site: Site | null;
@@ -168,7 +169,9 @@ export function RequestForm({
   submitRequest?: RequestSubmitTransport;
   extension?: BuildingStoneFormBinding | null;
   onSuccess?: (trackingCode: string) => void;
+  notePrefix?: string;
 }) {
+  const t = useT();
   const [values, setValues] = useState<RequestFormValues>(PII_FREE_VALUES);
   const [errors, setErrors] = useState<RequestFieldErrors>({});
   const [extensionErrors, setExtensionErrors] = useState<Readonly<Record<string, string>>>({});
@@ -195,7 +198,7 @@ export function RequestForm({
   const contract = binding === null ? null : binding.contract;
   const extensionFieldId = binding?.fieldId ?? DEFAULT_EXTENSION_FIELD_ID;
 
-  const identity = sourceIdentity(source);
+  const identity = `${sourceIdentity(source)}~${notePrefix}`;
 
   // The attempt token of the running request; a response from an older
   // identity is discarded before any result state is applied.
@@ -255,7 +258,14 @@ export function RequestForm({
       // the main submit button and the Enter key stay inert.
       if (freshAttemptRequired && !allowFreshAttempt) return;
 
-      const validation = validateRequestForm({ values, source, extension: contract });
+      const submittedValues = notePrefix
+        ? { ...values, customerNote: `${notePrefix}\n${values.customerNote}`.trim() }
+        : values;
+      const validation = validateRequestForm({
+        values: submittedValues,
+        source,
+        extension: contract,
+      });
       setErrors(validation.errors);
       setExtensionErrors(validation.extensionErrors);
       if (!validation.valid) {
@@ -269,7 +279,7 @@ export function RequestForm({
       const payload = buildRequestPayload({
         submissionId: submissionId.current,
         source,
-        values,
+        values: submittedValues,
         termsDocument: terms,
         priceRevision: revision,
         extension: contract,
@@ -350,6 +360,7 @@ export function RequestForm({
       freshAttemptRequired,
       generation,
       onSuccess,
+      notePrefix,
       resetTurnstile,
       selectionBlocked,
       source,
@@ -386,6 +397,7 @@ export function RequestForm({
           errors={errors}
           source={source}
           disabled={submitting}
+          bespoke={notePrefix.length > 0}
           onChange={(next) => setValues((current) => ({ ...current, ...next }))}
         />
       </div>
@@ -398,11 +410,11 @@ export function RequestForm({
           className={ACTION}
           disabled={!termsReady || submitting || selectionBlocked}
         >
-          {submitting ? SUBMIT_MESSAGES.submitting : SUBMIT_LABEL}
+          {t(submitting ? SUBMIT_MESSAGES.submitting : SUBMIT_LABEL)}
         </button>
 
         {!termsReady ? (
-          <p className="text-sm text-text-secondary">{SUBMISSION_BLOCKED_TEXT}</p>
+          <p className="text-sm text-text-secondary">{t(SUBMISSION_BLOCKED_TEXT)}</p>
         ) : null}
 
         <RequestFormState

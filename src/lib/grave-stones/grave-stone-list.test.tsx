@@ -181,7 +181,7 @@ test("zero raw colors and zero banned effects", () => {
 test("touch targets and focus-visible indicators are present", () => {
   for (const rel of [PAGE, FILTER, CARD, STATES]) {
     const source = read(rel);
-    assert.ok(source.includes("min-h-11"), `${rel} needs min-h-11`);
+    assert.ok(source.includes("min-h-12"), `${rel} needs min-h-12`);
     assert.ok(source.includes("focus-visible:outline-2"), `${rel} needs focus-visible outline`);
   }
 });
@@ -200,9 +200,9 @@ test("latin stone codes are isolated with bdi", () => {
   assert.ok(read(CARD).includes('<bdi dir="ltr">'));
 });
 
-test("result status uses fa-IR formatting inside a polite live region", () => {
+test("result status uses the active language inside a polite live region", () => {
   const page = read(PAGE);
-  assert.ok(page.includes('Intl.NumberFormat("fa-IR")'));
+  assert.ok(page.includes('Intl.NumberFormat(locale === "en" ? "en" : "fa")'));
   assert.ok(page.includes('aria-live="polite"'));
   assert.ok(page.includes("محصول"));
 });

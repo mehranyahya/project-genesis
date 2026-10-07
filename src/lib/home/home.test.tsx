@@ -23,33 +23,33 @@ const HOME_FILES = [
 
 const ALL = HOME_FILES.map(read).join("\n");
 
-test("hero carries the exact locked H1 and only one H1 exists", () => {
+test("hero carries a neutral H1 and only one H1 exists", () => {
   const hero = read("components/home/home-hero.tsx");
-  assert.ok(hero.includes("انتخاب و اجرای سنگ مزار با طراحی دقیق و متریال ماندگار"));
+  assert.ok(hero.includes("زیبایی سنگ، دقت ساخت."));
   assert.equal(ALL.split("<h1").length - 1, 1);
 });
 
 test("hero fills the desktop grid when no real media is available", () => {
   const hero = read("components/home/home-hero.tsx");
-  assert.ok(hero.includes('media ? "lg:col-span-7" : "lg:col-span-12 lg:min-h-[22rem]"'));
+  assert.ok(hero.includes('media ? "lg:col-span-7" : "lg:col-span-12"'));
   assert.ok(hero.includes("flex flex-col justify-center"));
 });
 
 test("hero CTAs and destinations are exact", () => {
   const hero = read("components/home/home-hero.tsx");
-  assert.ok(hero.includes("انتخاب سنگ مزار"));
-  assert.ok(hero.includes('to="/grave-stones"'));
-  assert.ok(hero.includes("مشاهده نمونه‌کارها"));
-  assert.ok(hero.includes('to="/portfolio"'));
+  assert.ok(hero.includes("بررسی خدمات"));
+  assert.ok(hero.includes('href="#home-services"'));
+  assert.ok(hero.includes("شروع گفت‌وگو"));
+  assert.ok(hero.includes('to="/quote"'));
 });
 
 test("three choice paths are exact", () => {
   assert.deepEqual(
     CHOICE_PATHS.map((item) => [item.label, item.to]),
     [
-      ["فروشگاه سنگ مزار", "/grave-stones"],
-      ["سفارش سفارشی", "/grave-stones/custom"],
-      ["نمونه‌کارها", "/portfolio"],
+      ["سنگ مزار", "/grave-stones"],
+      ["سنگ ساختمانی", "/building-stone"],
+      ["ساخت سفارشی", "/stoneworks"],
     ],
   );
 });
@@ -57,7 +57,7 @@ test("three choice paths are exact", () => {
 test("four process labels are exact and rendered as an ordered list", () => {
   assert.deepEqual(
     [...PROCESS_STEPS],
-    ["انتخاب سنگ", "انتخاب اندازه و جزئیات", "بازبینی خلاصه", "ثبت برای بررسی"],
+    ["انتخاب مسیر", "ثبت مشخصات", "بررسی درخواست", "هماهنگی جزئیات"],
   );
   const html = renderToStaticMarkup(<HomeProcess />);
   assert.ok(html.includes("<ol"));
@@ -66,19 +66,19 @@ test("four process labels are exact and rendered as an ordered list", () => {
 
 test("final CTA text and destination are exact", () => {
   const sections = read("components/home/home-sections.tsx");
-  assert.ok(sections.includes("برای انتخاب سنگ مزار آماده‌اید؟"));
-  assert.ok(sections.includes("انتخاب و ثبت سفارش"));
-  assert.ok(sections.includes("بررسی سنگ ساختمانی"));
-  assert.ok(sections.includes('to="/building-stone"'));
+  assert.ok(sections.includes("برای انتخاب یا ساخت سنگ، گفت‌وگو را شروع کنیم."));
+  assert.ok(sections.includes("شروع گفت‌وگو"));
+  assert.ok(sections.includes("سنگ ساختمانی"));
+  assert.ok(sections.includes('to: "/building-stone"'));
 });
 
 test("home reads official adapters only and imports no content files", () => {
   const route = routeUnit("routes/index.tsx", "homeRouteOptions");
   assert.ok(route.includes('from "@/lib/content/adapters"'));
-  assert.ok(route.includes("getProducts({ featuredOnly: true, limit: 6 })"));
-  assert.ok(route.includes("getPortfolioItems({ limit: 1 })"));
+  assert.equal(route.includes("getProducts({ featuredOnly: true"), false);
+  assert.equal(route.includes("getPortfolioItems({ limit: 1 })"), false);
   assert.ok(route.includes("getGuides({ limit: 1 })"));
-  assert.ok(route.includes("Promise.all"));
+  assert.ok(route.includes("contentListForLocale"));
   assert.equal(/from\s+["'][^"']*\.(json|md|mdx|png|jpe?g|svg|webp)["']/.test(ALL), false);
   assert.equal(/fixture|mock|sample|lorem/i.test(ALL), false);
 });
@@ -121,27 +121,24 @@ test("home files contain no raw colors and no banned effects", () => {
   }
 });
 
-test("home layout honours the 4/8/12 grid, touch targets and focus", () => {
+test("home layout honours responsive services, touch targets and focus", () => {
   for (const rel of ["components/home/home-hero.tsx", "components/home/home-sections.tsx"]) {
     const source = read(rel);
-    assert.ok(source.includes("grid-cols-4"), `${rel} missing mobile grid`);
-    assert.ok(source.includes("md:grid-cols-8"), `${rel} missing tablet grid`);
-    assert.ok(source.includes("lg:grid-cols-12"), `${rel} missing desktop grid`);
-    assert.ok(source.includes("min-h-11"), `${rel} missing touch target`);
+    assert.ok(source.includes("page-section"), `${rel} missing shared section geometry`);
+    assert.ok(source.includes("min-h-12"), `${rel} missing touch target`);
     assert.ok(source.includes("focus-visible:outline"), `${rel} missing focus indicator`);
   }
   const card = read("components/home/home-link-card.tsx");
-  assert.ok(card.includes("min-h-11"));
+  assert.ok(card.includes("min-h-12"));
   assert.ok(card.includes("focus-visible:outline"));
 });
 
 test("baseline empty adapters render no optional section markup", () => {
-  const model = buildHomeViewModel({ products: [], portfolioItems: [], guides: [] });
-  assert.equal(model.showProducts, false);
+  const model = buildHomeViewModel({ guides: [] });
   assert.equal(model.showPortfolio, false);
   assert.equal(model.showGuide, false);
   const page = read("components/home/home-page.tsx");
-  assert.ok(page.includes("model.showProducts ?"));
+  assert.equal(page.includes("HomeFeaturedProducts"), false);
   assert.ok(page.includes("model.showPortfolio ?"));
   assert.ok(page.includes("model.showGuide"));
 });

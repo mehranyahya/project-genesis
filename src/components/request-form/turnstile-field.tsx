@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { useT } from "@/lib/i18n/react";
+import { useLocale, useT } from "@/lib/i18n/react";
 
 const SCRIPT_ID = "app-turnstile-script";
 const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
@@ -15,7 +15,7 @@ interface TurnstileApi {
       size: "flexible";
       execution: "execute";
       appearance: "interaction-only";
-      language: "fa";
+      language: "fa" | "en";
       "refresh-expired": "auto";
       callback: (token: string) => void;
       "error-callback": () => boolean;
@@ -102,6 +102,7 @@ export interface TurnstileFieldHandle {
 
 export const TurnstileField = forwardRef<TurnstileFieldHandle>(function TurnstileField(_, ref) {
   const t = useT();
+  const locale = useLocale();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const apiRef = useRef<TurnstileApi | null>(null);
   const widgetIdRef = useRef<string | null>(null);
@@ -170,7 +171,7 @@ export const TurnstileField = forwardRef<TurnstileFieldHandle>(function Turnstil
           size: "flexible",
           execution: "execute",
           appearance: "interaction-only",
-          language: "fa",
+          language: locale,
           "refresh-expired": "auto",
           callback: (token) => {
             if (cancelled) return;
@@ -215,11 +216,11 @@ export const TurnstileField = forwardRef<TurnstileFieldHandle>(function Turnstil
       widgetIdRef.current = null;
       apiRef.current = null;
     };
-  }, []);
+  }, [locale]);
 
   return (
-    <div className="flex min-h-11 flex-col gap-2" aria-live="polite">
-      <div ref={containerRef} className="min-h-11 w-full" />
+    <div className="flex min-h-12 flex-col gap-2" aria-live="polite">
+      <div ref={containerRef} className="min-h-12 w-full" />
       {state === "loading" ? (
         <p className="text-sm text-text-secondary">{t("در حال آماده‌سازی تأیید امنیتی…")}</p>
       ) : null}

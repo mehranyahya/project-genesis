@@ -15,12 +15,12 @@ export const GUIDE_UPDATED_LABEL = "آخرین به‌روزرسانی";
 export const GUIDES_BACK_LABEL = "بازگشت به راهنماها";
 
 const SECTION =
-  "mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12";
+  "mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-5 py-12 md:grid-cols-8 md:px-6 md:py-20 lg:grid-cols-12";
 const FULL = "col-span-4 md:col-span-8 lg:col-span-12";
 const ACTION =
-  "inline-flex min-h-11 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] hover:border-surface-inverse hover:bg-surface-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
+  "inline-flex min-h-12 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] hover:border-surface-inverse hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 const QUIET_LINK =
-  "inline-flex min-h-11 items-center text-sm font-bold text-action-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
+  "inline-flex min-h-12 items-center text-sm font-bold text-action-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 
 /* ------------------------------------------------------------------ *
  * Safe markdown rendering — React elements only, never raw HTML.
@@ -152,7 +152,7 @@ export function GuidesListPage({ items }: { items: GuideListItem[] }) {
   return (
     <section className={SECTION}>
       <div className={FULL}>
-        <h1 className="text-2xl font-bold text-text-primary">{t(GUIDES_TITLE)}</h1>
+        <h1 className="page-title font-medium text-text-primary">{t(GUIDES_TITLE)}</h1>
       </div>
 
       {items.length === 0 ? (
@@ -168,7 +168,7 @@ export function GuidesListPage({ items }: { items: GuideListItem[] }) {
                   <LocaleLink
                     to="/guides/$slug"
                     params={{ slug: item.slug }}
-                    className="inline-flex min-h-11 items-center text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                    className="inline-flex min-h-12 items-center text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                   >
                     {item.title}
                   </LocaleLink>
@@ -197,7 +197,7 @@ export function GuideDetailPage({ guide }: { guide: GuideDetailModel }) {
     <section className={SECTION}>
       <article className={`${FULL} flex flex-col gap-6`}>
         <header className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold text-text-primary">{guide.title}</h1>
+          <h1 className="page-title font-medium text-text-primary">{guide.title}</h1>
           {guide.updatedAt === null || guide.updatedLabel === null ? null : (
             <p className="text-xs text-text-caption">
               {t(GUIDE_UPDATED_LABEL)}: <time dateTime={guide.updatedAt}>{guide.updatedLabel}</time>

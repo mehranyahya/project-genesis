@@ -89,10 +89,10 @@ test("5 no spinner, animation or auto carousel is used", () => {
   assert.ok(!/animate-(spin|pulse|bounce|ping)|spinner|carousel/i.test(ALL_CODE));
 });
 
-test("6 every interactive control keeps the 44px target and a visible focus ring", () => {
+test("6 every interactive control keeps the 48px target and a visible focus ring", () => {
   for (const rel of [FORM, FIELDS, STATE, QUOTE_PAGE]) {
     const source = read(rel);
-    assert.ok(source.includes("min-h-11"), `${rel} must keep the 44px target`);
+    assert.ok(source.includes("min-h-12"), `${rel} must keep the 48px target`);
     assert.ok(source.includes("outline-focus"), `${rel} must keep a visible focus ring`);
   }
 });
@@ -131,7 +131,7 @@ test("9 the submit button is blocked until a valid terms document exists", () =>
 test("10 the blocked selection state clears only on a real selection change", () => {
   const form = read(FORM);
   assert.ok(form.includes("function sourceIdentity("));
-  assert.ok(form.includes("const identity = sourceIdentity(source)"));
+  assert.ok(form.includes("sourceIdentity(source)}~${notePrefix}"));
   assert.ok(form.includes("}, [identity]);"));
   assert.ok(!form.includes("}, [source]);"));
 });
