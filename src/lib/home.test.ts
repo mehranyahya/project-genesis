@@ -55,7 +55,10 @@ test("three real classified projects give one equal slot per service", () => {
     presentation: { projects: [...HOME_SERVICES].reverse().map((service) => project(service)) },
   });
   assert.equal(model.showPortfolio, true);
-  assert.deepEqual(model.projects.map((item) => item.service), [...HOME_SERVICES]);
+  assert.deepEqual(
+    model.projects.map((item) => item.service),
+    [...HOME_SERVICES],
+  );
 });
 
 test("one or two projects cannot produce a biased home row", () => {
@@ -112,7 +115,9 @@ test("extra projects never give a service extra prominence", () => {
 });
 
 test("blank guides are ignored and the first valid guide is retained", () => {
-  const model = buildHomeViewModel({ guides: [guide(""), guide("one", " Summary "), guide("two")] });
+  const model = buildHomeViewModel({
+    guides: [guide(""), guide("one", " Summary "), guide("two")],
+  });
   assert.equal(model.showGuide, true);
   assert.equal(model.guide?.slug, "one");
   assert.equal(model.guide.summary, "Summary");

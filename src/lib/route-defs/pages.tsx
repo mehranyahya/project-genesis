@@ -8,10 +8,7 @@ import {
   GraveStoneListError,
   GraveStoneListLoading,
 } from "@/components/grave-stones/grave-stone-list-states";
-import {
-  GuideError,
-  GuidesLoading,
-} from "@/components/guides/guides";
+import { GuideError, GuidesLoading } from "@/components/guides/guides";
 import { PortfolioError, PortfolioLoading } from "@/components/portfolio/portfolio-states";
 import {
   ProductDetailError,
@@ -153,7 +150,9 @@ export function customFunnelRouteOptions(locale: Locale) {
   };
 }
 
-export type CustomFunnelData = Awaited<ReturnType<ReturnType<typeof customFunnelRouteOptions>["loader"]>>;
+export type CustomFunnelData = Awaited<
+  ReturnType<ReturnType<typeof customFunnelRouteOptions>["loader"]>
+>;
 
 const CustomFunnelRoute = lazyRouteComponent(
   () => import("./views/custom-funnel"),

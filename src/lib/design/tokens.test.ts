@@ -292,6 +292,7 @@ test("essential text and controls meet their flat-color contrast thresholds", ()
     assert.ok(contrast(MASTER_TOKENS[first]!, MASTER_TOKENS[second]!) >= minimum);
   }
   assert.ok(
-    contrast(MASTER_TOKENS["--color-action-primary"]!, MASTER_TOKENS["--color-surface-inverse"]!) < 3,
+    contrast(MASTER_TOKENS["--color-action-primary"]!, MASTER_TOKENS["--color-surface-inverse"]!) <
+      3,
   );
 });

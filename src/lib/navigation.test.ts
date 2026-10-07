@@ -94,7 +94,10 @@ test("the custom memorial funnel remains reachable inside its own service", () =
     PRIMARY_NAV.some((item) => item.to === "/grave-stones/custom"),
     false,
   );
-  assert.equal(CHOICE_PATHS.some((item) => item.to === "/grave-stones"), true);
+  assert.equal(
+    CHOICE_PATHS.some((item) => item.to === "/grave-stones"),
+    true,
+  );
 });
 
 test("the Stoneworks entry is present exactly once with its official label", () => {
@@ -104,5 +107,8 @@ test("the Stoneworks entry is present exactly once with its official label", () 
 });
 
 test("about, guides and contact remain reachable through secondary navigation", () => {
-  assert.deepEqual(SECONDARY_NAV.map((item) => item.to), ["/guides", "/about", "/contact"]);
+  assert.deepEqual(
+    SECONDARY_NAV.map((item) => item.to),
+    ["/guides", "/about", "/contact"],
+  );
 });

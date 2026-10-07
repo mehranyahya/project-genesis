@@ -71,10 +71,6 @@ export function QuotePage({
           site={site}
           termsDocument={termsDocument}
           notePrefix={notePrefix}
-          onSuccess={() => {
-            selectCategory(null);
-            clearReference();
-          }}
         />
       </div>
     </section>

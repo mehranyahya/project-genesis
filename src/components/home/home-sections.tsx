@@ -149,7 +149,10 @@ export function HomeGuide({ guide }: { guide: HomeGuideItem }) {
 export function HomeFinalCta() {
   const t = useT();
   return (
-    <section className="page-section border-t border-border-subtle" aria-labelledby="home-final-cta">
+    <section
+      className="page-section border-t border-border-subtle"
+      aria-labelledby="home-final-cta"
+    >
       <div className="grid items-start gap-8 lg:grid-cols-12">
         <h2 id="home-final-cta" className="section-title max-w-[28ch] lg:col-span-7">
           {t("برای انتخاب یا ساخت سنگ، گفت‌وگو را شروع کنیم.")}
