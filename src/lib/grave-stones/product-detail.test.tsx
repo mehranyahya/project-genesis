@@ -85,9 +85,9 @@ test("8 the product media stage uses the exact 4:5 ratio", () => {
   assert.ok(read(STATES).includes("aspect-[4/5]"));
 });
 
-test("9 list and portfolio cards now expose intentional 4:5 media stages", () => {
+test("9 product cards use 4:5 and project cards use 3:2", () => {
   assert.ok(read("components/grave-stones/grave-stone-card.tsx").includes("aspect-[4/5]"));
-  assert.ok(read("components/portfolio/portfolio-card.tsx").includes("aspect-[4/5]"));
+  assert.ok(read("components/portfolio/portfolio-card.tsx").includes("aspect-[3/2]"));
 });
 
 test("10 the list card renders only the sanitized PublicMedia DTO", () => {

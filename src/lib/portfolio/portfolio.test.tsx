@@ -124,7 +124,7 @@ test("19-23 portfolio imagery is intentional while private media state stays abs
   const card = read(CARD);
   const code = COMPONENT_CODE.replaceAll("text-text-caption", "");
   assert.ok(card.includes("<PublicMedia"));
-  assert.ok(card.includes("aspect-[4/5]"));
+  assert.ok(card.includes("aspect-[3/2]"));
   assert.ok(card.includes("media={card.media}"));
   for (const banned of [
     "mediaKey",
@@ -145,7 +145,7 @@ test("24-26 reference and stone code are bidi-isolated; the size label is reused
   assert.equal(card.split('<bdi dir="ltr">').length - 1, 2);
   assert.ok(card.includes("{card.publicReferenceId}"));
   assert.ok(card.includes("{card.stoneCode}"));
-  assert.ok(card.includes("{card.sizeLabel}"));
+  assert.ok(card.includes("t(card.sizeLabel)"));
   assert.ok(read(MODEL).includes('SIZE_LABELS } from "./product-detail"'));
 });
 
@@ -175,7 +175,7 @@ test("27-32 no carousel, filter, price, contact CTA, storage or PII surface", ()
   }
 });
 
-test("33-35 the 4:5 card, 4/8/12 grid, touch target and focus are present", () => {
+test("33-35 the 3:2 card, 4/8/12 grid, touch target and focus are present", () => {
   const card = read(CARD);
   assert.ok(card.includes("aspect-[4/5]"));
   assert.ok(card.includes("min-h-12"));

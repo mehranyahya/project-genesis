@@ -14,10 +14,10 @@ export function PortfolioCard({ card }: { card: PortfolioCardModel }) {
   return (
     <li className="col-span-4 md:col-span-4 lg:col-span-4">
       <article className="flex h-full min-h-0 flex-col gap-3 border border-border-subtle bg-surface p-4">
-        <div className="aspect-[4/5] overflow-hidden bg-surface-media">
+        <div className="aspect-[3/2] overflow-hidden bg-surface-media">
           <PublicMedia
             media={card.media}
-            fit="cover"
+            fit="contain"
             sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
             className="block h-full w-full"
           />

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import sharp from "sharp";
+import { isAllowedMediaAspect } from "./media-aspect.mjs";
 
 const OUTPUT_FILE = new URL("../src/lib/content/generated-structured-content.ts", import.meta.url);
 const MEDIA_DIRECTORY = new URL("../public/media/", import.meta.url);
@@ -9,8 +10,6 @@ const REQUEST_TIMEOUT_MS = 15_000;
 const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 const MAX_SOURCE_PIXELS = 40_000_000;
 const MIN_SOURCE_WIDTH = 1280;
-const MIN_ASPECT = 0.78;
-const MAX_ASPECT = 0.82;
 const OUTPUT_WIDTHS = [320, 640, 1280];
 const WEBP_BUDGETS = new Map([
   [320, 30 * 1024],
@@ -147,7 +146,7 @@ function orientedDimensions(metadata) {
     : { width: metadata.width, height: metadata.height };
 }
 
-async function validateSource(bytes, declaredMime) {
+async function validateSource(bytes, declaredMime, ownerKind) {
   const magic = detectMagic(bytes);
   if (!magic) throw new Error("Unsupported or suspicious media magic bytes");
   if (declaredMime !== magic.mime) throw new Error("Media MIME does not match magic bytes");
@@ -166,9 +165,8 @@ async function validateSource(bytes, declaredMime) {
   if (dimensions.width * dimensions.height > MAX_SOURCE_PIXELS) {
     throw new Error("Media source exceeds decoded pixel limit");
   }
-  const aspect = dimensions.width / dimensions.height;
-  if (aspect < MIN_ASPECT || aspect > MAX_ASPECT) {
-    throw new Error("Media source must be approximately 4:5 portrait");
+  if (!isAllowedMediaAspect(dimensions.width, dimensions.height, ownerKind)) {
+    throw new Error("Media source must be approximately 4:5 portrait, or 3:2 for portfolio/building");
   }
   if (
     metadata.format !== magic.format &&
@@ -310,7 +308,7 @@ async function approvedMedia(mediaRows, ownerKind) {
       throw new Error("Portfolio media requires consent_reference before publication");
     }
     const { bytes, contentType } = await downloadPrivateMedia(mediaKey);
-    await validateSource(bytes, contentType);
+    await validateSource(bytes, contentType, ownerKind);
     const publicAsset = await writeMediaOutputs(mediaKey, bytes);
     result.set(mediaKey, { ...publicAsset, alt });
   }

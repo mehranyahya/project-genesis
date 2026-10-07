@@ -41,10 +41,7 @@ async function renderView(locale: Locale, element: ReactNode): Promise<string> {
 }
 
 test("Persian empty home has one H1, three real service routes and no fake images", async () => {
-  const html = await renderView(
-    "fa",
-    <HomePage model={buildHomeViewModel({ guides: [] })} />,
-  );
+  const html = await renderView("fa", <HomePage model={buildHomeViewModel({ guides: [] })} />);
   assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
   for (const route of ["/grave-stones", "/building-stone", "/stoneworks"]) {
     assert.equal((html.match(new RegExp(`href="${route}"`, "g")) ?? []).length, 1);
@@ -55,10 +52,7 @@ test("Persian empty home has one H1, three real service routes and no fake image
 });
 
 test("English empty home has English copy and three localized service destinations", async () => {
-  const html = await renderView(
-    "en",
-    <HomePage model={buildHomeViewModel({ guides: [] })} />,
-  );
+  const html = await renderView("en", <HomePage model={buildHomeViewModel({ guides: [] })} />);
   assert.equal(/[\u0600-\u06ff]/.test(html), false);
   for (const route of ["/en/grave-stones", "/en/building-stone", "/en/stoneworks"]) {
     assert.ok(html.includes(`href="${route}"`));
