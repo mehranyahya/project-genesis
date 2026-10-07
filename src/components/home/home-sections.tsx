@@ -3,6 +3,8 @@ import { LocaleLink, useLocale, useT } from "@/lib/i18n/react";
 import { HomeLinkCard } from "./home-link-card";
 import { PublicMedia } from "@/components/media/public-media";
 import type { HomeGuideItem, HomeProject, HomeService, HomeViewModel } from "@/lib/home";
+import { buildQuoteReferralPath } from "@/lib/portfolio-reference";
+import { localizeRawPath } from "@/lib/i18n/locale";
 
 export const CHOICE_PATHS = [
   {
@@ -84,6 +86,7 @@ const PROJECT_LABELS: Record<HomeService, string> = {
 
 export function HomePortfolio({ projects }: { projects: readonly HomeProject[] }) {
   const t = useT();
+  const locale = useLocale();
   return (
     <section className="page-section" aria-labelledby="home-portfolio">
       <div className="flex flex-wrap items-baseline justify-between gap-4">
@@ -100,9 +103,8 @@ export function HomePortfolio({ projects }: { projects: readonly HomeProject[] }
       <ul className="mt-10 grid gap-6 md:grid-cols-3">
         {projects.map(({ service, item }) => (
           <li key={service}>
-            <LocaleLink
-              to="/quote"
-              search={() => ({ source: "portfolio", reference: item.publicReferenceId })}
+            <a
+              href={localizeRawPath(buildQuoteReferralPath(item.publicReferenceId)!, locale)}
               className="block min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               <div className="aspect-[3/2] overflow-hidden bg-surface-media">
@@ -117,7 +119,7 @@ export function HomePortfolio({ projects }: { projects: readonly HomeProject[] }
               {item.summary ? (
                 <p className="mt-2 text-sm text-text-secondary">{item.summary}</p>
               ) : null}
-            </LocaleLink>
+            </a>
           </li>
         ))}
       </ul>

@@ -1,5 +1,6 @@
 /** Home curation is explicit; memorial products never become the shared hero. */
 import type { Guide, Media, PortfolioItem } from "./content/types";
+import { normalizePortfolioReference } from "./portfolio-reference";
 
 export const HOME_SERVICES = ["grave_stone", "building_stone", "stoneworks"] as const;
 export type HomeService = (typeof HOME_SERVICES)[number];
@@ -46,7 +47,7 @@ export function buildHomeViewModel(input: HomeAdapterResult): HomeViewModel {
     presentation?.projects?.find(
       (project) =>
         project.service === service &&
-        cleanText(project.item.publicReferenceId) &&
+        normalizePortfolioReference(project.item.publicReferenceId) &&
         project.item.media.length > 0,
     ),
   );

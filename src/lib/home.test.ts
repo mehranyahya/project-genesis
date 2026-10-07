@@ -13,7 +13,10 @@ const media: Media = {
   alt: "Stone",
 };
 
-function project(service: HomeProject["service"], reference: string = service): HomeProject {
+function project(
+  service: HomeProject["service"],
+  reference: string = `pf-${1001 + HOME_SERVICES.indexOf(service)}`,
+): HomeProject {
   return { service, item: { publicReferenceId: reference, media: [media] } };
 }
 
@@ -120,7 +123,7 @@ test("blank guides are ignored and the first valid guide is retained", () => {
   });
   assert.equal(model.showGuide, true);
   assert.equal(model.guide?.slug, "one");
-  assert.equal(model.guide.summary, "Summary");
+  assert.equal(model.guide?.summary, "Summary");
 });
 
 test("blank guide summaries are omitted", () => {

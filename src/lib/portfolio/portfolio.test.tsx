@@ -93,7 +93,7 @@ test("10 error state is accessible with a real router retry", () => {
 test("11-13 CTA text is exact and only the view-model quote path is used", () => {
   const card = read(CARD);
   assert.ok(card.includes("مشابه این را می‌خواهم"));
-  assert.ok(card.includes("href={card.quotePath}"));
+  assert.ok(card.includes("href={localizeRawPath(card.quotePath, locale)}"));
   assert.ok(!card.includes("?source="));
   assert.ok(!card.includes("URLSearchParams"));
   assert.ok(!card.includes("window.location"));
