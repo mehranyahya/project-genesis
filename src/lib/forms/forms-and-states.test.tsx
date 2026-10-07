@@ -313,7 +313,7 @@ test("25 a real semantic source change invalidates the source-coupled state only
 
 test("26 the reset depends on semantic identity, not object reference", () => {
   const form = stripComments(read(FORM));
-  assert.ok(form.includes("const identity = sourceIdentity(source)"));
+  assert.ok(form.includes("sourceIdentity(source)}~${notePrefix}"));
   assert.ok(form.includes("}, [identity]);"));
   assert.ok(!form.includes("}, [source]);"));
   assert.ok(!form.includes("}, [source, "));

@@ -351,7 +351,10 @@ test("25 the shared form consumes the bound contract and never a hard-coded one"
   const form = stripComments(read(FORM));
   assert.ok(form.includes("extension.contract?.kind === source.kind"));
   assert.ok(form.includes("const contract = binding === null ? null : binding.contract;"));
-  assert.ok(form.includes("validateRequestForm({ values, source, extension: contract })"));
+  assert.match(
+    form,
+    /validateRequestForm\(\{\s*values: submittedValues,\s*source,\s*extension: contract,\s*\}\)/,
+  );
   assert.ok(form.includes("extension: contract"));
   // The building model is reached only through the contract and the field id.
   assert.ok(!form.includes("validateBuildingStoneSelection"));
