@@ -166,7 +166,9 @@ async function validateSource(bytes, declaredMime, ownerKind) {
     throw new Error("Media source exceeds decoded pixel limit");
   }
   if (!isAllowedMediaAspect(dimensions.width, dimensions.height, ownerKind)) {
-    throw new Error("Media source must be approximately 4:5 portrait, or 3:2 for portfolio/building");
+    throw new Error(
+      "Media source must be approximately 4:5 portrait, or 3:2 for portfolio/building",
+    );
   }
   if (
     metadata.format !== magic.format &&
