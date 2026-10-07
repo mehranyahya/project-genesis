@@ -91,12 +91,12 @@ test("no theme toggle surface exists anywhere in the UI", () => {
   assert.deepEqual(offenders, [], `theme toggle in: ${offenders.join(", ")}`);
 });
 
-test("app shell keeps skip link, single main and mobile-bar clearance", () => {
+test("app shell keeps a focusable main, skip link and no obstructing fixed action bar", () => {
   const shell = read("components/layout/app-shell.tsx");
   assert.match(shell, /focus:not-sr-only/);
   assert.equal((shell.match(/<main\b/g) ?? []).length, 1);
-  // Fixed mobile action bar must not cover the end of main content.
-  assert.match(shell, /pb-24 lg:pb-0/);
+  assert.match(shell, /tabIndex=\{-1\}/);
+  assert.doesNotMatch(shell, /fixed|pb-24/);
 });
 
 test("reduced motion is honoured globally and no decorative animation is declared", () => {
@@ -111,7 +111,7 @@ test("reduced motion is honoured globally and no decorative animation is declare
   assert.deepEqual(offenders, [], `decorative animation in: ${offenders.join(", ")}`);
 });
 
-test("interactive rows and controls declare the 44px target and 2px focus ring", () => {
+test("interactive rows and controls declare the 48px target and 2px focus ring", () => {
   const files = [
     "components/request-form/request-form-fields.tsx",
     "components/building-stone/building-stone-fields.tsx",
@@ -121,7 +121,7 @@ test("interactive rows and controls declare the 44px target and 2px focus ring",
   ];
   for (const rel of files) {
     const source = read(rel);
-    assert.match(source, /min-h-11/, `missing 44px target in ${rel}`);
+    assert.match(source, /min-h-12/, `missing 48px target in ${rel}`);
     assert.match(source, /focus-visible:outline-2/, `missing 2px focus ring in ${rel}`);
   }
 });

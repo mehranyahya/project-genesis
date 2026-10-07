@@ -12,7 +12,7 @@ export const QUOTE_REFERENCE_LABEL = "نمونهٔ انتخاب‌شده:";
 export const QUOTE_REFERENCE_REMOVE = "حذف نمونهٔ انتخاب‌شده";
 
 const SECONDARY =
-  "inline-flex min-h-11 items-center justify-center border border-border-strong bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:border-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
+  "inline-flex min-h-12 items-center justify-center border border-border-strong bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:border-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 export function QuotePage({
   portfolioReferenceId,

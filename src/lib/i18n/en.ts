@@ -6,6 +6,48 @@
  * `{name}` placeholders are substituted by `formatMessage`.
  */
 export const EN_MESSAGES = {
+  منو: "Menu",
+  "ساخت سفارشی": "Bespoke stonework",
+  "شروع گفت‌وگو": "Start a conversation",
+  "اطلاعات و راهنماها": "Information and guides",
+  "زیبایی سنگ، دقت ساخت.": "Natural stone. Crafted with care.",
+  "سنگ مزار · سنگ ساختمانی · ساخت سفارشی":
+    "Memorial stone · Architectural stone · Bespoke stonework",
+  "بررسی خدمات": "Explore services",
+  "سه مسیر، یک متریال": "Three paths. One material.",
+  "انتخاب مدل، اندازه و جزئیات برای یک یادمان شخصی.":
+    "Choose the model, dimensions and details for a personal memorial.",
+  "بررسی سنگ، ابعاد و کاربرد متناسب با پروژهٔ معماری.":
+    "Explore stone, dimensions and applications for an architectural project.",
+  "بررسی ایده، جنس و جزئیات برای ساخت یک اثر سنگی.":
+    "Explore the idea, material and details of a bespoke stone piece.",
+  "انتخاب خدمت": "Choose a service",
+  "شرح نیاز و جزئیات": "Describe your needs",
+  "هماهنگی برای تأیید نهایی": "Coordinate final approval",
+  "از انتخاب تا بررسی": "From selection to review",
+  "آثار منتخب": "Selected works",
+  "بررسی اجرای مشابه": "Enquire about similar work",
+  "خواندن راهنما": "Read the guide",
+  "برای انتخاب یا ساخت سنگ، گفت‌وگو را شروع کنیم.": "Let’s talk about choosing or crafting stone.",
+  "ثبت درخواست برای بررسی جزئیات است و به معنی شروع تولید یا الزام به پرداخت نیست.":
+    "A request begins a review of the details. It does not start production or create a payment obligation.",
+  "سنگ طبیعی؛ سنگ مزار، سنگ ساختمانی و ساخت سفارشی":
+    "Natural stone: memorials, architecture and bespoke stonework",
+  "بررسی خدمات سنگ مزار، سنگ ساختمانی و ساخت سفارشی؛ انتخاب مسیر و ثبت درخواست بررسی.":
+    "Explore memorial stone, architectural stone and bespoke stonework, and submit a request for review.",
+  "محل اجرای پروژه": "Project location",
+  "دستهٔ انتخاب‌شده:": "Selected category:",
+  "حذف دستهٔ انتخاب‌شده": "Remove the selected category",
+  "درخواست ساخت: {category}\nابعاد موردنظر (سانتی‌متر): \nشرح ایده و جزئیات: ":
+    "Bespoke request: {category}\nDesired dimensions (cm): \nIdea and details: ",
+  "نمونه‌کارهای سنگ مزار، سنگ ساختمانی و ساخت سفارشی":
+    "Projects in memorial stone, architectural stone and bespoke stonework",
+  "{count} محصول": "{count} models",
+  "{current} از {total}": "{current} of {total}",
+  "در حال آماده‌سازی تصویر…": "Preparing the image…",
+  "تصویر در حال حاضر در دسترس نیست.": "The image is currently unavailable.",
+  "بارگذاری تصویر انجام نشد. می‌توانید دوباره تلاش کنید.":
+    "The image could not be loaded. You can try again.",
   // Layout, navigation and global actions
   "رفتن به محتوای اصلی": "Skip to main content",
   "صفحهٔ اصلی": "Home",
@@ -19,7 +61,7 @@ export const EN_MESSAGES = {
   "فروشگاه سنگ مزار": "Memorial Stones",
   "سفارش سفارشی": "Custom Order",
   نمونه‌کارها: "Projects",
-  "سنگ ساختمانی": "Building Stone",
+  "سنگ ساختمانی": "Architectural stone",
   راهنماها: "Guides",
   "محصولات سنگی خاص": "Special Stonework",
   "درباره ما": "About Us",

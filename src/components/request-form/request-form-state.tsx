@@ -8,7 +8,7 @@ import type { SubmitOutcome, SubmitPrice } from "@/lib/request-submit";
 
 const PANEL = "flex flex-col gap-3 border border-border-subtle bg-surface p-4";
 const ACTION =
-  "inline-flex min-h-11 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] enabled:hover:border-surface-inverse enabled:hover:bg-surface-inverse disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
+  "inline-flex min-h-12 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] enabled:hover:border-action-hover enabled:hover:bg-action-hover disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 export function formatSubmitPrice(price: SubmitPrice, locale: Locale = DEFAULT_LOCALE): string {
   if (price.priceType === "review" || price.amountToman === null) {

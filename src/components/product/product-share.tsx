@@ -9,7 +9,7 @@ export const COPY_FAILURE_TEXT = "کپی لینک انجام نشد. لطفاً 
 export const SHARE_FAILURE_TEXT = "اشتراک‌گذاری انجام نشد.";
 
 const ACTION =
-  "inline-flex min-h-11 items-center justify-center border border-border-strong bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:border-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
+  "inline-flex min-h-12 items-center justify-center border border-border-strong bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:border-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 /**
  * Share identity is derived from the stable public route key (slug) only.

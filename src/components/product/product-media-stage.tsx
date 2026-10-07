@@ -11,7 +11,7 @@ export const MEDIA_NEXT_LABEL = "رسانه بعدی";
 const positionFormatter = new Intl.NumberFormat("fa-IR");
 
 const CONTROL =
-  "inline-flex min-h-11 min-w-11 items-center justify-center border border-border-control bg-surface px-4 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] enabled:hover:bg-surface-media disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
+  "inline-flex min-h-12 min-w-12 items-center justify-center border border-border-control bg-surface px-4 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] enabled:hover:bg-surface-media disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none";
 
 /** Neutral 4:5 product stage. The first visible image is the product-route LCP candidate. */
 export function ProductMediaStage({ media }: { media: readonly ProductDetailMedia[] }) {

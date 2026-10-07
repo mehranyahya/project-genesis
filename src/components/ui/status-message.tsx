@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/react";
 
 type StatusTone = "info" | "error" | "success";
 
@@ -21,6 +22,7 @@ export interface StatusMessageProps extends React.HTMLAttributes<HTMLDivElement>
 }
 
 function StatusMessage({ className, tone = "info", children, ...props }: StatusMessageProps) {
+  const t = useT();
   const isError = tone === "error";
   return (
     <div
@@ -34,7 +36,7 @@ function StatusMessage({ className, tone = "info", children, ...props }: StatusM
       )}
       {...props}
     >
-      <span className="font-bold">{tonePrefix[tone]}</span>
+      <span className="font-bold">{t(tonePrefix[tone])}</span>
       <span>{children}</span>
     </div>
   );

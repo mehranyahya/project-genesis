@@ -266,10 +266,10 @@ test("31 the 4/8/12 grid and the seven/five desktop split are present", () => {
 
 test("32 touch targets and focus-visible rings are present on controls", () => {
   for (const rel of [PAGE, STAGE, STATES]) {
-    assert.ok(read(rel).includes("min-h-11"), `min-h-11 missing in ${rel}`);
+    assert.ok(read(rel).includes("min-h-12"), `min-h-12 missing in ${rel}`);
     assert.ok(read(rel).includes("focus-visible:outline-2"), `focus ring missing in ${rel}`);
   }
-  assert.ok(read(SELECTION).includes("min-h-11"));
+  assert.ok(read(SELECTION).includes("min-h-12"));
   assert.ok(read(SELECTION).includes("focus-visible:outline-2"));
 });
 

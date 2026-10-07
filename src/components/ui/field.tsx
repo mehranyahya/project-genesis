@@ -32,7 +32,7 @@ function Field({
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const successId = success ? `${id}-success` : undefined;
-  const describedBy = [hintId, successId].filter(Boolean).join(" ") || undefined;
+  const describedBy = [hintId, errorId, successId].filter(Boolean).join(" ") || undefined;
 
   const control = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
@@ -63,7 +63,7 @@ function Field({
           className="flex items-start gap-2 border-s-2 border-status-error ps-2 text-sm leading-relaxed text-status-error"
         >
           <span className="font-bold">{t("خطا:")}</span>
-          <span>{error}</span>
+          <span>{t(error)}</span>
         </p>
       ) : null}
       {success ? (
@@ -74,7 +74,7 @@ function Field({
           className="flex items-start gap-2 border-s-2 border-status-success ps-2 text-sm leading-relaxed text-status-success"
         >
           <span className="font-bold">{t("انجام شد:")}</span>
-          <span>{success}</span>
+          <span>{t(success)}</span>
         </p>
       ) : null}
     </div>

@@ -132,9 +132,9 @@ test("8 the building-stone error is focused before the general field errors", ()
   assert.ok(form.includes("buildingStoneFieldId("));
 });
 
-test("9 controls keep a 44px target and a visible focus ring", () => {
+test("9 controls keep a 48px target and a visible focus ring", () => {
   const fields = read(FIELDS);
-  assert.ok(fields.includes("min-h-11"));
+  assert.ok(fields.includes("min-h-12"));
   assert.ok(fields.includes("focus-visible:outline-2"));
   assert.ok(fields.includes("focus-visible:outline-focus"));
 });

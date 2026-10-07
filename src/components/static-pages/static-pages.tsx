@@ -62,7 +62,7 @@ export function ContactDetailsList({ entries }: { entries: ContactEntry[] }) {
             ) : (
               <a
                 href={entry.href}
-                className="inline-flex min-h-11 items-center text-action-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                className="inline-flex min-h-12 items-center text-action-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
                 {...(entry.kind === "link" ? { rel: "noopener noreferrer" } : {})}
               >
                 <bdi>{entry.value}</bdi>

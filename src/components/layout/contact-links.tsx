@@ -34,7 +34,7 @@ export function ContactLinks({ site, className, linkClassName }: ContactLinksPro
             href={entry.href}
             className={
               linkClassName ??
-              "inline-flex min-h-11 items-center underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2"
+              "inline-flex min-h-12 items-center underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2"
             }
           >
             {entry.label}: <bdi>{entry.href.startsWith("tel:") ? site.phone : entry.label}</bdi>

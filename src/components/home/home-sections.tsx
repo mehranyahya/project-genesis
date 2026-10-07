@@ -49,9 +49,9 @@ export function HomeProcess() {
         {PROCESS_STEPS.map((label, index) => (
           <li
             key={label}
-            className="col-span-4 flex min-h-11 items-center gap-3 border border-border-subtle bg-surface px-4 py-4 md:col-span-4 lg:col-span-3"
+            className="col-span-4 flex min-h-12 items-center gap-3 border border-border-subtle bg-surface px-4 py-4 md:col-span-4 lg:col-span-3"
           >
-            <span aria-hidden="true" className="text-base font-bold text-decorative-accent">
+            <span aria-hidden="true" className="text-base font-bold text-text-secondary">
               {index + 1}
             </span>
             <span className="text-sm text-text-primary">{t(label)}</span>
@@ -75,7 +75,7 @@ export function HomeFeaturedProducts({ products }: { products: readonly HomeProd
             <LocaleLink
               to="/grave-stones/$slug"
               params={{ slug: product.slug }}
-              className="flex min-h-11 h-full flex-col gap-3 border border-border-subtle bg-surface p-4 transition-colors duration-[180ms] hover:border-border-control hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+              className="flex min-h-12 h-full flex-col gap-3 border border-border-subtle bg-surface p-4 transition-colors duration-[180ms] hover:border-border-control hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
             >
               {product.media ? (
                 <div className="aspect-[4/5] overflow-hidden bg-surface-media">
@@ -109,7 +109,7 @@ export function HomePortfolio() {
       <div className={FULL_SPAN}>
         <LocaleLink
           to="/portfolio"
-          className="inline-flex min-h-11 items-center justify-center border border-border-control bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+          className="inline-flex min-h-12 items-center justify-center border border-border-control bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
         >
           {t("مشاهده نمونه‌کارها")}
         </LocaleLink>
@@ -129,7 +129,7 @@ export function HomeGuide({ guide }: { guide: HomeGuideItem }) {
         <LocaleLink
           to="/guides/$slug"
           params={{ slug: guide.slug }}
-          className="flex min-h-11 flex-col gap-2 border border-border-subtle bg-surface px-4 py-5 transition-colors duration-[180ms] hover:border-border-control hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+          className="flex min-h-12 flex-col gap-2 border border-border-subtle bg-surface px-4 py-5 transition-colors duration-[180ms] hover:border-border-control hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
         >
           <span className="text-base font-bold text-text-primary">{guide.title}</span>
           {guide.summary ? (
@@ -151,7 +151,7 @@ export function HomeBuildingStone() {
       <div className={FULL_SPAN}>
         <LocaleLink
           to="/building-stone"
-          className="inline-flex min-h-11 items-center justify-center border border-border-control bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+          className="inline-flex min-h-12 items-center justify-center border border-border-control bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
         >
           {t("بررسی سنگ ساختمانی")}
         </LocaleLink>
@@ -164,7 +164,9 @@ export function HomeFinalCta() {
   const t = useT();
   return (
     <section className={SECTION_GRID} aria-labelledby="home-final-cta">
-      <div className={`${FULL_SPAN} border border-border-control bg-surface-inverse p-6`}>
+      <div
+        className={`${FULL_SPAN} inverse-surface border border-border-control bg-surface-inverse p-6`}
+      >
         <h2 id="home-final-cta" className="text-xl font-bold text-text-inverse">
           {t("برای انتخاب سنگ مزار آماده‌اید؟")}
         </h2>
@@ -175,7 +177,7 @@ export function HomeFinalCta() {
         </p>
         <LocaleLink
           to="/grave-stones"
-          className="mt-6 inline-flex min-h-11 items-center justify-center border border-text-inverse bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] hover:bg-text-inverse hover:text-surface-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse motion-reduce:transition-none"
+          className="ui-action ui-action-inverse mt-6 min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse motion-reduce:transition-none"
         >
           {t("انتخاب و ثبت سفارش")}
         </LocaleLink>

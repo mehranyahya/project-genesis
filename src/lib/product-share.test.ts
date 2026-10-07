@@ -44,7 +44,7 @@ test("browser globals are only touched inside guarded runtime code", () => {
 });
 
 test("share actions are accessible, tokenised and mounted on the detail page", () => {
-  assert.ok(shareSource.includes("min-h-11"));
+  assert.ok(shareSource.includes("min-h-12"));
   assert.ok(shareSource.includes("focus-visible:outline-2"));
   assert.ok(shareSource.includes("motion-reduce:transition-none"));
   assert.ok(shareSource.includes('aria-live="polite"'));

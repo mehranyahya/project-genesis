@@ -1,7 +1,7 @@
 /**
  * Site navigation contract.
  * The single source of truth for allowed business routes, public navigation
- * destinations and the one shop CTA. No content, no fixtures, no URLs.
+ * destinations and the shared request CTA. No content, no fixtures, no URLs.
  */
 
 export const BUSINESS_ROUTES = [
@@ -34,10 +34,14 @@ export interface NavItem {
 
 /** Primary public navigation (header + mobile panel + footer). */
 export const PRIMARY_NAV: readonly NavItem[] = [
-  { label: "فروشگاه سنگ مزار", to: "/grave-stones" },
-  { label: "نمونه‌کارها", to: "/portfolio" },
+  { label: "سنگ مزار", to: "/grave-stones" },
   { label: "سنگ ساختمانی", to: "/building-stone" },
-  { label: "محصولات سنگی خاص", to: "/stoneworks" },
+  { label: "ساخت سفارشی", to: "/stoneworks" },
+  { label: "نمونه‌کارها", to: "/portfolio" },
+] as const;
+
+/** Supporting pages stay accessible without crowding the service navigation. */
+export const SECONDARY_NAV: readonly NavItem[] = [
   { label: "راهنماها", to: "/guides" },
   { label: "درباره ما", to: "/about" },
   { label: "تماس", to: "/contact" },
@@ -49,10 +53,10 @@ export const FOOTER_LEGAL_NAV: readonly NavItem[] = [
   { label: "شرایط استفاده", to: "/terms" },
 ] as const;
 
-/** The one shop CTA. Label is locked by the product contract. */
+/** Brand-wide action; product pages retain their contextual request action. */
 export const PRIMARY_CTA: NavItem = {
-  label: "انتخاب و ثبت سفارش",
-  to: "/grave-stones",
+  label: "شروع گفت‌وگو",
+  to: "/quote",
 } as const;
 
 export const SKIP_LINK_LABEL = "رفتن به محتوای اصلی";

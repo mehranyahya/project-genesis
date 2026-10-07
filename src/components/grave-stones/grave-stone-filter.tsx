@@ -24,7 +24,7 @@ export const STONE_NEUTRAL_LABEL = "همه سنگ‌ها";
 export const RESET_LABEL = "پاک‌کردن فیلترها";
 
 const CONTROL =
-  "min-h-11 w-full border border-border-control bg-surface px-3 py-2 text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
+  "min-h-12 w-full border border-border-control bg-surface px-3 py-2 text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 const LABEL = "block pb-2 text-sm text-text-secondary";
 
 export function GraveStoneFilter({
@@ -114,7 +114,7 @@ export function GraveStoneFilter({
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex min-h-11 items-center border border-border-control bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+            className="inline-flex min-h-12 items-center border border-border-control bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
           >
             {t(RESET_LABEL)}
           </button>

@@ -14,9 +14,9 @@ import {
 import { useT } from "@/lib/i18n/react";
 
 const CONTROL =
-  "min-h-11 w-full border border-border-control bg-surface px-3 py-2 text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-45";
+  "min-h-12 w-full border border-border-control bg-surface px-3 py-2 text-sm text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-45";
 const ROW =
-  "flex min-h-11 items-start gap-3 border border-border-subtle bg-surface p-3 has-[:checked]:border-2 has-[:checked]:border-action-primary";
+  "flex min-h-12 items-start gap-3 border border-border-subtle bg-surface p-3 has-[:checked]:border-action-primary";
 const CHOICE =
   "mt-1 h-5 w-5 shrink-0 accent-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 

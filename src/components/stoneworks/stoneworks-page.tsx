@@ -64,7 +64,7 @@ export function StoneworksPage() {
               <LocaleLink
                 to="/quote"
                 aria-label={t(STONEWORKS_CTA_TEMPLATE, { category: t(category.label) })}
-                className="inline-flex min-h-11 w-fit items-center rounded-sm border border-action-primary bg-action-primary px-5 text-sm font-bold text-text-inverse transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] hover:bg-surface-inverse focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse motion-reduce:transition-none"
+                className="inline-flex min-h-12 w-fit items-center rounded-sm border border-action-primary bg-action-primary px-5 text-sm font-bold text-text-inverse transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
               >
                 {t(STONEWORKS_CTA_LABEL)}
               </LocaleLink>
@@ -81,9 +81,9 @@ export function StoneworksPage() {
           {STONEWORKS_PROCESS_STEPS.map((step, index) => (
             <li
               key={step}
-              className="col-span-4 flex min-h-11 items-center gap-3 border border-border-subtle bg-surface px-4 py-4 md:col-span-4 lg:col-span-3"
+              className="col-span-4 flex min-h-12 items-center gap-3 border border-border-subtle bg-surface px-4 py-4 md:col-span-4 lg:col-span-3"
             >
-              <span aria-hidden="true" className="text-base font-bold text-decorative-accent">
+              <span aria-hidden="true" className="text-base font-bold text-text-secondary">
                 {index + 1}
               </span>
               <span className="text-sm text-text-primary">{t(step)}</span>
