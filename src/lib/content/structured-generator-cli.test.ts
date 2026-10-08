@@ -11,7 +11,12 @@ test("structured generator still runs directly with isolated offline build data"
   try {
     await mkdir(join(root, "scripts"));
     await mkdir(join(root, "src/lib/content"), { recursive: true });
-    for (const name of ["generate-structured-content.mjs", "media-geometry.mjs"]) {
+    for (const name of [
+      "generate-structured-content.mjs",
+      "media-geometry.mjs",
+      "bounded-response.mjs",
+      "site-links.mjs",
+    ]) {
       await copyFile(
         new URL(`../../../scripts/${name}`, import.meta.url),
         join(root, "scripts", name),
@@ -64,6 +69,63 @@ process.on("beforeExit", () => writeFileSync("calls.txt", String(calls)));
     assert.ok(artifact.includes("GENERATED_SITE: Site | null = null"));
     assert.ok(artifact.includes("a".repeat(64)));
     assert.equal(artifact.includes("synthetic-test-key"), false);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("offline CLI rejects an unsafe operational link without printing its private value", async () => {
+  const root = await mkdtemp(join(tmpdir(), "genesis-invalid-site-cli-"));
+  try {
+    await mkdir(join(root, "scripts"));
+    await mkdir(join(root, "src/lib/content"), { recursive: true });
+    for (const name of [
+      "generate-structured-content.mjs",
+      "media-geometry.mjs",
+      "bounded-response.mjs",
+      "site-links.mjs",
+    ]) {
+      await copyFile(
+        new URL(`../../../scripts/${name}`, import.meta.url),
+        join(root, "scripts", name),
+      );
+    }
+    await symlink(
+      fileURLToPath(new URL("../../../node_modules", import.meta.url)),
+      join(root, "node_modules"),
+      "dir",
+    );
+    await writeFile(
+      join(root, "offline-fetch.mjs"),
+      `
+      globalThis.fetch = async (input) => {
+        const url = new URL(input);
+        if (url.origin !== "https://fixtures.invalid") throw new Error("Unexpected offline URL");
+        const value = url.pathname.endsWith("compute_operational_catalog_version") ? "${"a".repeat(64)}" :
+          url.pathname.endsWith("site_settings") ? [{ display_name: "Fixture", latin_name: "Fixture", telegram: "javascript:synthetic-private-value" }] : [];
+        return new Response(JSON.stringify(value));
+      };
+    `,
+    );
+    const result = spawnSync(
+      "node",
+      ["--import", "./offline-fetch.mjs", "scripts/generate-structured-content.mjs"],
+      {
+        cwd: root,
+        encoding: "utf8",
+        timeout: 15000,
+        env: {
+          PATH: process.env["PATH"] ?? "",
+          BUILD_SUPABASE_URL: "https://fixtures.invalid",
+          BUILD_SUPABASE_SERVICE_ROLE_KEY: "synthetic-test-key",
+        },
+      },
+    );
+    assert.equal(result.error, undefined);
+    assert.notEqual(result.status, 0);
+    assert.ok(result.stderr.includes("Site link must use a public, credential-free HTTPS host"));
+    assert.equal((result.stdout + result.stderr).includes("synthetic-private-value"), false);
+    assert.equal((result.stdout + result.stderr).includes("synthetic-test-key"), false);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

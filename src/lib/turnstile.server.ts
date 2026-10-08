@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { z } from "zod";
+import { readBoundedJson } from "../../scripts/bounded-response.mjs";
 
 import { cloudflareIp } from "./request-api.server";
 
@@ -9,6 +10,7 @@ const TURNSTILE_ACTION = "submit_request";
 const TOKEN_MAX_LENGTH = 2048;
 const SITEVERIFY_TIMEOUT_MS = 8_000;
 const MAX_ATTEMPTS = 2;
+const SITEVERIFY_RESPONSE_LIMIT = 16 * 1024;
 
 const siteverifySchema = z
   .object({
@@ -107,16 +109,18 @@ async function validateOnce(
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(SITEVERIFY_TIMEOUT_MS),
       cache: "no-store",
+      redirect: "error",
     });
   } catch {
     return { kind: "service_error" };
   }
 
-  if (!response.ok) return { kind: "service_error" };
+  if (response.status === 429 || response.status >= 500) return { kind: "service_error" };
+  if (!response.ok) return { kind: "invalid" };
 
   let body: unknown;
   try {
-    body = await response.json();
+    body = await readBoundedJson(response, SITEVERIFY_RESPONSE_LIMIT);
   } catch {
     return { kind: "service_error" };
   }

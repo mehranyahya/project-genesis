@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { describeError } from "../lib/safe-error";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/layout/app-shell";
 import { NotFoundView } from "../components/static-pages/static-pages";
@@ -32,7 +33,7 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
+  console.error(describeError(error));
   const router = useRouter();
   const locale = useActiveLocale();
   const t = translatorFor(locale);

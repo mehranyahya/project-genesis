@@ -22,6 +22,16 @@ interface SiteverifyResponse {
   readonly "error-codes"?: unknown;
 }
 
+export interface TurnstileDependencies {
+  readonly readEnv: (name: string) => string | undefined;
+  readonly fetchSiteverify: typeof fetch;
+}
+
+const defaultDependencies: TurnstileDependencies = {
+  readEnv: (name) => Deno.env.get(name),
+  fetchSiteverify: (input, init) => fetch(input, init),
+};
+
 export type TurnstileResult =
   | {
       readonly kind: "accepted";
@@ -29,13 +39,14 @@ export type TurnstileResult =
       readonly riskFlags: readonly RiskFlag[];
     }
   | { readonly kind: "invalid" }
+  | { readonly kind: "service_error" }
   | { readonly kind: "configuration_error" };
 
-function readConfig(): TurnstileConfig | null {
-  const secret = Deno.env.get("TURNSTILE_SECRET_KEY")?.trim() ?? "";
-  const rawHostnames = Deno.env.get("TURNSTILE_ALLOWED_HOSTNAMES")?.trim() ?? "";
-  const action = Deno.env.get("TURNSTILE_EXPECTED_ACTION")?.trim() ?? "";
-  const namespaceUuid = Deno.env.get("SITEVERIFY_NAMESPACE_UUID")?.trim() ?? "";
+function readConfig(readEnv: TurnstileDependencies["readEnv"]): TurnstileConfig | null {
+  const secret = readEnv("TURNSTILE_SECRET_KEY")?.trim() ?? "";
+  const rawHostnames = readEnv("TURNSTILE_ALLOWED_HOSTNAMES")?.trim() ?? "";
+  const action = readEnv("TURNSTILE_EXPECTED_ACTION")?.trim() ?? "";
+  const namespaceUuid = readEnv("SITEVERIFY_NAMESPACE_UUID")?.trim() ?? "";
   if (secret === "" || rawHostnames === "" || action !== "submit_request") return null;
   if (
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
@@ -62,10 +73,12 @@ async function oneAttempt(
   config: TurnstileConfig,
   token: string,
   idempotencyKey: string,
+  fetchSiteverify: typeof fetch,
 ): Promise<
   | { kind: "response"; value: SiteverifyResponse }
   | { kind: "transport_failure" }
   | { kind: "invalid" }
+  | { kind: "configuration_error" }
 > {
   const body = new FormData();
   body.set("secret", config.secret);
@@ -74,7 +87,7 @@ async function oneAttempt(
 
   let response: Response;
   try {
-    response = await fetch(SITEVERIFY_URL, {
+    response = await fetchSiteverify(SITEVERIFY_URL, {
       method: "POST",
       body,
       redirect: "error",
@@ -100,43 +113,48 @@ async function oneAttempt(
   if (value === null || typeof value !== "object" || Array.isArray(value)) {
     return { kind: "transport_failure" };
   }
-  return { kind: "response", value: value as SiteverifyResponse };
+  const parsed = value as SiteverifyResponse;
+  if (parsed.success !== true && Array.isArray(parsed["error-codes"])) {
+    const codes = parsed["error-codes"];
+    if (codes.includes("missing-input-secret") || codes.includes("invalid-input-secret")) {
+      return { kind: "configuration_error" };
+    }
+    if (codes.includes("internal-error")) return { kind: "transport_failure" };
+  }
+  return { kind: "response", value: parsed };
 }
 
-export async function verifyTurnstile(input: {
-  readonly token: string | null;
-  readonly submissionId: string;
-  readonly fastSubmitSignal: boolean;
-}): Promise<TurnstileResult> {
-  const config = readConfig();
+export async function verifyTurnstile(
+  input: {
+    readonly token: string | null;
+    readonly submissionId: string;
+    readonly fastSubmitSignal: boolean;
+  },
+  dependencies: TurnstileDependencies = defaultDependencies,
+): Promise<TurnstileResult> {
+  const config = readConfig(dependencies.readEnv);
   if (config === null) return { kind: "configuration_error" };
 
-  if (input.token === null) {
-    const riskFlags: RiskFlag[] = ["turnstile_no_token"];
-    if (input.fastSubmitSignal) riskFlags.push("fast_submit_signal");
-    return {
-      kind: "accepted",
-      botVerification: "unverified_no_token",
-      riskFlags,
-    };
+  if (
+    input.token === null ||
+    input.token.length === 0 ||
+    input.token.length > 2048 ||
+    [...input.token].some((char) => char.charCodeAt(0) <= 31 || char.charCodeAt(0) === 127)
+  ) {
+    return { kind: "invalid" };
   }
 
   const tokenHash = await sha256Hex(input.token);
   const idempotencyKey = await uuidV5(config.namespaceUuid, `${input.submissionId}:${tokenHash}`);
 
-  let result = await oneAttempt(config, input.token, idempotencyKey);
+  let result = await oneAttempt(config, input.token, idempotencyKey, dependencies.fetchSiteverify);
   if (result.kind === "transport_failure") {
-    result = await oneAttempt(config, input.token, idempotencyKey);
+    result = await oneAttempt(config, input.token, idempotencyKey, dependencies.fetchSiteverify);
   }
   if (result.kind === "invalid") return { kind: "invalid" };
+  if (result.kind === "configuration_error") return { kind: "configuration_error" };
   if (result.kind === "transport_failure") {
-    const riskFlags: RiskFlag[] = ["turnstile_unavailable"];
-    if (input.fastSubmitSignal) riskFlags.push("fast_submit_signal");
-    return {
-      kind: "accepted",
-      botVerification: "unverified_service_error",
-      riskFlags,
-    };
+    return { kind: "service_error" };
   }
 
   const value = result.value;

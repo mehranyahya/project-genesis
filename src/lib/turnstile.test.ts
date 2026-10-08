@@ -47,7 +47,7 @@ test("Turnstile token header is bounded and rejects controls", () => {
   assert.equal(readTurnstileToken(controlHeaderRequest), null);
 });
 
-test("missing proof is soft no_token and never calls Siteverify", async () => {
+test("missing proof is classified as no_token and never calls Siteverify", async () => {
   let calls = 0;
   const fetcher: typeof fetch = async () => {
     calls += 1;
@@ -143,6 +143,25 @@ test("configuration or repeated transport failure becomes service_error", async 
   assert.equal(calls, 2);
 });
 
+test("alternate verifier rejects HTTP 400 without retry and bounds Siteverify JSON before parsing", async () => {
+  let calls = 0;
+  const rejected: typeof fetch = async () => {
+    calls++;
+    return result({}, 400);
+  };
+  assert.deepEqual(await verifyTurnstileRequest(request(), deps(rejected)), { kind: "invalid" });
+  assert.equal(calls, 1);
+  for (const responseBody of ["x".repeat(16 * 1024 + 1), new Uint8Array([0xc3, 0x28])]) {
+    const oversized: typeof fetch = async (_url, init) => {
+      assert.equal(init?.redirect, "error");
+      return new Response(responseBody);
+    };
+    assert.deepEqual(await verifyTurnstileRequest(request(), deps(oversized)), {
+      kind: "service_error",
+    });
+  }
+});
+
 test("client transport omits the proof header when Turnstile is unavailable", async () => {
   let headers: Readonly<Record<string, string>> | null = null;
   const transport: RequestSubmitTransport = async (input) => {
@@ -227,10 +246,8 @@ test("client executes fresh proof before transport while Siteverify authority li
 
   assert.match(edgeTurnstile, /challenges\.cloudflare\.com\/turnstile\/v0\/siteverify/);
   assert.match(edgeTurnstile, /TURNSTILE_SECRET_KEY/);
-  assert.match(edgeTurnstile, /unverified_no_token/);
-  assert.match(edgeTurnstile, /unverified_service_error/);
-  assert.match(edgeTurnstile, /turnstile_no_token/);
-  assert.match(edgeTurnstile, /turnstile_unavailable/);
+  assert.doesNotMatch(edgeTurnstile, /unverified_no_token|unverified_service_error/);
+  assert.match(edgeSubmit, /turnstile\.kind === "service_error"/);
   assert.match(edgeTurnstile, /idempotency_key/);
 
   const inspectPosition = edgeSubmit.indexOf("inspect_request_idempotency");

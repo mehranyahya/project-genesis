@@ -1,3 +1,5 @@
+import { readBoundedBytes, readBoundedJson } from "./bounded-response.mjs";
+import { validateSiteLink } from "./site-links.mjs";
 import { createHash } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -10,6 +12,7 @@ const MEDIA_DIRECTORY = new URL("../public/media/", import.meta.url);
 const BUCKET = "catalog-media";
 const REQUEST_TIMEOUT_MS = 15_000;
 const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
+const MAX_DATA_API_BYTES = 4 * 1024 * 1024;
 const MAX_SOURCE_PIXELS = 40_000_000;
 const MIN_SOURCE_WIDTH = 1280;
 const OUTPUT_WIDTHS = [320, 640, 1280];
@@ -21,7 +24,6 @@ const WEBP_BUDGETS = new Map([
 const MEDIA_KEY =
   /^(products|portfolio|building-stone)\/[A-Za-z0-9][A-Za-z0-9._-]{0,79}\/[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/;
 const CATALOG_VERSION = /^[0-9a-f]{64}$/;
-const E164_DIGITS = /^[1-9][0-9]{7,14}$/;
 
 function requiredEnv(name) {
   const value = process.env[name]?.trim();
@@ -53,11 +55,16 @@ function authHeaders(serviceRoleKey, extra = {}) {
 }
 
 async function checkedFetch(url, init = {}) {
-  const response = await fetch(url, {
-    ...init,
-    redirect: "error",
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
+  let response;
+  try {
+    response = await fetch(url, {
+      ...init,
+      redirect: "error",
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch {
+    throw new Error("Build content request unavailable");
+  }
   if (!response.ok) throw new Error(`Build content request failed (${response.status})`);
   return response;
 }
@@ -71,7 +78,7 @@ async function dataApi(path, init = {}) {
       ...(init.headers ?? {}),
     }),
   });
-  return response.json();
+  return readBoundedJson(response, MAX_DATA_API_BYTES);
 }
 
 function storagePath(path) {
@@ -91,10 +98,7 @@ async function downloadPrivateMedia(mediaKey) {
     { headers: authHeaders(serviceRoleKey, { accept: "image/*" }) },
   );
   const contentType = (response.headers.get("content-type") ?? "").split(";", 1)[0].trim();
-  const bytes = Buffer.from(await response.arrayBuffer());
-  if (bytes.length === 0 || bytes.length > MAX_SOURCE_BYTES) {
-    throw new Error("Private media source violates byte limit");
-  }
+  const bytes = await readBoundedBytes(response, MAX_SOURCE_BYTES);
   return { bytes, contentType };
 }
 
@@ -256,35 +260,7 @@ function cleanText(value) {
 }
 
 function validateWhatsAppUrl(value) {
-  const text = cleanText(value);
-  if (text === null) return null;
-  const url = new URL(text);
-  if (url.protocol !== "https:" || url.username || url.password || url.hash) {
-    throw new Error("whatsapp_url must be a credential-free HTTPS URL");
-  }
-  if (url.hostname === "wa.me") {
-    const digits = url.pathname.slice(1);
-    if (!E164_DIGITS.test(digits) || url.pathname !== `/${digits}`) {
-      throw new Error("wa.me URL must contain an international digits-only phone number");
-    }
-    for (const key of url.searchParams.keys()) {
-      if (key !== "text") throw new Error("Unsupported wa.me query parameter");
-    }
-  } else if (url.hostname === "api.whatsapp.com") {
-    if (url.pathname !== "/send") throw new Error("Unsupported api.whatsapp.com path");
-    const phone = url.searchParams.get("phone") ?? "";
-    if (!E164_DIGITS.test(phone)) {
-      throw new Error("WhatsApp send URL requires a digits-only phone");
-    }
-    for (const key of url.searchParams.keys()) {
-      if (key !== "phone" && key !== "text") {
-        throw new Error("Unsupported WhatsApp query parameter");
-      }
-    }
-  } else {
-    throw new Error("WhatsApp URL host is not allowlisted");
-  }
-  return url.toString();
+  return validateSiteLink(value, "whatsapp");
 }
 
 function idsFilter(ids) {
@@ -460,13 +436,13 @@ async function loadStructuredContent() {
         latinName: siteRow.latin_name,
         phone: siteRow.phone,
         whatsappUrl: validateWhatsAppUrl(siteRow.whatsapp_url),
-        telegram: siteRow.telegram,
+        telegram: validateSiteLink(siteRow.telegram, "telegram"),
         address: siteRow.address,
         workingHours: siteRow.working_hours,
         links: {
-          instagram: siteRow.instagram_url,
-          website: siteRow.website_url,
-          map: siteRow.map_url,
+          instagram: validateSiteLink(siteRow.instagram_url, "instagram"),
+          website: validateSiteLink(siteRow.website_url, "website"),
+          map: validateSiteLink(siteRow.map_url, "map"),
         },
       }
     : null;

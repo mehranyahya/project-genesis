@@ -82,7 +82,9 @@ test("catastrophic HTML is Persian, static and security-headered", () => {
   assert.match(page, /<html lang="fa" dir="rtl">/);
   assert.match(page, /بارگذاری این صفحه انجام نشد/);
   assert.doesNotMatch(page, /onclick=|<script/i);
-  assert.match(server, /content-security-policy/);
-  assert.match(server, /cache-control.*no-store/);
-  assert.match(server, /x-content-type-options.*nosniff/);
+  const headers = readFileSync(new URL("security-headers.ts", import.meta.url), "utf8");
+  assert.match(server, /headers: FATAL_HTML_HEADERS/);
+  assert.match(headers, /content-security-policy/);
+  assert.match(headers, /cache-control.*no-store/);
+  assert.match(headers, /x-content-type-options.*nosniff/);
 });

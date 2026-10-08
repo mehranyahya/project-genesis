@@ -7,6 +7,7 @@ import { renderErrorPage } from "./lib/error-page";
 import { handleSignedSubmitGateway } from "./lib/gateway-submit.server";
 import { handleSitemapRequest } from "./lib/sitemap.server";
 import { runSignedTelegramRecovery } from "./lib/telegram-recovery-gateway.server";
+import { FATAL_HTML_HEADERS, applySecurityHeaders } from "./lib/security-headers";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -25,15 +26,6 @@ export const TELEGRAM_RECOVERY_CRON = "0 * * * *";
 export const PUBLIC_SUBMIT_MAX_BODY_BYTES = 16 * 1024;
 export const SUBMIT_FLOOD_LIMIT_BINDING = "SUBMIT_FLOOD_LIMITER";
 export const PREVIEW_ROBOTS_HEADER = "noindex, nofollow, noarchive";
-
-const FATAL_HTML_HEADERS = {
-  "cache-control": "no-store, max-age=0",
-  "content-security-policy":
-    "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
-  "content-type": "text/html; charset=utf-8",
-  "referrer-policy": "no-referrer",
-  "x-content-type-options": "nosniff",
-} as const;
 
 const PUBLIC_SUBMIT_PATH = "/api/submit-request";
 
@@ -94,6 +86,10 @@ function gatewayRateLimitedResponse(): Response {
   return gatewayJsonResponse({ code: "RATE_LIMITED" }, 429);
 }
 
+function gatewayUnavailableResponse(): Response {
+  return gatewayJsonResponse({ code: "TEMPORARILY_UNAVAILABLE" }, 503);
+}
+
 function isPublicSubmitRequest(request: Request): boolean {
   if (request.method !== "POST") return false;
   try {
@@ -109,6 +105,7 @@ function publicIndexingEnabled(env: unknown): boolean {
 }
 
 export function applyDeploymentIndexingHeaders(response: Response, env: unknown): Response {
+  response = applySecurityHeaders(response);
   if (publicIndexingEnabled(env)) return response;
 
   const headers = new Headers(response.headers);
@@ -135,19 +132,20 @@ export async function enforcePublicSubmitFloodLimit(
   if (!isPublicSubmitRequest(request)) return null;
 
   const ip = request.headers.get("cf-connecting-ip")?.trim() ?? "";
-  if (isIP(ip) === 0) return null;
+  if (isIP(ip) === 0) return gatewayUnavailableResponse();
 
   const limiter = floodLimiterFromEnv(env);
-  if (limiter === null) return null;
+  if (limiter === null) return gatewayUnavailableResponse();
 
   try {
     const result = await limiter.limit({ key: ip });
-    return result.success ? null : gatewayRateLimitedResponse();
+    if (result?.success === true) return null;
+    return result?.success === false ? gatewayRateLimitedResponse() : gatewayUnavailableResponse();
   } catch {
-    // This is an emergency, eventually-consistent flood layer only. The exact
-    // transactional phone/IP rules in PostgreSQL remain authoritative.
+    // PostgreSQL policy remains disabled until Preview E2E. Never turn a
+    // missing emergency limiter into a public, unrestricted submission path.
     console.error("Worker submit flood limiter unavailable");
-    return null;
+    return gatewayUnavailableResponse();
   }
 }
 
@@ -181,7 +179,10 @@ export async function enforcePublicSubmitBodyLimit(request: Request): Promise<Re
       if (next.done) return null;
       total += next.value.byteLength;
       if (total > PUBLIC_SUBMIT_MAX_BODY_BYTES) {
-        await reader.cancel();
+        // Awaiting only one branch's cancellation can hang a cloned Request's
+        // tee while the original remains unread. Cancel both without blocking.
+        void reader.cancel().catch(() => {});
+        void request.body?.cancel().catch(() => {});
         return gatewayValidationResponse();
       }
     }

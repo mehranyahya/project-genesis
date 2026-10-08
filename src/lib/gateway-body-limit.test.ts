@@ -57,3 +57,34 @@ test("gateway body enforcement applies only to POST /api/submit-request", async 
   assert.equal(await enforcePublicSubmitBodyLimit(getRequest), null);
   assert.equal(await enforcePublicSubmitBodyLimit(otherPost), null);
 });
+
+test("oversized streaming bodies are rejected promptly without waiting for an unread cloned branch", async () => {
+  let cancelled = false;
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new Uint8Array(PUBLIC_SUBMIT_MAX_BODY_BYTES + 1));
+    },
+    cancel() {
+      cancelled = true;
+    },
+  });
+  const request = new Request(endpoint, {
+    method: "POST",
+    body: stream,
+    duplex: "half",
+  } as RequestInit);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const response = await Promise.race([
+      enforcePublicSubmitBodyLimit(request),
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(() => reject(new Error("Body limit did not settle")), 1000);
+      }),
+    ]);
+    assert.equal(response?.status, 422);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(cancelled, true);
+  } finally {
+    clearTimeout(timer);
+  }
+});

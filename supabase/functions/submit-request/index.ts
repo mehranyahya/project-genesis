@@ -263,7 +263,7 @@ Deno.serve(async (request: Request) => {
       fastSubmitSignal:
         parsed.value.formFillDurationMs !== null && parsed.value.formFillDurationMs < 2_000,
     });
-    if (turnstile.kind === "configuration_error") {
+    if (turnstile.kind === "configuration_error" || turnstile.kind === "service_error") {
       return finish(temporaryUnavailable(), "TEMPORARILY_UNAVAILABLE");
     }
     if (turnstile.kind === "invalid") {
