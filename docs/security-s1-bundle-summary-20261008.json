@@ -1,0 +1,20 @@
+{
+  "baseline": {
+    "home_js_raw_bytes": 442035,
+    "home_js_gzip_bytes": 136933,
+    "home_js_files": 2,
+    "css_raw_bytes": 26276,
+    "css_gzip_bytes": 6248,
+    "font_raw_bytes": 130972,
+    "js_css_gzip_bytes": 143181
+  },
+  "patched": {
+    "home_js_raw_bytes": 446799,
+    "home_js_gzip_bytes": 137944,
+    "home_js_files": 2,
+    "css_raw_bytes": 26276,
+    "css_gzip_bytes": 6248,
+    "font_raw_bytes": 130972,
+    "js_css_gzip_bytes": 144192
+  }
+}

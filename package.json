@@ -13,6 +13,7 @@
     "build:dev": "bun run content:check && vite build --mode development",
     "preview": "wrangler dev --config .output/server/wrangler.json",
     "lint": "eslint .",
+    "security:audit": "bun audit",
     "format": "prettier --write .",
     "content:generate": "node scripts/generate-content-pages.mjs",
     "content:check": "node scripts/generate-content-pages.mjs --check",
@@ -91,9 +92,17 @@
     "globals": "^15.15.0",
     "nitro": "3.0.260603-beta",
     "prettier": "^3.7.3",
+    "sharp": "0.35.5",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.1.5",
     "wrangler": "4.97.0"
+  },
+  "overrides": {
+    "esbuild": "0.28.2",
+    "seroval": "1.6.8",
+    "sharp": "0.35.5",
+    "undici": "7.30.0",
+    "ws": "8.22.0"
   }
 }
