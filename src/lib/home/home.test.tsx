@@ -67,12 +67,13 @@ test("the final action is service-neutral and goes to the general request", () =
   assert.ok(sections.includes('to="/quote"'));
   assert.equal(sections.includes("برای انتخاب سنگ مزار آماده‌اید؟"), false);
 });
-test("the home reads approved guides without fetching unselected product or work catalogues", () => {
+test("the home supplies official adapters to explicit editorial selection without loading products", () => {
   const route = routeUnit("routes/index.tsx", "homeRouteOptions");
   assert.ok(route.includes('from "@/lib/content/adapters"'));
   const body = routeUnitBody("routes/index.tsx", "homeRouteOptions");
-  assert.ok(body.includes("getGuides()"));
-  assert.ok(body.includes("contentListForLocale(guides, locale)"));
+  assert.ok(body.includes("loadHomeViewModel(locale, HOME_EDITORIAL_REFERENCES[locale]"));
+  assert.ok(body.includes("getGuides,"));
+  assert.ok(body.includes("getPortfolioItems,"));
   assert.equal(/getProducts\(|getPortfolioItems\(/.test(body), false);
   assert.equal(/from\s+["'][^"']*\.(json|md|mdx|png|jpe?g|svg|webp)["']/.test(ALL), false);
 });

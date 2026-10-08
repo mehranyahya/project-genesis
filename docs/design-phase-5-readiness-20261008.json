@@ -1,0 +1,163 @@
+{
+  "scope": "committed-sanitized-artifacts",
+  "automaticChecksPass": false,
+  "readyForPublication": false,
+  "counts": {
+    "fa": {
+      "products": 0,
+      "portfolioItems": 0,
+      "guides": 0
+    },
+    "en": {
+      "products": 0,
+      "portfolioItems": 0,
+      "guides": 0
+    }
+  },
+  "checks": [
+    {
+      "key": "structured_artifact",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "catalog_version",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "brand_names",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "contact_details",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "english_source_ingestion",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "guide_source_ingestion",
+      "required": false,
+      "status": "deferred"
+    },
+    {
+      "key": "fa.product_media",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "fa.hero",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "fa.hero_mobile",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "fa.service_images",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "fa.selected_projects",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "fa.about_page",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "fa.building_stone_page",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "fa.privacy_page",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "fa.versioned_terms",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "fa.home_guide",
+      "required": false,
+      "status": "deferred"
+    },
+    {
+      "key": "en.product_media",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "en.hero",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "en.hero_mobile",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "en.service_images",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "en.selected_projects",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "en.about_page",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "en.building_stone_page",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "en.privacy_page",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "en.versioned_terms",
+      "required": true,
+      "status": "blocked"
+    },
+    {
+      "key": "en.home_guide",
+      "required": false,
+      "status": "deferred"
+    }
+  ],
+  "manualChecks": [
+    {
+      "key": "preview_visual_accessibility",
+      "status": "pending"
+    },
+    {
+      "key": "preview_real_media_performance",
+      "status": "pending"
+    },
+    {
+      "key": "preview_request_success",
+      "status": "pending"
+    }
+  ]
+}

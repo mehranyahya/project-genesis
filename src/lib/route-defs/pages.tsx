@@ -14,7 +14,8 @@ import {
 import { buildGraveStoneListModel } from "@/lib/grave-stone-list";
 import { buildGuideDetailModel, buildGuideListModel } from "@/lib/guides";
 import type { GuideDetailModel, GuideListItem } from "@/lib/guides";
-import { buildHomeViewModel } from "@/lib/home";
+import { loadHomeViewModel } from "@/lib/home-editorial";
+import { HOME_EDITORIAL_REFERENCES } from "@/lib/home-editorial-config";
 import type { Locale } from "@/lib/i18n/locale";
 import { contentForLocale, contentListForLocale, siteForLocale } from "@/lib/i18n/content-gate";
 import { buildPortfolioModel } from "@/lib/portfolio";
@@ -46,15 +47,11 @@ export function homeRouteOptions(locale: Locale) {
         description:
           "بررسی خدمات سنگ مزار، سنگ ساختمانی و ساخت سفارشی؛ انتخاب مسیر و ثبت درخواست بررسی.",
       }),
-    loader: async () => {
-      const guides = await getGuides();
-      return buildHomeViewModel({
-        // Selected work is added with approved editorial references in the content phase.
-        // Without that selection, fetching a catalogue contributes no home section.
-        portfolioItems: [],
-        guides: contentListForLocale(guides, locale),
-      });
-    },
+    loader: () =>
+      loadHomeViewModel(locale, HOME_EDITORIAL_REFERENCES[locale], {
+        getGuides,
+        getPortfolioItems,
+      }),
     // Keep the small landing view critical: no extra chunk request before home hydration.
     component: HomeRoute,
   };
