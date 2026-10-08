@@ -10,9 +10,9 @@ export const PORTFOLIO_INTRO =
 export function PortfolioPage({ cards }: { cards: readonly PortfolioCardModel[] }) {
   const t = useT();
   return (
-    <section className="mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12">
+    <section className="site-container section-space grid grid-cols-4 gap-x-6 gap-y-8 md:grid-cols-8 lg:grid-cols-12">
       <div className="col-span-4 md:col-span-8 lg:col-span-12">
-        <h1 className="text-2xl font-bold text-text-primary">{t(PORTFOLIO_HEADING)}</h1>
+        <h1 className="page-heading font-medium text-text-primary">{t(PORTFOLIO_HEADING)}</h1>
         <p className="pt-3 text-sm text-text-secondary">{t(PORTFOLIO_INTRO)}</p>
       </div>
 

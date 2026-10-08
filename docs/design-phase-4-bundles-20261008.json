@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-08",
+  "baselineCommit": "26503c1808bead2912f1f409ea2bd66e06a0952b",
+  "measurement": "Production client build, Bun 1.3.14; complete static import graph of eager home; gzip level 9, mtime 0, measured independently per file with Python; excludes HTTP headers and measured timing.",
+  "phase3": {
+    "entry": "index-BLyiKSgD.js",
+    "homeFiles": ["index-BLyiKSgD.js"],
+    "homeBytes": 511545,
+    "css": [
+      {
+        "file": "styles-CIYrvfTI.css",
+        "bytes": 25335,
+        "gzip": 6117
+      }
+    ],
+    "fontBytes": 130972,
+    "homeGzip": 148601
+  },
+  "phase4": {
+    "entry": "index-DW6i2aEy.js",
+    "homeFiles": ["index-DW6i2aEy.js", "react-Dug6p2AF.js"],
+    "homeBytes": 441187,
+    "css": [
+      {
+        "file": "styles-CM3LgvSD.css",
+        "bytes": 26276,
+        "gzip": 6248
+      }
+    ],
+    "fontBytes": 130972,
+    "homeGzip": 136657
+  },
+  "phase4HomeChunks": {
+    "index-DW6i2aEy.js": {
+      "bytes": 377444,
+      "dependencies": ["react-Dug6p2AF.js"],
+      "gzip": 115283
+    },
+    "react-Dug6p2AF.js": {
+      "bytes": 63743,
+      "dependencies": [],
+      "gzip": 21374
+    }
+  },
+  "deferredChunkFiles": [
+    "building-stone-Ba7lf_ak.js",
+    "contact-Hw-VJEGG.js",
+    "custom-funnel-B33fgIB0.js",
+    "custom-funnel-states-MwaloVLM.js",
+    "grave-stone-list-states-C3cLvz95.js",
+    "grave-stones-YX2Ix72t.js",
+    "guide-detail-Dwiwep4b.js",
+    "guide-list-Cs44l1gD.js",
+    "portfolio-DsUoby2i.js",
+    "portfolio-states-Dxw2r1LQ.js",
+    "product-DDC-i4mU.js",
+    "product-detail-page-C-BmrMfv.js",
+    "product-detail-states-Baaoy5Af.js",
+    "quote-CBf0H4ZG.js",
+    "request-form-DYxI5hmd.js",
+    "static-Du7rEDr9.js",
+    "stoneworks-page-CFXMuiZ-.js"
+  ]
+}

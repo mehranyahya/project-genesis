@@ -158,6 +158,7 @@ export const EN_MESSAGES = {
     "The order summary cannot be prepared right now.",
   "در حال دریافت جزئیات سنگ مزار": "Loading the memorial stone details",
   "دریافت جزئیات سنگ مزار ممکن نشد.": "The memorial stone details could not be loaded.",
+  "گالری تصاویر محصول": "Product image gallery",
   "رسانه بعدی": "Next image",
   "رسانه قبلی": "Previous image",
   "رسانهٔ تأییدشده‌ای برای این محصول ثبت نشده است.":

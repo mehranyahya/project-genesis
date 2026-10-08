@@ -34,7 +34,13 @@ export function factorySection(exportName: string): string {
   const start = FACTORY_SOURCE.indexOf(`export function ${exportName}(`);
   if (start === -1) throw new Error(`missing factory: ${exportName}`);
   const next = FACTORY_SOURCE.indexOf("\nexport function ", start + 1);
-  return FACTORY_SOURCE.slice(start, next === -1 ? undefined : next);
+  const section = FACTORY_SOURCE.slice(start, next === -1 ? undefined : next);
+  const viewPaths = [...section.matchAll(/import\("\.\/views\/([a-z-]+)"\)/g)].map(
+    (match) => match[1],
+  );
+  if (exportName === "homeRouteOptions") viewPaths.push("home");
+  const views = viewPaths.map((view) => readSource(`lib/route-defs/views/${view}.tsx`));
+  return [section, ...views].join("\n");
 }
 
 /** The shared import header of the factory module. */
