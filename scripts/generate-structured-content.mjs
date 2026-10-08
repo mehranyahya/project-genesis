@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import sharp from "sharp";
 import { isAllowedMediaAspect } from "./media-geometry.mjs";
 
@@ -146,7 +148,7 @@ function orientedDimensions(metadata) {
     : { width: metadata.width, height: metadata.height };
 }
 
-async function validateSource(bytes, declaredMime, ownerKind) {
+export async function validateSource(bytes, declaredMime, ownerKind) {
   const magic = detectMagic(bytes);
   if (!magic) throw new Error("Unsupported or suspicious media magic bytes");
   if (declaredMime !== magic.mime) throw new Error("Media MIME does not match magic bytes");
@@ -179,7 +181,7 @@ async function validateSource(bytes, declaredMime, ownerKind) {
   return dimensions;
 }
 
-async function encodeWithinBudget(input, width, format, budget) {
+export async function encodeWithinBudget(input, width, format, budget) {
   for (let quality = format === "webp" ? 82 : 58; quality >= 46; quality -= 4) {
     let pipeline = sharp(input, {
       failOn: "error",
@@ -198,7 +200,7 @@ async function encodeWithinBudget(input, width, format, budget) {
   throw new Error(`${format.toUpperCase()} ${width}w exceeds media byte budget`);
 }
 
-async function assertMetadataStripped(buffer) {
+export async function assertMetadataStripped(buffer) {
   const metadata = await sharp(buffer, {
     failOn: "error",
     limitInputPixels: MAX_SOURCE_PIXELS,
@@ -493,7 +495,11 @@ function generatedSource({ products, portfolio, site, catalogVersion }) {
   ].join("\n");
 }
 
-await rm(MEDIA_DIRECTORY, { recursive: true, force: true });
-await mkdir(MEDIA_DIRECTORY, { recursive: true });
-const structured = await loadStructuredContent();
-await writeFile(OUTPUT_FILE, generatedSource(structured), "utf8");
+// Importing the build-only media checks must not read credentials, fetch content,
+// or replace generated artifacts. Direct CLI execution keeps the existing flow.
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  await rm(MEDIA_DIRECTORY, { recursive: true, force: true });
+  await mkdir(MEDIA_DIRECTORY, { recursive: true });
+  const structured = await loadStructuredContent();
+  await writeFile(OUTPUT_FILE, generatedSource(structured), "utf8");
+}
