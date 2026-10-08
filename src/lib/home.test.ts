@@ -1,146 +1,140 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-
 import { buildHomeViewModel } from "./home";
-import type { Guide, Media, PortfolioItem, Product } from "./content/types";
+import type { HomeEditorialSelection } from "./home";
+import type { Guide, Media, PortfolioItem } from "./content/types";
 
 function media(id = "a"): Media {
   return {
-    src: `/media/aaaaaaaaaaaaaaaaaaaaaaaa/${id.padStart(16, "a")}-1280w.webp`,
-    srcSet: `/media/aaaaaaaaaaaaaaaaaaaaaaaa/${id.padStart(16, "a")}-320w.webp 320w, /media/aaaaaaaaaaaaaaaaaaaaaaaa/${id.padStart(16, "a")}-640w.webp 640w, /media/aaaaaaaaaaaaaaaaaaaaaaaa/${id.padStart(16, "a")}-1280w.webp 1280w`,
+    src: "/media/aaaaaaaaaaaaaaaaaaaaaaaa/" + id.padStart(16, "a") + "-1280w.webp",
+    srcSet: [320, 640, 1280]
+      .map(
+        (width) =>
+          "/media/aaaaaaaaaaaaaaaaaaaaaaaa/" +
+          id.padStart(16, "a") +
+          "-" +
+          width +
+          "w.webp " +
+          width +
+          "w",
+      )
+      .join(", "),
     width: 1280,
     height: 1600,
     alt: "نمای سنگ",
   };
 }
-
-function product(slug: string, isActive = true, withMedia = false): Product {
-  return {
-    id: slug,
-    code: slug.toUpperCase(),
-    slug,
-    type: "simple",
-    title: `عنوان ${slug}`,
-    summary: null,
-    description: null,
-    isActive,
-    isFeatured: true,
-    media: withMedia ? [media()] : [],
-    variants: [],
-    seo: null,
-    updatedAt: "2026-01-01T00:00:00.000Z",
-  };
+function work(id: string, withMedia = true): PortfolioItem {
+  return { publicReferenceId: id, media: withMedia ? [media()] : [], summary: "  شرح واقعی  " };
 }
-
-function portfolioItem(id: string): PortfolioItem {
-  return { publicReferenceId: id, media: [media()] };
-}
-
 function guide(slug: string, summary: string | null = null): Guide {
-  return {
-    slug,
-    title: `راهنما ${slug}`,
-    summary,
-    body: "",
-    seo: null,
-    updatedAt: "2026-01-01T00:00:00.000Z",
-  };
+  return { slug, title: "راهنما " + slug, summary, body: "", seo: null, updatedAt: "2026-01-01" };
 }
+const EMPTY = { portfolioItems: [], guides: [] };
+const selection: HomeEditorialSelection = {
+  projects: { memorial: "pf-1001", architectural: "pf-1002", bespoke: "pf-1003" },
+};
+const works = [work("pf-1001"), work("pf-1002"), work("pf-1003")];
 
-const EMPTY = { products: [], portfolioItems: [], guides: [] };
-
-test("empty adapter results hide every optional section", () => {
+test("empty adapters and absent editorial assets publish no invented content", () => {
   const model = buildHomeViewModel(EMPTY);
-  assert.equal(model.showProducts, false);
+  assert.equal(model.heroMedia, null);
+  assert.equal(model.heroMobileMedia, null);
+  assert.deepEqual(model.serviceMedia, { memorial: null, architectural: null, bespoke: null });
   assert.equal(model.showPortfolio, false);
   assert.equal(model.showGuide, false);
   assert.equal(model.guide, null);
-  assert.equal(model.heroMedia, null);
-  assert.deepEqual([...model.products], []);
+  assert.deepEqual(model.projects, []);
 });
-
-test("one or two products keep the product section hidden", () => {
+test("portfolio order never implicitly chooses a brand hero", () => {
+  const model = buildHomeViewModel({ ...EMPTY, portfolioItems: works });
+  assert.equal(model.heroMedia, null);
+  assert.equal(model.showPortfolio, false);
+});
+test("hero and mobile crop require explicit approved editorial selection", () => {
+  const hero = media("a"),
+    mobile = { ...media("b"), height: 853 };
+  const model = buildHomeViewModel(EMPTY, { hero, heroMobile: mobile });
+  assert.equal(model.heroMedia, hero);
+  assert.equal(model.heroMobileMedia, mobile);
+  assert.equal(buildHomeViewModel(EMPTY, { heroMobile: mobile }).heroMobileMedia, null);
+});
+test("partial service imagery stays text-led for all three services", () => {
+  const model = buildHomeViewModel(EMPTY, { services: { memorial: media() } });
+  assert.deepEqual(model.serviceMedia, { memorial: null, architectural: null, bespoke: null });
+});
+test("a complete service-media set preserves equal imagery", () => {
+  const services = { memorial: media("a"), architectural: media("b"), bespoke: media("c") };
+  assert.deepEqual(buildHomeViewModel(EMPTY, { services }).serviceMedia, services);
+});
+test("one or two classified works cannot create a lopsided selection", () => {
   for (const count of [1, 2]) {
-    const products = Array.from({ length: count }, (_, i) => product(`p${i}`));
-    const model = buildHomeViewModel({ ...EMPTY, products });
-    assert.equal(model.showProducts, false, `count ${count} must stay hidden`);
-    assert.equal(model.products.length, 0);
+    const model = buildHomeViewModel(
+      { ...EMPTY, portfolioItems: works.slice(0, count) },
+      selection,
+    );
+    assert.equal(model.showPortfolio, false);
+    assert.deepEqual(model.projects, []);
   }
 });
-
-test("three active products reveal the product section", () => {
-  const model = buildHomeViewModel({
-    ...EMPTY,
-    products: [product("a"), product("b"), product("c")],
-  });
-  assert.equal(model.showProducts, true);
-  assert.equal(model.products.length, 3);
-});
-
-test("the first real featured media becomes the hero media", () => {
-  const model = buildHomeViewModel({
-    ...EMPTY,
-    products: [product("a"), product("b", true, true), product("c")],
-  });
-  assert.equal(model.heroMedia?.src.endsWith("-1280w.webp"), true);
-});
-
-test("inactive products are not counted", () => {
-  const model = buildHomeViewModel({
-    ...EMPTY,
-    products: [product("a"), product("b"), product("c", false)],
-  });
-  assert.equal(model.showProducts, false);
-});
-
-test("at most six products are kept and adapter order is preserved", () => {
-  const products = Array.from({ length: 9 }, (_, i) => product(`p${i}`));
-  const model = buildHomeViewModel({ ...EMPTY, products });
-  assert.equal(model.products.length, 6);
+test("three explicitly selected real works render in service order", () => {
+  const model = buildHomeViewModel({ ...EMPTY, portfolioItems: [...works].reverse() }, selection);
+  assert.equal(model.showPortfolio, true);
   assert.deepEqual(
-    model.products.map((item) => item.slug),
-    ["p0", "p1", "p2", "p3", "p4", "p5"],
+    model.projects.map((item) => item.service),
+    ["memorial", "architectural", "bespoke"],
   );
+  assert.deepEqual(
+    model.projects.map((item) => item.publicReferenceId),
+    ["pf-1001", "pf-1002", "pf-1003"],
+  );
+  assert.ok(model.projects.every((item) => item.summary === "شرح واقعی"));
 });
-
-test("empty summaries are normalised to null", () => {
-  const withBlank = { ...product("a"), summary: "   " };
-  const model = buildHomeViewModel({
-    ...EMPTY,
-    products: [withBlank, product("b"), product("c")],
-  });
-  assert.equal(model.products[0]?.summary, null);
-});
-
-test("portfolio section needs at least one valid item with public media", () => {
-  assert.equal(buildHomeViewModel({ ...EMPTY, portfolioItems: [] }).showPortfolio, false);
+test("duplicate, malformed, absent or media-less references never satisfy all services", () => {
+  const candidates: HomeEditorialSelection[] = [
+    { projects: { memorial: "pf-1001", architectural: "pf-1001", bespoke: "pf-1003" } },
+    { projects: { memorial: "private-key", architectural: "pf-1002", bespoke: "pf-1003" } },
+    { projects: { memorial: "pf-9999", architectural: "pf-1002", bespoke: "pf-1003" } },
+  ];
+  for (const candidate of candidates)
+    assert.equal(
+      buildHomeViewModel({ ...EMPTY, portfolioItems: works }, candidate).showPortfolio,
+      false,
+    );
   assert.equal(
-    buildHomeViewModel({ ...EMPTY, portfolioItems: [{ publicReferenceId: "pf-1001", media: [] }] })
-      .showPortfolio,
+    buildHomeViewModel(
+      { ...EMPTY, portfolioItems: [works[0]!, works[1]!, work("pf-1003", false)] },
+      selection,
+    ).showPortfolio,
     false,
   );
-  assert.equal(
-    buildHomeViewModel({ ...EMPTY, portfolioItems: [portfolioItem("pf-1001")] }).showPortfolio,
-    true,
+});
+test("blank work summaries are omitted", () => {
+  const items = works.map((item) => ({ ...item, summary: "  " }));
+  assert.ok(
+    buildHomeViewModel({ ...EMPTY, portfolioItems: items }, selection).projects.every(
+      (item) => item.summary === null,
+    ),
   );
 });
-
-test("guide section needs at least one valid guide and keeps only the first", () => {
-  assert.equal(buildHomeViewModel({ ...EMPTY, guides: [] }).showGuide, false);
-  const model = buildHomeViewModel({ ...EMPTY, guides: [guide("one", " خلاصه "), guide("two")] });
+test("the first valid guide is used and blank summaries are omitted", () => {
+  const model = buildHomeViewModel({
+    ...EMPTY,
+    guides: [guide(""), guide("one", "  "), guide("two")],
+  });
   assert.equal(model.showGuide, true);
   assert.equal(model.guide?.slug, "one");
-  assert.equal(model.guide?.summary, "خلاصه");
-});
-
-test("blank guide summary is omitted", () => {
-  const model = buildHomeViewModel({ ...EMPTY, guides: [guide("one", "  ")] });
   assert.equal(model.guide?.summary, null);
 });
-
-test("inputs are never mutated", () => {
-  const products = [product("a"), product("b"), product("c")];
-  const snapshot = JSON.stringify(products);
-  buildHomeViewModel({ ...EMPTY, products });
-  assert.equal(JSON.stringify(products), snapshot);
+test("guide summaries are trimmed", () => {
+  assert.equal(
+    buildHomeViewModel({ ...EMPTY, guides: [guide("one", " شرح ")] }).guide?.summary,
+    "شرح",
+  );
+});
+test("adapter inputs and editorial selections are never mutated", () => {
+  const input = { portfolioItems: works, guides: [guide("one")] };
+  const before = JSON.stringify({ input, selection });
+  buildHomeViewModel(input, selection);
+  assert.equal(JSON.stringify({ input, selection }), before);
 });

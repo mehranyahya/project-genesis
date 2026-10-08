@@ -17,6 +17,7 @@ export function toAvifSrcSet(srcSet: string): string {
 
 export interface PublicMediaProps {
   media: Media;
+  mobileMedia?: Media;
   alt?: string;
   className?: string;
   sizes?: string;
@@ -30,6 +31,7 @@ export interface PublicMediaProps {
  */
 export function PublicMedia({
   media,
+  mobileMedia,
   alt = media.alt,
   className,
   sizes,
@@ -37,10 +39,27 @@ export function PublicMedia({
   priority = false,
 }: PublicMediaProps) {
   const avifSrcSet = toAvifSrcSet(media.srcSet);
+  const mobileAvifSrcSet = mobileMedia ? toAvifSrcSet(mobileMedia.srcSet) : "";
   const fitClass = fit === "contain" ? "object-contain" : "object-cover";
 
   return (
     <picture className={className}>
+      {mobileAvifSrcSet ? (
+        <source
+          type="image/avif"
+          media="(max-width: 1023px)"
+          srcSet={mobileAvifSrcSet}
+          sizes={sizes}
+        />
+      ) : null}
+      {mobileMedia ? (
+        <source
+          type="image/webp"
+          media="(max-width: 1023px)"
+          srcSet={mobileMedia.srcSet}
+          sizes={sizes}
+        />
+      ) : null}
       {avifSrcSet ? <source type="image/avif" srcSet={avifSrcSet} sizes={sizes} /> : null}
       <img
         src={media.src}

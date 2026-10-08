@@ -1,19 +1,26 @@
 /**
- * Pure, side-effect free home view-model.
- * Applies section-omission thresholds over official adapter results only.
- * No fixtures, no fallbacks, no fabricated data.
+ * Pure home view-model. Editorial media must be explicitly selected from
+ * approved adapter DTOs; a memorial product never becomes the brand hero.
  */
+import type { Guide, Media, PortfolioItem } from "./content/types";
+import { normalizePortfolioReference } from "./portfolio-reference";
 
-import type { Guide, Media, PortfolioItem, Product } from "./content/types";
+export const HOME_SERVICE_KEYS = ["memorial", "architectural", "bespoke"] as const;
+export type HomeServiceKey = (typeof HOME_SERVICE_KEYS)[number];
 
-export const FEATURED_PRODUCTS_LIMIT = 6;
-export const FEATURED_PRODUCTS_MIN = 3;
+export interface HomeEditorialSelection {
+  readonly hero?: Media | null;
+  readonly heroMobile?: Media | null;
+  readonly services?: Partial<Record<HomeServiceKey, Media>>;
+  /** Public, non-sensitive references; one explicitly chosen work per service. */
+  readonly projects?: Partial<Record<HomeServiceKey, string>>;
+}
 
-export interface HomeProductItem {
-  readonly slug: string;
-  readonly title: string;
+export interface HomeProjectItem {
+  readonly service: HomeServiceKey;
+  readonly publicReferenceId: string;
   readonly summary: string | null;
-  readonly media: Media | null;
+  readonly media: Media;
 }
 
 export interface HomeGuideItem {
@@ -24,15 +31,15 @@ export interface HomeGuideItem {
 
 export interface HomeViewModel {
   readonly heroMedia: Media | null;
-  readonly products: readonly HomeProductItem[];
-  readonly showProducts: boolean;
+  readonly heroMobileMedia: Media | null;
+  readonly serviceMedia: Readonly<Record<HomeServiceKey, Media | null>>;
+  readonly projects: readonly HomeProjectItem[];
   readonly showPortfolio: boolean;
   readonly guide: HomeGuideItem | null;
   readonly showGuide: boolean;
 }
 
 export interface HomeAdapterResult {
-  readonly products: readonly Product[];
   readonly portfolioItems: readonly PortfolioItem[];
   readonly guides: readonly Guide[];
 }
@@ -43,45 +50,49 @@ function cleanText(value: string | null | undefined): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function isValidProduct(product: Product): boolean {
-  return (
-    product.isActive === true &&
-    cleanText(product.slug) !== null &&
-    cleanText(product.title) !== null
-  );
-}
+export function buildHomeViewModel(
+  input: HomeAdapterResult,
+  selection: HomeEditorialSelection = {},
+): HomeViewModel {
+  const projects: HomeProjectItem[] = [];
+  const used = new Set<string>();
+  for (const service of HOME_SERVICE_KEYS) {
+    const reference = normalizePortfolioReference(selection.projects?.[service]);
+    const item = input.portfolioItems.find(
+      (candidate) => candidate.publicReferenceId === reference,
+    );
+    if (!reference || used.has(reference) || !item?.media[0]) continue;
+    used.add(reference);
+    projects.push({
+      service,
+      publicReferenceId: reference,
+      summary: cleanText(item.summary),
+      media: item.media[0],
+    });
+  }
 
-function isValidPortfolioItem(item: PortfolioItem): boolean {
-  return cleanText(item.publicReferenceId) !== null && item.media.length > 0;
-}
-
-function isValidGuide(guide: Guide): boolean {
-  return cleanText(guide.slug) !== null && cleanText(guide.title) !== null;
-}
-
-export function buildHomeViewModel(input: HomeAdapterResult): HomeViewModel {
-  const validProducts = input.products.filter(isValidProduct).slice(0, FEATURED_PRODUCTS_LIMIT);
-  const heroMedia = validProducts.find((product) => product.media.length > 0)?.media[0] ?? null;
-  const products = validProducts.map((product) => ({
-    slug: product.slug,
-    title: product.title,
-    summary: cleanText(product.summary),
-    media: product.media[0] ?? null,
-  }));
-
-  const showProducts = products.length >= FEATURED_PRODUCTS_MIN;
-  const portfolioItem = input.portfolioItems.filter(isValidPortfolioItem)[0] ?? null;
-
-  const validGuide = input.guides.filter(isValidGuide)[0] ?? null;
-  const guide: HomeGuideItem | null = validGuide
-    ? { slug: validGuide.slug, title: validGuide.title, summary: cleanText(validGuide.summary) }
+  // Never publish a lopsided "selected work" section from unclassified content.
+  const showPortfolio = projects.length === HOME_SERVICE_KEYS.length;
+  const allServiceMedia = HOME_SERVICE_KEYS.every((key) => selection.services?.[key]);
+  const validGuide = input.guides.find((guide) => cleanText(guide.slug) && cleanText(guide.title));
+  const guide = validGuide
+    ? {
+        slug: validGuide.slug,
+        title: validGuide.title,
+        summary: cleanText(validGuide.summary),
+      }
     : null;
 
   return {
-    heroMedia,
-    products: showProducts ? products : [],
-    showProducts,
-    showPortfolio: portfolioItem !== null,
+    heroMedia: selection.hero ?? null,
+    heroMobileMedia: selection.hero ? (selection.heroMobile ?? null) : null,
+    serviceMedia: {
+      memorial: allServiceMedia ? (selection.services?.memorial ?? null) : null,
+      architectural: allServiceMedia ? (selection.services?.architectural ?? null) : null,
+      bespoke: allServiceMedia ? (selection.services?.bespoke ?? null) : null,
+    },
+    projects: showPortfolio ? projects : [],
+    showPortfolio,
     guide,
     showGuide: guide !== null,
   };

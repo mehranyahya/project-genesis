@@ -11,6 +11,7 @@ import {
   SKIP_LINK_LABEL,
   isBusinessRoute,
 } from "./navigation";
+import { CHOICE_PATHS } from "../components/home/home-sections";
 
 const EXPECTED = [
   "/",
@@ -85,10 +86,10 @@ test("skip link contract", () => {
   assert.equal(MAIN_CONTENT_ID, "main-content");
 });
 
-test("the navigation exposes three equal services while the memorial builder remains a memorial subflow", () => {
+test("the home exposes three equal services while the memorial builder remains a memorial subflow", () => {
   assert.ok(isBusinessRoute("/grave-stones/custom"));
   assert.deepEqual(
-    PRIMARY_NAV.slice(0, 3).map((item) => item.to),
+    CHOICE_PATHS.map((item) => item.to),
     ["/grave-stones", "/building-stone", "/stoneworks"],
   );
   assert.equal(
