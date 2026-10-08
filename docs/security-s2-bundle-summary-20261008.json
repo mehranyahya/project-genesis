@@ -1,0 +1,32 @@
+{
+  "baseline_commit": "690c1859352e448c36e47555c1546711f11a3ec6",
+  "baseline": {
+    "homeFiles": ["index-BvcrJwwR.js", "react-Dug6p2AF.js"],
+    "homeBytes": 446799,
+    "homeGzip": 137944,
+    "criticalGzip": 144192,
+    "css": [
+      {
+        "file": "styles-CM3LgvSD.css",
+        "bytes": 26276,
+        "gzip": 6248
+      }
+    ],
+    "fontBytes": 130972
+  },
+  "patched": {
+    "homeFiles": ["index-CvYzNzCi.js", "react-Dug6p2AF.js"],
+    "homeBytes": 447106,
+    "homeGzip": 138057,
+    "criticalGzip": 144305,
+    "css": [
+      {
+        "file": "styles-CM3LgvSD.css",
+        "bytes": 26276,
+        "gzip": 6248
+      }
+    ],
+    "fontBytes": 130972
+  },
+  "method": "Transitive static import graph; Python gzip level 9, mtime 0, zlib 1.3.2 per served file; same empty content; no field CWV or percent-speed claim."
+}

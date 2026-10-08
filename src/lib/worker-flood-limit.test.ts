@@ -87,17 +87,30 @@ test("missing or invalid Cloudflare IP never collapses users onto a shared empty
   const missing = new Request(endpoint, { method: "POST", body: "{}" });
   const invalid = submitRequest({ "cf-connecting-ip": "not-an-ip" });
 
-  assert.equal(await enforcePublicSubmitFloodLimit(missing, env), null);
-  assert.equal(await enforcePublicSubmitFloodLimit(invalid, env), null);
+  assert.equal((await enforcePublicSubmitFloodLimit(missing, env))?.status, 503);
+  assert.equal((await enforcePublicSubmitFloodLimit(invalid, env))?.status, 503);
   assert.equal(calls, 0);
 });
 
-test("missing binding is non-fatal because PostgreSQL remains the authoritative limiter", async () => {
-  assert.equal(await enforcePublicSubmitFloodLimit(submitRequest(), {}), null);
-  assert.equal(await enforcePublicSubmitFloodLimit(submitRequest(), null), null);
+test("missing binding blocks public submissions instead of assuming DB limits are enabled", async () => {
+  for (const env of [{}, null]) {
+    const response = await enforcePublicSubmitFloodLimit(submitRequest(), env);
+    assert.ok(response);
+    assert.equal(response.status, 503);
+    assert.deepEqual(await response.json(), { code: "TEMPORARILY_UNAVAILABLE" });
+  }
 });
 
-test("binding infrastructure failure fails open without logging the client IP", async () => {
+test("malformed limiter results cannot authorize a public submission", async () => {
+  for (const value of [null, {}, { success: "true" }, { success: 1 }]) {
+    const response = await enforcePublicSubmitFloodLimit(submitRequest(), {
+      [SUBMIT_FLOOD_LIMIT_BINDING]: { limit: async () => value },
+    });
+    assert.equal(response?.status, 503);
+  }
+});
+
+test("binding infrastructure failure fails closed without logging the client IP", async () => {
   const originalError = console.error;
   const logged: unknown[][] = [];
   console.error = (...args: unknown[]) => {
@@ -113,7 +126,10 @@ test("binding infrastructure failure fails open without logging the client IP", 
       },
     };
 
-    assert.equal(await enforcePublicSubmitFloodLimit(submitRequest(), env), null);
+    const response = await enforcePublicSubmitFloodLimit(submitRequest(), env);
+    assert.ok(response);
+    assert.equal(response.status, 503);
+    assert.deepEqual(await response.json(), { code: "TEMPORARILY_UNAVAILABLE" });
     assert.deepEqual(logged, [["Worker submit flood limiter unavailable"]]);
     assert.equal(JSON.stringify(logged).includes(ip), false);
   } finally {

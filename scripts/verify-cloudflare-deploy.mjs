@@ -1,3 +1,5 @@
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
 
 const GENERATED_CONFIG = new URL("../.output/server/wrangler.json", import.meta.url);
@@ -60,6 +62,22 @@ if (
   JSON.stringify(config.assets.run_worker_first) !== JSON.stringify(["/api/*", "/sitemap.xml"])
 ) {
   throw new Error("Cloudflare assets must route API and sitemap requests through the Worker first");
+}
+
+if (!config.assets || typeof config.assets.directory !== "string") {
+  throw new Error("Cloudflare deploy artifact must expose static asset security headers");
+}
+const assetDirectory = resolve(dirname(fileURLToPath(GENERATED_CONFIG)), config.assets.directory);
+const expectedHeaders = await readFile(new URL("../public/_headers", import.meta.url), "utf8");
+const builtHeaders = await readFile(resolve(assetDirectory, "_headers"), "utf8");
+// Nitro appends the immutable /assets rule. Accept that exact cache rule while
+// refusing any additional header that could override the reviewed security block.
+const nitroCacheRule = "/assets/*\n  cache-control: public, max-age=31536000, immutable";
+const expectedBuiltHeaders = `${expectedHeaders.trimEnd()}\n\n${nitroCacheRule}`;
+if (builtHeaders.trimEnd() !== expectedBuiltHeaders) {
+  throw new Error(
+    "Static asset security headers or Nitro cache rule differ from the reviewed artifact",
+  );
 }
 
 const submitFloodLimiters = Array.isArray(config.ratelimits)
