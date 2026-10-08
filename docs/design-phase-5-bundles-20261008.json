@@ -1,0 +1,219 @@
+{
+  "phase4": {
+    "entry": "index-DW6i2aEy.js",
+    "homeFiles": ["index-DW6i2aEy.js", "react-Dug6p2AF.js"],
+    "homeBytes": 441187,
+    "graph": {
+      "building-stone-Ba7lf_ak.js": {
+        "bytes": 4949,
+        "dependencies": ["react-Dug6p2AF.js", "index-DW6i2aEy.js", "request-form-DYxI5hmd.js"]
+      },
+      "contact-Hw-VJEGG.js": {
+        "bytes": 260,
+        "dependencies": ["react-Dug6p2AF.js", "index-DW6i2aEy.js"]
+      },
+      "custom-funnel-B33fgIB0.js": {
+        "bytes": 12603,
+        "dependencies": [
+          "react-Dug6p2AF.js",
+          "index-DW6i2aEy.js",
+          "custom-funnel-states-MwaloVLM.js",
+          "request-form-DYxI5hmd.js",
+          "product-detail-page-C-BmrMfv.js"
+        ]
+      },
+      "custom-funnel-states-MwaloVLM.js": {
+        "bytes": 2432,
+        "dependencies": ["react-Dug6p2AF.js"]
+      },
+      "grave-stone-list-states-C3cLvz95.js": {
+        "bytes": 2959,
+        "dependencies": ["react-Dug6p2AF.js"]
+      },
+      "grave-stones-YX2Ix72t.js": {
+        "bytes": 7369,
+        "dependencies": [
+          "react-Dug6p2AF.js",
+          "index-DW6i2aEy.js",
+          "grave-stone-list-states-C3cLvz95.js"
+        ]
+      },
+      "guide-detail-Dwiwep4b.js": {
+        "bytes": 182,
+        "dependencies": ["react-Dug6p2AF.js", "index-DW6i2aEy.js"]
+      },
+      "guide-list-Cs44l1gD.js": {
+        "bytes": 165,
+        "dependencies": ["react-Dug6p2AF.js", "index-DW6i2aEy.js"]
+      },
+      "index-DW6i2aEy.js": {
+        "bytes": 377444,
+        "dependencies": ["react-Dug6p2AF.js"]
+      },
+      "portfolio-DsUoby2i.js": {
+        "bytes": 2883,
+        "dependencies": ["react-Dug6p2AF.js", "index-DW6i2aEy.js", "portfolio-states-Dxw2r1LQ.js"]
+      },
+      "portfolio-states-Dxw2r1LQ.js": {
+        "bytes": 2115,
+        "dependencies": ["react-Dug6p2AF.js"]
+      },
+      "product-DDC-i4mU.js": {
+        "bytes": 310,
+        "dependencies": [
+          "react-Dug6p2AF.js",
+          "index-DW6i2aEy.js",
+          "product-detail-page-C-BmrMfv.js"
+        ]
+      },
+      "product-detail-page-C-BmrMfv.js": {
+        "bytes": 15368,
+        "dependencies": ["react-Dug6p2AF.js", "index-DW6i2aEy.js", "request-form-DYxI5hmd.js"]
+      },
+      "product-detail-states-Baaoy5Af.js": {
+        "bytes": 1840,
+        "dependencies": ["react-Dug6p2AF.js"]
+      },
+      "quote-CBf0H4ZG.js": {
+        "bytes": 2287,
+        "dependencies": ["react-Dug6p2AF.js", "index-DW6i2aEy.js", "request-form-DYxI5hmd.js"]
+      },
+      "react-Dug6p2AF.js": {
+        "bytes": 63743,
+        "dependencies": []
+      },
+      "request-form-DYxI5hmd.js": {
+        "bytes": 24551,
+        "dependencies": ["react-Dug6p2AF.js", "index-DW6i2aEy.js"]
+      },
+      "static-Du7rEDr9.js": {
+        "bytes": 209,
+        "dependencies": ["react-Dug6p2AF.js", "index-DW6i2aEy.js"]
+      },
+      "stoneworks-page-CFXMuiZ-.js": {
+        "bytes": 2567,
+        "dependencies": ["react-Dug6p2AF.js", "index-DW6i2aEy.js"]
+      }
+    },
+    "css": [
+      {
+        "file": "styles-CM3LgvSD.css",
+        "bytes": 26276,
+        "gzipBytes": 6248
+      }
+    ],
+    "fontBytes": 130972,
+    "homeGzipBytes": 136657,
+    "cssBytes": 26276,
+    "cssGzipBytes": 6248
+  },
+  "phase5": {
+    "entry": "index-BtoCbp94.js",
+    "homeFiles": ["index-BtoCbp94.js", "react-Dug6p2AF.js"],
+    "homeBytes": 442035,
+    "graph": {
+      "building-stone-uRKn5tmp.js": {
+        "bytes": 4949,
+        "dependencies": ["react-Dug6p2AF.js", "index-BtoCbp94.js", "request-form-CcG5k8b8.js"]
+      },
+      "contact-DpGu64mf.js": {
+        "bytes": 260,
+        "dependencies": ["react-Dug6p2AF.js", "index-BtoCbp94.js"]
+      },
+      "custom-funnel-CG9sOUJA.js": {
+        "bytes": 12603,
+        "dependencies": [
+          "react-Dug6p2AF.js",
+          "index-BtoCbp94.js",
+          "custom-funnel-states-MwaloVLM.js",
+          "request-form-CcG5k8b8.js",
+          "product-detail-page-BAbM2rQH.js"
+        ]
+      },
+      "custom-funnel-states-MwaloVLM.js": {
+        "bytes": 2432,
+        "dependencies": ["react-Dug6p2AF.js"]
+      },
+      "grave-stone-list-states-C3cLvz95.js": {
+        "bytes": 2959,
+        "dependencies": ["react-Dug6p2AF.js"]
+      },
+      "grave-stones-Csc-RR5-.js": {
+        "bytes": 7369,
+        "dependencies": [
+          "react-Dug6p2AF.js",
+          "index-BtoCbp94.js",
+          "grave-stone-list-states-C3cLvz95.js"
+        ]
+      },
+      "guide-detail-CTF7VIQN.js": {
+        "bytes": 182,
+        "dependencies": ["react-Dug6p2AF.js", "index-BtoCbp94.js"]
+      },
+      "guide-list-BM85FmRv.js": {
+        "bytes": 165,
+        "dependencies": ["react-Dug6p2AF.js", "index-BtoCbp94.js"]
+      },
+      "index-BtoCbp94.js": {
+        "bytes": 378292,
+        "dependencies": ["react-Dug6p2AF.js"]
+      },
+      "portfolio-CRhNN7h1.js": {
+        "bytes": 2883,
+        "dependencies": ["react-Dug6p2AF.js", "index-BtoCbp94.js", "portfolio-states-Dxw2r1LQ.js"]
+      },
+      "portfolio-states-Dxw2r1LQ.js": {
+        "bytes": 2115,
+        "dependencies": ["react-Dug6p2AF.js"]
+      },
+      "product-CA6y1yNK.js": {
+        "bytes": 310,
+        "dependencies": [
+          "react-Dug6p2AF.js",
+          "index-BtoCbp94.js",
+          "product-detail-page-BAbM2rQH.js"
+        ]
+      },
+      "product-detail-page-BAbM2rQH.js": {
+        "bytes": 15368,
+        "dependencies": ["react-Dug6p2AF.js", "index-BtoCbp94.js", "request-form-CcG5k8b8.js"]
+      },
+      "product-detail-states-Baaoy5Af.js": {
+        "bytes": 1840,
+        "dependencies": ["react-Dug6p2AF.js"]
+      },
+      "quote-Byke7Qs5.js": {
+        "bytes": 2287,
+        "dependencies": ["react-Dug6p2AF.js", "index-BtoCbp94.js", "request-form-CcG5k8b8.js"]
+      },
+      "react-Dug6p2AF.js": {
+        "bytes": 63743,
+        "dependencies": []
+      },
+      "request-form-CcG5k8b8.js": {
+        "bytes": 24551,
+        "dependencies": ["react-Dug6p2AF.js", "index-BtoCbp94.js"]
+      },
+      "static-YfrnBSx7.js": {
+        "bytes": 209,
+        "dependencies": ["react-Dug6p2AF.js", "index-BtoCbp94.js"]
+      },
+      "stoneworks-page-CASF2pED.js": {
+        "bytes": 2567,
+        "dependencies": ["react-Dug6p2AF.js", "index-BtoCbp94.js"]
+      }
+    },
+    "css": [
+      {
+        "file": "styles-CM3LgvSD.css",
+        "bytes": 26276,
+        "gzipBytes": 6248
+      }
+    ],
+    "fontBytes": 130972,
+    "homeGzipBytes": 136933,
+    "cssBytes": 26276,
+    "cssGzipBytes": 6248
+  },
+  "method": "Clean production builds; recursive static-import graph via TypeScript AST; Python gzip level 9 per file, mtime=0. No HTTP overhead, image bytes, timing or browser verification."
+}

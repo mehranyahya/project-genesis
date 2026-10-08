@@ -17,6 +17,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { HomePage } from "@/components/home/home-page";
 import { PublicMedia } from "@/components/media/public-media";
 import { buildHomeViewModel } from "@/lib/home";
+import { loadHomeViewModel } from "@/lib/home-editorial";
 import type { Guide, Media, PortfolioItem } from "@/lib/content/types";
 import { homeRouteOptions } from "@/lib/route-defs/pages";
 
@@ -165,6 +166,47 @@ test("responsive hero media uses mobile picture sources before the desktop fallb
   assert.ok(html.includes('width="1280" height="1600"'));
   assert.ok(html.toLowerCase().includes('fetchpriority="high"'));
   assert.ok(html.includes("object-contain"));
+});
+
+test("resolved editorial images render seven complete frames, with an optional mobile source and one priority image", async () => {
+  for (const locale of ["fa", "en"] as const) {
+    const works: PortfolioItem[] = ["pf-1001", "pf-1002", "pf-1003"].map((publicReferenceId) => ({
+      locale,
+      publicReferenceId,
+      media: [
+        media("aaaaaaaaaaaaaaaa"),
+        {
+          ...media("bbbbbbbbbbbbbbbb"),
+          src: "/media/" + "b".repeat(24) + "/bbbbbbbbbbbbbbbb-1280w.webp",
+          srcSet: media("bbbbbbbbbbbbbbbb").srcSet.replaceAll("a".repeat(24), "b".repeat(24)),
+          height: 853,
+        },
+      ],
+    }));
+    const model = await loadHomeViewModel(
+      locale,
+      {
+        hero: { publicReferenceId: "pf-1001", assetId: "a".repeat(24) },
+        heroMobile: { publicReferenceId: "pf-1001", assetId: "b".repeat(24) },
+        services: {
+          memorial: { publicReferenceId: "pf-1001", assetId: "a".repeat(24) },
+          architectural: { publicReferenceId: "pf-1002", assetId: "a".repeat(24) },
+          bespoke: { publicReferenceId: "pf-1003", assetId: "a".repeat(24) },
+        },
+        projects: { memorial: "pf-1001", architectural: "pf-1002", bespoke: "pf-1003" },
+      },
+      { getGuides: async () => [], getPortfolioItems: async () => works },
+    );
+    const html = renderUi(locale, <HomePage model={model} />);
+    assert.equal((html.match(/<img\b/g) ?? []).length, 7);
+    assert.equal((html.match(/object-contain/g) ?? []).length, 7);
+    assert.equal((html.toLowerCase().match(/fetchpriority="high"/g) ?? []).length, 1);
+    assert.equal((html.match(/loading="lazy"/g) ?? []).length, 6);
+    assert.equal((html.match(/media="\(max-width: 1023px\)"/g) ?? []).length, 2);
+    assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
+    assert.equal(/style=|data:image|\/private\//.test(html), false);
+    if (locale === "en") assert.equal(ARABIC.test(html), false);
+  }
 });
 
 test("home metadata names all three services and contains no Persian on the English route", () => {

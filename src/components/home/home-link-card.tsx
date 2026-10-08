@@ -28,6 +28,7 @@ export function HomeLinkCard({
         <div className="aspect-[4/5] overflow-hidden bg-surface-media">
           <PublicMedia
             media={media}
+            fit="contain"
             sizes="(min-width: 1280px) 390px, (min-width: 768px) 30vw, calc(100vw - 48px)"
             className="block h-full w-full"
           />
