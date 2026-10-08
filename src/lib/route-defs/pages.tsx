@@ -70,18 +70,16 @@ export function homeRouteOptions(locale: Locale) {
       localizedHead({
         locale,
         basePath: "/",
-        title: "سنگ مزار سفارشی و سنگ ساختمانی",
-        description: "انتخاب مدل سنگ مزار، مشاهدهٔ گزینه‌ها و ثبت درخواست بررسی سفارش.",
+        title: "سنگ طبیعی؛ سنگ مزار، سنگ ساختمانی و ساخت سفارشی",
+        description:
+          "بررسی خدمات سنگ مزار، سنگ ساختمانی و ساخت سفارشی؛ انتخاب مسیر و ثبت درخواست بررسی.",
       }),
     loader: async () => {
-      const [products, portfolioItems, guides] = await Promise.all([
-        getProducts({ featuredOnly: true, limit: 6 }),
-        getPortfolioItems({ limit: 1 }),
-        getGuides({ limit: 1 }),
-      ]);
+      const guides = await getGuides();
       return buildHomeViewModel({
-        products: contentListForLocale(products, locale),
-        portfolioItems: contentListForLocale(portfolioItems, locale),
+        // Selected work is added with approved editorial references in the content phase.
+        // Without that selection, fetching a catalogue contributes no home section.
+        portfolioItems: [],
         guides: contentListForLocale(guides, locale),
       });
     },

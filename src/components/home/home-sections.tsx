@@ -1,37 +1,77 @@
-import { LocaleLink, useT } from "@/lib/i18n/react";
-
+import { LocaleLink, useLocale, useT } from "@/lib/i18n/react";
 import { HomeLinkCard } from "./home-link-card";
 import { PublicMedia } from "@/components/media/public-media";
-import type { HomeGuideItem, HomeProductItem } from "@/lib/home";
+import type { Media } from "@/lib/content/types";
+import type { HomeGuideItem, HomeProjectItem, HomeServiceKey } from "@/lib/home";
+import { buildQuoteReferralPath } from "@/lib/portfolio-reference";
+import { localizeRawPath } from "@/lib/i18n/locale";
+import type { Locale } from "@/lib/i18n/locale";
 
 const SECTION_GRID =
-  "mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12";
+  "site-container section-space grid grid-cols-4 gap-x-6 gap-y-8 md:grid-cols-8 lg:grid-cols-12";
 const FULL_SPAN = "col-span-4 md:col-span-8 lg:col-span-12";
-const HEADING = "text-xl font-bold text-text-primary";
+
+function workHref(reference: string, locale: Locale): string {
+  const referral = buildQuoteReferralPath(reference) ?? "/portfolio";
+  const queryAt = referral.indexOf("?");
+  const pathname = queryAt === -1 ? referral : referral.slice(0, queryAt);
+  const query = queryAt === -1 ? "" : referral.slice(queryAt);
+  return localizeRawPath(pathname, locale) + query;
+}
 
 export const CHOICE_PATHS = [
-  { label: "فروشگاه سنگ مزار", to: "/grave-stones" },
-  { label: "سفارش سفارشی", to: "/grave-stones/custom" },
-  { label: "نمونه‌کارها", to: "/portfolio" },
+  {
+    key: "memorial",
+    label: "سنگ مزار",
+    description: "انتخاب مدل، اندازه و جزئیات برای یک یادمان شخصی.",
+    to: "/grave-stones",
+  },
+  {
+    key: "architectural",
+    label: "سنگ ساختمانی",
+    description: "بررسی سنگ، ابعاد و کاربرد متناسب با پروژهٔ معماری.",
+    to: "/building-stone",
+  },
+  {
+    key: "bespoke",
+    label: "ساخت سفارشی",
+    description: "بررسی ایده، جنس و جزئیات برای ساخت یک اثر سنگی.",
+    to: "/stoneworks",
+  },
 ] as const;
 
 export const PROCESS_STEPS = [
-  "انتخاب سنگ",
-  "انتخاب اندازه و جزئیات",
-  "بازبینی خلاصه",
+  "انتخاب خدمت",
+  "شرح نیاز و جزئیات",
   "ثبت برای بررسی",
+  "هماهنگی برای تأیید نهایی",
 ] as const;
 
-export function HomeChoicePaths() {
+export function HomeChoicePaths({
+  media,
+}: {
+  media: Readonly<Record<HomeServiceKey, Media | null>>;
+}) {
   const t = useT();
+  const locale = useLocale();
+  const number = new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en", {
+    minimumIntegerDigits: 2,
+  });
   return (
-    <section className={SECTION_GRID} aria-labelledby="home-paths">
-      <h2 id="home-paths" className={`${FULL_SPAN} ${HEADING}`}>
-        {t("مسیر انتخاب")}
+    <section id="home-services" tabIndex={-1} className={SECTION_GRID} aria-labelledby="home-paths">
+      <h2 id="home-paths" className={FULL_SPAN + " section-heading"}>
+        {t("سه مسیر، یک متریال")}
       </h2>
-      <div className="col-span-4 grid grid-cols-4 gap-4 md:col-span-8 md:grid-cols-8 lg:col-span-12 lg:grid-cols-12">
-        {CHOICE_PATHS.map((item) => (
-          <HomeLinkCard key={item.to} label={t(item.label)} to={item.to} />
+      <div className={FULL_SPAN + " grid auto-rows-fr gap-5 md:grid-cols-3"}>
+        {CHOICE_PATHS.map((item, index) => (
+          <HomeLinkCard
+            key={item.key}
+            label={t(item.label)}
+            description={t(item.description)}
+            to={item.to}
+            index={number.format(index + 1)}
+            media={media[item.key]}
+          />
         ))}
       </div>
     </section>
@@ -40,80 +80,77 @@ export function HomeChoicePaths() {
 
 export function HomeProcess() {
   const t = useT();
+  const locale = useLocale();
+  const number = new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en", {
+    minimumIntegerDigits: 2,
+  });
   return (
-    <section className={SECTION_GRID} aria-labelledby="home-process">
-      <h2 id="home-process" className={`${FULL_SPAN} ${HEADING}`}>
-        {t("مراحل سفارش")}
-      </h2>
-      <ol className={`${FULL_SPAN} grid grid-cols-4 gap-4 md:grid-cols-8 lg:grid-cols-12`}>
-        {PROCESS_STEPS.map((label, index) => (
-          <li
-            key={label}
-            className="col-span-4 flex min-h-12 items-center gap-3 border border-border-subtle bg-surface px-4 py-4 md:col-span-4 lg:col-span-3"
-          >
-            <span aria-hidden="true" className="text-base font-bold text-text-secondary">
-              {index + 1}
-            </span>
-            <span className="text-sm text-text-primary">{t(label)}</span>
-          </li>
-        ))}
-      </ol>
+    <section className="border-y border-border-subtle bg-surface" aria-labelledby="home-process">
+      <div className={SECTION_GRID}>
+        <h2 id="home-process" className={FULL_SPAN + " section-heading"}>
+          {t("از انتخاب تا بررسی")}
+        </h2>
+        <ol className={FULL_SPAN + " grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4"}>
+          {PROCESS_STEPS.map((label, index) => (
+            <li key={label} className="border-t border-border-control pt-5">
+              <span aria-hidden="true" className="numeric text-sm text-text-secondary">
+                {number.format(index + 1)}
+              </span>
+              <h3 className="mt-3 text-xl">{t(label)}</h3>
+            </li>
+          ))}
+        </ol>
+      </div>
     </section>
   );
 }
 
-export function HomeFeaturedProducts({ products }: { products: readonly HomeProductItem[] }) {
+export function HomePortfolio({ projects }: { projects: readonly HomeProjectItem[] }) {
   const t = useT();
-  return (
-    <section className={SECTION_GRID} aria-labelledby="home-products">
-      <h2 id="home-products" className={`${FULL_SPAN} ${HEADING}`}>
-        {t("سنگ‌های مزار منتخب")}
-      </h2>
-      <ul className={`${FULL_SPAN} grid grid-cols-4 gap-4 md:grid-cols-8 lg:grid-cols-12`}>
-        {products.map((product) => (
-          <li key={product.slug} className="col-span-4 md:col-span-4 lg:col-span-4">
-            <LocaleLink
-              to="/grave-stones/$slug"
-              params={{ slug: product.slug }}
-              className="flex min-h-12 h-full flex-col gap-3 border border-border-subtle bg-surface p-4 transition-colors duration-[180ms] hover:border-border-control hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
-            >
-              {product.media ? (
-                <div className="aspect-[4/5] overflow-hidden bg-surface-media">
-                  <PublicMedia
-                    media={product.media}
-                    fit="contain"
-                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                    className="block h-full w-full"
-                  />
-                </div>
-              ) : null}
-              <span className="text-base font-bold text-text-primary">{product.title}</span>
-              {product.summary ? (
-                <span className="text-sm text-text-secondary">{product.summary}</span>
-              ) : null}
-            </LocaleLink>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-export function HomePortfolio() {
-  const t = useT();
+  const locale = useLocale();
   return (
     <section className={SECTION_GRID} aria-labelledby="home-portfolio">
-      <h2 id="home-portfolio" className={`${FULL_SPAN} ${HEADING}`}>
-        {t("نمونه‌کار منتخب")}
-      </h2>
-      <div className={FULL_SPAN}>
+      <div className={FULL_SPAN + " flex flex-wrap items-center justify-between gap-4"}>
+        <h2 id="home-portfolio" className="section-heading">
+          {t("آثار منتخب")}
+        </h2>
         <LocaleLink
           to="/portfolio"
-          className="inline-flex min-h-12 items-center justify-center border border-border-control bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+          className="editorial-link min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
         >
           {t("مشاهده نمونه‌کارها")}
         </LocaleLink>
       </div>
+      <ul className={FULL_SPAN + " grid gap-6 md:grid-cols-3"}>
+        {projects.map((project) => (
+          <li key={project.publicReferenceId}>
+            <a
+              href={workHref(project.publicReferenceId, locale)}
+              className="block min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            >
+              <div className="aspect-[3/2] overflow-hidden bg-surface-media">
+                <PublicMedia
+                  media={project.media}
+                  sizes="(min-width: 1280px) 390px, (min-width: 768px) 30vw, calc(100vw - 48px)"
+                  className="block h-full w-full"
+                />
+              </div>
+              <h3 className="mt-4 text-xl">
+                {t(CHOICE_PATHS.find((item) => item.key === project.service)!.label)}
+              </h3>
+              {project.summary ? (
+                <p className="mt-2 text-sm text-text-secondary">{project.summary}</p>
+              ) : null}
+              <span className="editorial-link">
+                {t("بررسی اجرای مشابه")}{" "}
+                <span aria-hidden="true" className="link-arrow">
+                  →
+                </span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -122,40 +159,28 @@ export function HomeGuide({ guide }: { guide: HomeGuideItem }) {
   const t = useT();
   return (
     <section className={SECTION_GRID} aria-labelledby="home-guide">
-      <h2 id="home-guide" className={`${FULL_SPAN} ${HEADING}`}>
+      <h2 id="home-guide" className={FULL_SPAN + " section-heading"}>
         {t("راهنمای انتخاب")}
       </h2>
-      <div className={FULL_SPAN}>
-        <LocaleLink
-          to="/guides/$slug"
-          params={{ slug: guide.slug }}
-          className="flex min-h-12 flex-col gap-2 border border-border-subtle bg-surface px-4 py-5 transition-colors duration-[180ms] hover:border-border-control hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
-        >
-          <span className="text-base font-bold text-text-primary">{guide.title}</span>
-          {guide.summary ? (
-            <span className="text-sm text-text-secondary">{guide.summary}</span>
-          ) : null}
-        </LocaleLink>
-      </div>
-    </section>
-  );
-}
-
-export function HomeBuildingStone() {
-  const t = useT();
-  return (
-    <section className={SECTION_GRID} aria-labelledby="home-building-stone">
-      <h2 id="home-building-stone" className={`${FULL_SPAN} ${HEADING}`}>
-        {t("سنگ ساختمانی")}
-      </h2>
-      <div className={FULL_SPAN}>
-        <LocaleLink
-          to="/building-stone"
-          className="inline-flex min-h-12 items-center justify-center border border-border-control bg-surface px-5 py-2 text-sm font-bold text-text-primary transition-colors duration-[180ms] hover:bg-surface-media focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
-        >
-          {t("بررسی سنگ ساختمانی")}
-        </LocaleLink>
-      </div>
+      <LocaleLink
+        to="/guides/$slug"
+        params={{ slug: guide.slug }}
+        className={
+          FULL_SPAN +
+          " flex min-h-12 flex-col gap-3 border-t border-border-control py-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+        }
+      >
+        <h3 className="text-2xl text-text-primary">{guide.title}</h3>
+        {guide.summary ? (
+          <p className="max-w-[65ch] text-base text-text-secondary">{guide.summary}</p>
+        ) : null}
+        <span className="editorial-link">
+          {t("خواندن راهنما")}{" "}
+          <span aria-hidden="true" className="link-arrow">
+            →
+          </span>
+        </span>
+      </LocaleLink>
     </section>
   );
 }
@@ -163,23 +188,22 @@ export function HomeBuildingStone() {
 export function HomeFinalCta() {
   const t = useT();
   return (
-    <section className={SECTION_GRID} aria-labelledby="home-final-cta">
-      <div
-        className={`${FULL_SPAN} inverse-surface border border-border-control bg-surface-inverse p-6`}
-      >
-        <h2 id="home-final-cta" className="text-xl font-bold text-text-inverse">
-          {t("برای انتخاب سنگ مزار آماده‌اید؟")}
+    <section className="site-container section-space" aria-labelledby="home-final-cta">
+      <div className="inverse-surface bg-surface-inverse px-6 py-12 text-text-inverse md:px-12 md:py-16">
+        <h2 id="home-final-cta" className="section-heading max-w-[32ch]">
+          {t("برای انتخاب یا ساخت سنگ، گفت‌وگو را شروع کنیم.")}
         </h2>
-        <p className="mt-3 max-w-[60ch] text-sm text-text-inverse">
-          {t(
-            "ثبت سفارش برای بررسی موجودی، محل اجرا و جزئیات نهایی است و به معنی شروع تولید یا الزام به پرداخت نیست.",
-          )}
+        <p className="mt-5 mb-8 max-w-[65ch] text-sm text-text-inverse-secondary">
+          {t("ثبت درخواست برای بررسی جزئیات است و به معنی شروع تولید یا الزام به پرداخت نیست.")}
         </p>
         <LocaleLink
-          to="/grave-stones"
-          className="ui-action ui-action-inverse mt-6 min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse motion-reduce:transition-none"
+          to="/quote"
+          className="ui-action ui-action-inverse min-h-12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-inverse"
         >
-          {t("انتخاب و ثبت سفارش")}
+          {t("شروع گفت‌وگو")}{" "}
+          <span aria-hidden="true" className="link-arrow">
+            →
+          </span>
         </LocaleLink>
       </div>
     </section>
