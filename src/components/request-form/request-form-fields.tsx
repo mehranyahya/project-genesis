@@ -14,7 +14,7 @@ import {
   PREFERRED_CONTACT_OPTIONS,
   REQUEST_FIELD_LABELS,
 } from "@/lib/request-form";
-import { useT } from "@/lib/i18n/react";
+import { useLocale, useT } from "@/lib/i18n/react";
 
 export const FIELD_ID_PREFIX = "request";
 
@@ -71,6 +71,10 @@ function TextField({
   error,
   disabled,
   multiline,
+  label,
+  helper,
+  autoComplete,
+  maxLength,
   onChange,
 }: {
   fieldKey: RequestFieldKey;
@@ -78,10 +82,16 @@ function TextField({
   error: string | undefined;
   disabled: boolean;
   multiline?: boolean;
+  label?: string | undefined;
+  helper?: string | undefined;
+  autoComplete?: string;
+  maxLength?: number | undefined;
   onChange: (next: string) => void;
 }) {
+  const t = useT();
   const id = fieldId(fieldKey);
   const errId = errorId(fieldKey);
+  const helperId = `${id}-hint`;
   const shared = {
     id,
     value,
@@ -89,13 +99,22 @@ function TextField({
     className: CONTROL,
     "aria-invalid": error ? true : undefined,
     "aria-errormessage": error ? errId : undefined,
+    "aria-describedby":
+      [helper ? helperId : null, error ? errId : null].filter(Boolean).join(" ") || undefined,
+    autoComplete,
+    maxLength,
   } as const;
 
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={id} className="text-sm font-bold text-text-primary">
-        {REQUEST_FIELD_LABELS[fieldKey]}
+        {t(label ?? REQUEST_FIELD_LABELS[fieldKey])}
       </label>
+      {helper ? (
+        <p id={helperId} className="text-sm text-text-secondary">
+          {t(helper)}
+        </p>
+      ) : null}
       {multiline ? (
         <textarea {...shared} rows={4} onChange={(event) => onChange(event.currentTarget.value)} />
       ) : (
@@ -111,21 +130,27 @@ export function RequestFormFields({
   errors,
   source,
   disabled,
+  commission = false,
+  noteLimit,
   onChange,
 }: {
   values: RequestFormValues;
   errors: RequestFieldErrors;
   source: RequestSource;
   disabled: boolean;
+  commission?: boolean;
+  noteLimit?: number | undefined;
   onChange: (next: Partial<RequestFormValues>) => void;
 }): ReactNode {
   const t = useT();
   const graveStone = source.kind === "grave_stone";
+  const locale = useLocale();
 
   return (
     <div className="flex flex-col gap-5">
       <TextField
         fieldKey="customerName"
+        autoComplete="name"
         value={values.customerName}
         error={errors.customerName}
         disabled={disabled}
@@ -134,18 +159,20 @@ export function RequestFormFields({
 
       <div className="flex flex-col gap-2">
         <label htmlFor={fieldId("phone")} className="text-sm font-bold text-text-primary">
-          {REQUEST_FIELD_LABELS.phone}
+          {t(REQUEST_FIELD_LABELS.phone)}
         </label>
         <input
           id={fieldId("phone")}
           type="tel"
           inputMode="tel"
+          autoComplete="tel"
           dir="ltr"
           className={CONTROL}
           value={values.phone}
           disabled={disabled}
           aria-invalid={errors.phone ? true : undefined}
           aria-errormessage={errors.phone ? errorId("phone") : undefined}
+          aria-describedby={errors.phone ? errorId("phone") : undefined}
           onChange={(event) => onChange({ phone: event.currentTarget.value })}
         />
         <FieldError id={errorId("phone")} message={errors.phone} />
@@ -153,6 +180,7 @@ export function RequestFormFields({
 
       <TextField
         fieldKey="city"
+        autoComplete="address-level2"
         value={values.city}
         error={errors.city}
         disabled={disabled}
@@ -162,6 +190,7 @@ export function RequestFormFields({
       <div className="flex flex-col gap-2">
         <TextField
           fieldKey="locationText"
+          label={graveStone ? REQUEST_FIELD_LABELS.locationText : "محل اجرای پروژه"}
           value={values.locationText}
           error={errors.locationText}
           disabled={disabled || (graveStone && values.locationUnknown)}
@@ -183,24 +212,32 @@ export function RequestFormFields({
                 )
               }
             />
-            <span className="text-sm text-text-primary">{LOCATION_UNKNOWN_VALUE}</span>
+            <span className="text-sm text-text-primary">{t(LOCATION_UNKNOWN_VALUE)}</span>
           </label>
         ) : null}
       </div>
 
       <fieldset className="border border-border-subtle p-4">
         <legend className="px-2 text-sm font-bold text-text-primary">
-          {REQUEST_FIELD_LABELS.preferredContact}
+          {t(REQUEST_FIELD_LABELS.preferredContact)}
         </legend>
         <div className="flex flex-col gap-3 pt-2">
-          {PREFERRED_CONTACT_OPTIONS.map((option) => (
+          {PREFERRED_CONTACT_OPTIONS.map((option, index) => (
             <label
               key={option.value}
               className={ROW}
-              htmlFor={`${fieldId("preferredContact")}-${option.value}`}
+              htmlFor={
+                index === 0
+                  ? fieldId("preferredContact")
+                  : `${fieldId("preferredContact")}-${option.value}`
+              }
             >
               <input
-                id={`${fieldId("preferredContact")}-${option.value}`}
+                id={
+                  index === 0
+                    ? fieldId("preferredContact")
+                    : `${fieldId("preferredContact")}-${option.value}`
+                }
                 type="radio"
                 name="request-preferred-contact"
                 className={CHOICE}
@@ -211,6 +248,7 @@ export function RequestFormFields({
                 aria-errormessage={
                   errors.preferredContact ? errorId("preferredContact") : undefined
                 }
+                aria-describedby={errors.preferredContact ? errorId("preferredContact") : undefined}
                 onChange={() =>
                   onChange({ preferredContact: option.value satisfies PreferredContact })
                 }
@@ -232,6 +270,20 @@ export function RequestFormFields({
 
       <TextField
         fieldKey="customerNote"
+        label={commission ? "ابعاد و شرح ایده" : undefined}
+        helper={
+          commission
+            ? t(
+                "اگر ابعاد مشخص است، طول، عرض و ارتفاع را با واحد اندازه‌گیری بنویسید و ایده، نوع سنگ و شرایط محل را توضیح دهید. نام دسته همراه این متن ثبت می‌شود؛ حداکثر {count} نویسه برای توضیح.",
+                {
+                  count: new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en").format(
+                    noteLimit ?? 1000,
+                  ),
+                },
+              )
+            : undefined
+        }
+        maxLength={noteLimit}
         value={values.customerNote}
         error={errors.customerNote}
         disabled={disabled}
@@ -249,6 +301,7 @@ export function RequestFormFields({
             disabled={disabled}
             aria-invalid={errors.termsAccepted ? true : undefined}
             aria-errormessage={errors.termsAccepted ? errorId("termsAccepted") : undefined}
+            aria-describedby={errors.termsAccepted ? errorId("termsAccepted") : undefined}
             onChange={(event) => onChange({ termsAccepted: event.currentTarget.checked })}
           />
           <span className="text-sm text-text-primary">

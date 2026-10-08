@@ -1,3 +1,5 @@
+import { normalizeStoneworkCategory } from "../stonework-category";
+
 /**
  * Locale contract for the bilingual public site.
  *
@@ -109,11 +111,10 @@ export function otherLocale(locale: Locale): Locale {
   return locale === "fa" ? "en" : "fa";
 }
 
-const SAFE_SEARCH_KEYS = ["source", "reference"] as const;
 const SAFE_REFERENCE = /^pf-[0-9]{4,}$/;
 
 /**
- * Only the non-PII portfolio referral pair survives a language switch.
+ * Only public portfolio references and production-category IDs survive a switch.
  * Anything else — including any free text — is dropped.
  */
 export function safeSwitchSearch(
@@ -121,12 +122,12 @@ export function safeSwitchSearch(
 ): Record<string, string> {
   if (!search) return {};
   const source = search["source"];
+  if (source === "stoneworks") {
+    const category = normalizeStoneworkCategory(search["category"]);
+    return category ? { source: "stoneworks", category } : {};
+  }
   const reference = search["reference"];
   if (source !== "portfolio") return {};
   if (typeof reference !== "string" || !SAFE_REFERENCE.test(reference)) return {};
-  const safe: Record<string, string> = { source: "portfolio", reference };
-  for (const key of Object.keys(safe)) {
-    if (!(SAFE_SEARCH_KEYS as readonly string[]).includes(key)) delete safe[key];
-  }
-  return safe;
+  return { source: "portfolio", reference };
 }

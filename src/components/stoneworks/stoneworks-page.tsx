@@ -1,4 +1,5 @@
-import { LocaleLink, useT } from "@/lib/i18n/react";
+import { useLocale, useT } from "@/lib/i18n/react";
+import { localizeRawPath } from "@/lib/i18n/locale";
 import {
   STONEWORKS_CATEGORIES_HEADING,
   STONEWORKS_CTA_LABEL,
@@ -15,7 +16,7 @@ import {
 } from "@/lib/stoneworks";
 
 const SECTION =
-  "mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12";
+  "site-container section-space grid grid-cols-4 gap-x-6 gap-y-8 md:grid-cols-8 lg:grid-cols-12";
 const FULL = "col-span-4 md:col-span-8 lg:col-span-12";
 
 /**
@@ -27,31 +28,32 @@ const FULL = "col-span-4 md:col-span-8 lg:col-span-12";
  */
 export function StoneworksPage() {
   const t = useT();
+  const locale = useLocale();
 
   return (
     <div className="flex flex-col">
       <section className={SECTION}>
         <div className={FULL}>
-          <h1 className="text-2xl font-bold text-text-primary">{t(STONEWORKS_HEADING)}</h1>
-          <p className="max-w-[60ch] pt-3 text-sm text-text-secondary">{t(STONEWORKS_INTRO)}</p>
+          <h1 className="page-heading font-medium text-text-primary">{t(STONEWORKS_HEADING)}</h1>
+          <p className="max-w-[70ch] pt-4 text-base text-text-secondary">{t(STONEWORKS_INTRO)}</p>
         </div>
       </section>
 
       <section className={SECTION} aria-labelledby="stoneworks-categories">
-        <h2 id="stoneworks-categories" className={`${FULL} text-xl font-bold text-text-primary`}>
+        <h2 id="stoneworks-categories" className={`${FULL} section-heading text-text-primary`}>
           {t(STONEWORKS_CATEGORIES_HEADING)}
         </h2>
-        <div className={`${FULL} grid grid-cols-4 gap-4 md:grid-cols-8 lg:grid-cols-12`}>
+        <div className={`${FULL} grid grid-cols-4 gap-6 md:grid-cols-8 lg:grid-cols-12`}>
           {STONEWORK_CATEGORIES.map((category) => (
             <article
               key={category.id}
               id={stoneworkAnchorId(category.id)}
               aria-labelledby={stoneworkHeadingId(category.id)}
-              className="col-span-4 flex scroll-mt-24 flex-col gap-3 border border-border-subtle bg-surface p-5 md:col-span-4 lg:col-span-6"
+              className="col-span-4 flex flex-col gap-4 border border-border-subtle bg-surface p-6 md:col-span-4 lg:col-span-6"
             >
               <h3
                 id={stoneworkHeadingId(category.id)}
-                className="text-base font-bold text-text-primary"
+                className="text-2xl font-medium text-text-primary"
               >
                 {t(category.label)}
               </h3>
@@ -61,20 +63,22 @@ export function StoneworksPage() {
                 <span className="text-text-caption">{t(STONEWORKS_PRICE_STATE_PREFIX)}: </span>
                 <span className="font-bold">{t(STONEWORKS_PRICE_STATE_LABEL)}</span>
               </p>
-              <LocaleLink
-                to="/quote"
+              <a
+                href={
+                  localizeRawPath("/quote", locale) + "?source=stoneworks&category=" + category.id
+                }
                 aria-label={t(STONEWORKS_CTA_TEMPLATE, { category: t(category.label) })}
-                className="inline-flex min-h-12 w-fit items-center rounded-sm border border-action-primary bg-action-primary px-5 text-sm font-bold text-text-inverse transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+                className="ui-action mt-auto min-h-12 w-fit focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 {t(STONEWORKS_CTA_LABEL)}
-              </LocaleLink>
+              </a>
             </article>
           ))}
         </div>
       </section>
 
       <section className={SECTION} aria-labelledby="stoneworks-process">
-        <h2 id="stoneworks-process" className={`${FULL} text-xl font-bold text-text-primary`}>
+        <h2 id="stoneworks-process" className={`${FULL} section-heading text-text-primary`}>
           {t(STONEWORKS_PROCESS_HEADING)}
         </h2>
         <ol className={`${FULL} grid grid-cols-4 gap-4 md:grid-cols-8 lg:grid-cols-12`}>

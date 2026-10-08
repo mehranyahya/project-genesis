@@ -31,6 +31,10 @@ const stripComments = (source: string) =>
 
 const ALL_CODE = FILES.map((rel) => stripComments(readUnit(rel))).join("\n");
 const COMPONENT_CODE = COMPONENTS.map((rel) => stripComments(read(rel))).join("\n");
+// Imports shared with unrelated route factories are not part of the portfolio surface.
+const SURFACE_CODE = FILES.map((rel) =>
+  stripComments(rel === ROUTE ? routeBody() : read(rel)),
+).join("\n");
 
 test("1-4 route consumes only getPortfolioItems() and keeps the existing route id", () => {
   const route = routeSource();
@@ -171,7 +175,10 @@ test("27-32 no carousel, filter, price, contact CTA, storage or PII surface", ()
     "deceased",
     "birth",
   ]) {
-    assert.ok(!ALL_CODE.toLowerCase().includes(banned.toLowerCase()), `must not contain ${banned}`);
+    assert.ok(
+      !SURFACE_CODE.toLowerCase().includes(banned.toLowerCase()),
+      `must not contain ${banned}`,
+    );
   }
 });
 

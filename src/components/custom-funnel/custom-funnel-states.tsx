@@ -7,7 +7,7 @@ export const CUSTOM_FUNNEL_RETRY_LABEL = "تلاش دوباره";
 export const CUSTOM_FUNNEL_EMPTY_TEXT = "در حال حاضر گزینهٔ کاملی برای ساخت مرحله‌ای ثبت نشده است.";
 
 const SECTION =
-  "mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12";
+  "site-container section-space grid grid-cols-4 gap-x-6 gap-y-8 md:grid-cols-8 lg:grid-cols-12";
 
 /** Static structural skeleton with final dimensions. No motion, no sample data. */
 export function CustomFunnelLoading() {

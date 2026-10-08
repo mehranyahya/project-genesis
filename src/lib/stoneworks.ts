@@ -8,15 +8,9 @@
  */
 import type { PriceType } from "./content/types";
 
-export const STONEWORK_CATEGORY_IDS = [
-  "sculpture_art",
-  "water_landscape",
-  "architectural_elements",
-  "furniture_interiors",
-  "monuments_bespoke",
-] as const;
-
-export type StoneworkCategoryId = (typeof STONEWORK_CATEGORY_IDS)[number];
+import type { StoneworkCategoryId } from "./stonework-category";
+export { STONEWORK_CATEGORY_IDS } from "./stonework-category";
+export type { StoneworkCategoryId } from "./stonework-category";
 
 export interface StoneworkCategory {
   /** Stable operational id. Never translated, never derived from a brand. */

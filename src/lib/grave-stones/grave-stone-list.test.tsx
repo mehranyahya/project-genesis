@@ -200,9 +200,9 @@ test("latin stone codes are isolated with bdi", () => {
   assert.ok(read(CARD).includes('<bdi dir="ltr">'));
 });
 
-test("result status uses fa-IR formatting inside a polite live region", () => {
+test("result status uses the active locale while keeping fa-IR formatting and a polite live region", () => {
   const page = read(PAGE);
-  assert.ok(page.includes('Intl.NumberFormat("fa-IR")'));
+  assert.ok(page.includes('Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en")'));
   assert.ok(page.includes('aria-live="polite"'));
   assert.ok(page.includes("محصول"));
 });

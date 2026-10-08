@@ -131,7 +131,9 @@ test("9 the submit button is blocked until a valid terms document exists", () =>
 test("10 the blocked selection state clears only on a real selection change", () => {
   const form = read(FORM);
   assert.ok(form.includes("function sourceIdentity("));
-  assert.ok(form.includes("const identity = sourceIdentity(source)"));
+  assert.ok(
+    form.includes("const identity = stoneworkRequestIdentity(sourceIdentity(source), commission)"),
+  );
   assert.ok(form.includes("}, [identity]);"));
   assert.ok(!form.includes("}, [source]);"));
 });
@@ -205,7 +207,7 @@ test("17 personal data never reaches the URL, storage or a log", () => {
   }
 });
 
-test("18 the quote route accepts only an exact portfolio reference", () => {
+test("18 the quote route verifies portfolio references through the locale-gated adapter", () => {
   const route = routeUnit(QUOTE_ROUTE, "quoteRouteOptions");
   assert.ok(route.includes("findPortfolioReference"));
   assert.ok(route.includes("getPortfolioItems"));
@@ -228,11 +230,18 @@ test("19 the form is mounted from the shared component on every surface", () => 
   }
 });
 
-test("20 the grid contract of the form surface is 4/8/12", () => {
+test("20 form columns depend on the form container rather than the viewport", () => {
   const form = read(FORM);
-  assert.ok(form.includes("grid-cols-4"));
-  assert.ok(form.includes("md:grid-cols-8"));
-  assert.ok(form.includes("lg:grid-cols-12"));
+  const css = read("styles.css");
+  assert.ok(form.includes('className="request-form-container"'));
+  assert.ok(form.includes('className="request-form"'));
+  assert.equal(/(?:md|lg):grid-cols/.test(form), false);
+  assert.match(css, /\.request-form-container\s*\{\s*container-type: inline-size/);
+  assert.match(css, /\.request-form\s*\{[\s\S]*?grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(
+    css,
+    /@container \(min-width: 56rem\)[\s\S]*?grid-template-columns: minmax\(0, 2fr\) minmax\(0, 1fr\)/,
+  );
 });
 
 test("21 a server validation error is ordered through REQUEST_FIELD_ORDER and focused after commit", () => {
@@ -313,7 +322,9 @@ test("25 a real semantic source change invalidates the source-coupled state only
 
 test("26 the reset depends on semantic identity, not object reference", () => {
   const form = stripComments(read(FORM));
-  assert.ok(form.includes("const identity = sourceIdentity(source)"));
+  assert.ok(
+    form.includes("const identity = stoneworkRequestIdentity(sourceIdentity(source), commission)"),
+  );
   assert.ok(form.includes("}, [identity]);"));
   assert.ok(!form.includes("}, [source]);"));
   assert.ok(!form.includes("}, [source, "));
@@ -331,6 +342,17 @@ test("27 a response from an obsolete source attempt is discarded before any stat
   // No result state may be applied before the guard.
   assert.ok(form.indexOf("setOutcome(result)") > guard);
   assert.ok(form.indexOf("inFlight.current = false;\n      setOutcome(result)") > guard);
+  const proofStart = form.indexOf("const turnstileProof =");
+  const transportStart = form.indexOf("const result = await submitRequest(");
+  assert.ok(proofStart > 0 && transportStart > proofStart);
+  const proofGuard = form.slice(proofStart, transportStart);
+  assert.ok(proofGuard.includes("!mounted.current"));
+  assert.ok(proofGuard.includes("isStaleAttempt("));
+  assert.equal(proofGuard.includes("inFlight.current = false"), false);
+  assert.equal(proofGuard.includes("resetTurnstile()"), false);
+  const resultGuard = form.slice(transportStart, form.indexOf("setOutcome(result)"));
+  assert.ok(resultGuard.includes("if (!mounted.current) return;"));
+  assert.ok(resultGuard.indexOf("resetTurnstile()") > resultGuard.indexOf("isStaleAttempt("));
 });
 
 /* -------------------------------------------------------------------------- */

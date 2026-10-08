@@ -6,7 +6,7 @@ export const PRODUCT_ERROR_TEXT = "دریافت جزئیات سنگ مزار م�
 export const PRODUCT_RETRY_LABEL = "تلاش دوباره";
 
 const SECTION =
-  "mx-auto grid w-full max-w-[80rem] grid-cols-4 gap-x-4 gap-y-6 px-4 py-10 md:grid-cols-8 lg:grid-cols-12";
+  "site-container section-space grid grid-cols-4 gap-x-6 gap-y-8 md:grid-cols-8 lg:grid-cols-12";
 
 /** Static structural skeleton. No motion, no sample product, price or option. */
 export function ProductDetailLoading() {

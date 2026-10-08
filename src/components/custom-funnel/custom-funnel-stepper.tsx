@@ -30,7 +30,7 @@ export const DELIVER_DRAFT_LABEL = "تحویل خلاصه انتخاب";
 export const HISTORY_STEP_KEY = "customFunnelStep";
 
 const ROW =
-  "flex min-h-12 items-start gap-3 border border-border-subtle bg-surface p-3 has-[:checked]:border-action-primary has-[:checked]:border-2";
+  "flex min-h-12 items-start gap-3 border border-border-subtle bg-surface p-3 has-[:checked]:border-action-primary";
 const CONTROL =
   "mt-1 h-5 w-5 shrink-0 accent-action-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus";
 const ACTION =
@@ -192,7 +192,7 @@ export function CustomFunnelStepper({
         </h2>
 
         <div role="status" aria-live="polite" className="text-sm text-text-secondary">
-          {cascadeStep === step ? CASCADE_RESET_TEXT : null}
+          {cascadeStep === step ? t(CASCADE_RESET_TEXT) : null}
         </div>
 
         {step === 0 ? (
@@ -267,7 +267,7 @@ export function CustomFunnelStepper({
                         )
                       }
                     />
-                    <span className="text-sm text-text-primary">{choice.sizeLabel}</span>
+                    <span className="text-sm text-text-primary">{t(choice.sizeLabel)}</span>
                   </label>
                 ))}
               </div>
@@ -325,7 +325,7 @@ export function CustomFunnelStepper({
               {t(DELIVER_DRAFT_LABEL)}
             </button>
             {!catalogReady ? (
-              <p className="text-sm text-text-secondary">{DRAFT_BLOCKED_TEXT}</p>
+              <p className="text-sm text-text-secondary">{t(DRAFT_BLOCKED_TEXT)}</p>
             ) : null}
           </div>
         ) : null}

@@ -83,7 +83,8 @@ test("the page renders exactly one H1, five category articles and one CTA per ca
   assert.ok(PAGE.includes("id={stoneworkAnchorId(category.id)}"));
   assert.ok(PAGE.includes("aria-labelledby={stoneworkHeadingId(category.id)}"));
   assert.ok(PAGE.includes("t(STONEWORKS_PRICE_STATE_LABEL)"));
-  assert.equal(PAGE.split('to="/quote"').length - 1, 1);
+  assert.equal(PAGE.split('localizeRawPath("/quote", locale)').length - 1, 1);
+  assert.ok(PAGE.includes('"?source=stoneworks&category=" + category.id'));
   assert.ok(PAGE.includes("t(STONEWORKS_CTA_LABEL)"));
   assert.ok(PAGE.includes("STONEWORKS_CTA_TEMPLATE"));
   assert.ok(PAGE.includes("STONEWORKS_PROCESS_STEPS.map"));

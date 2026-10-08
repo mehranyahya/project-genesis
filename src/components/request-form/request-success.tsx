@@ -77,10 +77,10 @@ export function RequestSuccess({
     <section
       role="status"
       aria-live="polite"
-      className="flex flex-col gap-4 border border-border-subtle bg-surface p-4"
+      className="flex flex-col gap-6 border-t border-border-control bg-surface p-6 md:p-8"
     >
-      <h2 className="text-base font-bold text-text-primary">{t("ثبت درخواست انجام شد")}</h2>
-      <p className="text-sm text-text-primary">
+      <h2 className="text-2xl font-medium text-text-primary">{t("ثبت درخواست انجام شد")}</h2>
+      <p className="max-w-[70ch] text-base text-text-primary">
         {before}
         <bdi dir="ltr">{trackingCode}</bdi>
         {after}
