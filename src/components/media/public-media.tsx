@@ -1,4 +1,5 @@
 import type { Media } from "@/lib/content/types";
+import type { ReactEventHandler } from "react";
 
 export type PublicMediaFit = "contain" | "cover";
 
@@ -23,6 +24,9 @@ export interface PublicMediaProps {
   sizes?: string;
   fit?: PublicMediaFit;
   priority?: boolean;
+  eager?: boolean;
+  onLoad?: ReactEventHandler<HTMLImageElement>;
+  onError?: ReactEventHandler<HTMLImageElement>;
 }
 
 /**
@@ -37,6 +41,9 @@ export function PublicMedia({
   sizes,
   fit = "cover",
   priority = false,
+  eager = false,
+  onLoad,
+  onError,
 }: PublicMediaProps) {
   const avifSrcSet = toAvifSrcSet(media.srcSet);
   const mobileAvifSrcSet = mobileMedia ? toAvifSrcSet(mobileMedia.srcSet) : "";
@@ -44,21 +51,23 @@ export function PublicMedia({
 
   return (
     <picture className={className}>
-      {mobileAvifSrcSet ? (
-        <source
-          type="image/avif"
-          media="(max-width: 1023px)"
-          srcSet={mobileAvifSrcSet}
-          sizes={sizes}
-        />
-      ) : null}
       {mobileMedia ? (
-        <source
-          type="image/webp"
-          media="(max-width: 1023px)"
-          srcSet={mobileMedia.srcSet}
-          sizes={sizes}
-        />
+        <>
+          {mobileAvifSrcSet ? (
+            <source
+              media="(max-width: 1023px)"
+              type="image/avif"
+              srcSet={mobileAvifSrcSet}
+              sizes={sizes}
+            />
+          ) : null}
+          <source
+            media="(max-width: 1023px)"
+            type="image/webp"
+            srcSet={mobileMedia.srcSet}
+            sizes={sizes}
+          />
+        </>
       ) : null}
       {avifSrcSet ? <source type="image/avif" srcSet={avifSrcSet} sizes={sizes} /> : null}
       <img
@@ -68,9 +77,11 @@ export function PublicMedia({
         width={media.width}
         height={media.height}
         alt={alt}
-        loading={priority ? "eager" : "lazy"}
+        loading={priority || eager ? "eager" : "lazy"}
         fetchPriority={priority ? "high" : "auto"}
         decoding="async"
+        onLoad={onLoad}
+        onError={onError}
         className={`h-full w-full ${fitClass}`}
       />
     </picture>

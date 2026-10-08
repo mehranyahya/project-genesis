@@ -1,37 +1,6 @@
-import { notFound } from "@tanstack/react-router";
+import { lazyRouteComponent, notFound } from "@tanstack/react-router";
+import type { RouteComponent } from "@tanstack/react-router";
 
-import { BuildingStonePage } from "@/components/building-stone/building-stone-page";
-import { CustomFunnelPage } from "@/components/custom-funnel/custom-funnel-page";
-import {
-  CustomFunnelError,
-  CustomFunnelLoading,
-} from "@/components/custom-funnel/custom-funnel-states";
-import { GraveStoneListPage } from "@/components/grave-stones/grave-stone-list-page";
-import {
-  GraveStoneListError,
-  GraveStoneListLoading,
-} from "@/components/grave-stones/grave-stone-list-states";
-import {
-  GuideDetailPage,
-  GuideError,
-  GuidesListPage,
-  GuidesLoading,
-} from "@/components/guides/guides";
-import { HomePage } from "@/components/home/home-page";
-import { PortfolioPage } from "@/components/portfolio/portfolio-page";
-import { PortfolioError, PortfolioLoading } from "@/components/portfolio/portfolio-states";
-import { ProductDetailPage } from "@/components/product/product-detail-page";
-import {
-  ProductDetailError,
-  ProductDetailLoading,
-} from "@/components/product/product-detail-states";
-import { QuotePage } from "@/components/request-form/quote-page";
-import { StoneworksPage } from "@/components/stoneworks/stoneworks-page";
-import {
-  ContactDetailsList,
-  ContentBlockedState,
-  StaticPageView,
-} from "@/components/static-pages/static-pages";
 import {
   getCatalogVersion,
   getGuide,
@@ -62,7 +31,8 @@ import {
 } from "@/lib/static-pages";
 import type { ContactPageModel, StaticPageModel } from "@/lib/static-pages";
 
-import { localizedHead, localizedLinks, useRouteData } from "./shared";
+import { localizedHead, localizedLinks } from "./shared";
+import { HomeRoute } from "./views/home";
 
 /* ------------------------------------------------------------------ home */
 
@@ -85,13 +55,9 @@ export function homeRouteOptions(locale: Locale) {
         guides: contentListForLocale(guides, locale),
       });
     },
+    // Keep the small landing view critical: no extra chunk request before home hydration.
     component: HomeRoute,
   };
-}
-
-function HomeRoute() {
-  const model = useRouteData<ReturnType<typeof buildHomeViewModel>>();
-  return <HomePage model={model} />;
 }
 
 /* ------------------------------------------------------------ stoneworks */
@@ -110,7 +76,10 @@ export function stoneworksRouteOptions(locale: Locale) {
         title: STONEWORKS_META_TITLE,
         description: STONEWORKS_META_DESCRIPTION,
       }),
-    component: StoneworksPage,
+    component: lazyRouteComponent(
+      () => import("@/components/stoneworks/stoneworks-page"),
+      "StoneworksPage",
+    ),
   };
 }
 
@@ -126,15 +95,16 @@ export function graveStoneListRouteOptions(locale: Locale) {
         description: "فهرست مدل‌های سنگ مزار",
       }),
     loader: async () => buildGraveStoneListModel(contentListForLocale(await getProducts(), locale)),
-    pendingComponent: GraveStoneListLoading,
-    errorComponent: GraveStoneListError,
-    component: GraveStoneListRoute,
+    pendingComponent: lazyRouteComponent(
+      () => import("@/components/grave-stones/grave-stone-list-states"),
+      "GraveStoneListLoading",
+    ),
+    errorComponent: lazyRouteComponent(
+      () => import("@/components/grave-stones/grave-stone-list-states"),
+      "GraveStoneListError",
+    ),
+    component: lazyRouteComponent(() => import("./views/grave-stones"), "GraveStoneListRoute"),
   };
-}
-
-function GraveStoneListRoute() {
-  const model = useRouteData<ReturnType<typeof buildGraveStoneListModel>>();
-  return <GraveStoneListPage model={model} />;
 }
 
 export function customFunnelRouteOptions(locale: Locale) {
@@ -160,24 +130,16 @@ export function customFunnelRouteOptions(locale: Locale) {
         title: "سفارش سفارشی سنگ مزار",
         description: "مسیر ثبت سفارش سفارشی سنگ مزار",
       }),
-    pendingComponent: CustomFunnelLoading,
-    errorComponent: CustomFunnelError,
-    component: CustomFunnelRoute,
+    pendingComponent: lazyRouteComponent(
+      () => import("@/components/custom-funnel/custom-funnel-states"),
+      "CustomFunnelLoading",
+    ),
+    errorComponent: lazyRouteComponent(
+      () => import("@/components/custom-funnel/custom-funnel-states"),
+      "CustomFunnelError",
+    ),
+    component: lazyRouteComponent(() => import("./views/custom-funnel"), "CustomFunnelRoute"),
   };
-}
-
-type CustomFunnelData = Awaited<ReturnType<ReturnType<typeof customFunnelRouteOptions>["loader"]>>;
-
-function CustomFunnelRoute() {
-  const { products, catalogVersion, site, termsDocument } = useRouteData<CustomFunnelData>();
-  return (
-    <CustomFunnelPage
-      products={products}
-      catalogVersion={catalogVersion}
-      site={site}
-      termsDocument={termsDocument}
-    />
-  );
 }
 
 const PRODUCT_DESCRIPTION = "جزئیات مدل سنگ مزار و ثبت درخواست بررسی سفارش.";
@@ -225,29 +187,23 @@ export function productDetailRouteOptions(locale: Locale) {
         links: localizedLinks(`/grave-stones/${data.model.slug}`, locale),
       };
     },
-    pendingComponent: ProductDetailLoading,
-    errorComponent: ProductDetailError,
-    component: ProductDetailRoute,
+    pendingComponent: lazyRouteComponent(
+      () => import("@/components/product/product-detail-states"),
+      "ProductDetailLoading",
+    ),
+    errorComponent: lazyRouteComponent(
+      () => import("@/components/product/product-detail-states"),
+      "ProductDetailError",
+    ),
+    component: lazyRouteComponent(() => import("./views/product"), "ProductDetailRoute"),
   };
 }
 
-interface ProductDetailData {
+export interface ProductDetailData {
   model: NonNullable<ReturnType<typeof buildProductDetailModel>>;
   catalogVersion: Awaited<ReturnType<typeof getCatalogVersion>> | null;
   site: Awaited<ReturnType<typeof getSite>> | null;
   termsDocument: Awaited<ReturnType<typeof getRequestTermsDocument>>;
-}
-
-function ProductDetailRoute() {
-  const { model, catalogVersion, site, termsDocument } = useRouteData<ProductDetailData>();
-  return (
-    <ProductDetailPage
-      model={model}
-      catalogVersion={catalogVersion}
-      site={site}
-      termsDocument={termsDocument}
-    />
-  );
 }
 
 /* ------------------------------------------------------------- portfolio */
@@ -263,15 +219,16 @@ export function portfolioRouteOptions(locale: Locale) {
       }),
     loader: async () =>
       buildPortfolioModel(contentListForLocale(await getPortfolioItems(), locale)),
-    pendingComponent: PortfolioLoading,
-    errorComponent: PortfolioError,
-    component: PortfolioRoute,
+    pendingComponent: lazyRouteComponent(
+      () => import("@/components/portfolio/portfolio-states"),
+      "PortfolioLoading",
+    ),
+    errorComponent: lazyRouteComponent(
+      () => import("@/components/portfolio/portfolio-states"),
+      "PortfolioError",
+    ),
+    component: lazyRouteComponent(() => import("./views/portfolio"), "PortfolioRoute"),
   };
-}
-
-function PortfolioRoute() {
-  const cards = useRouteData<ReturnType<typeof buildPortfolioModel>>();
-  return <PortfolioPage cards={cards} />;
 }
 
 /* -------------------------------------------------------- building stone */
@@ -289,17 +246,8 @@ export function buildingStoneRouteOptions(locale: Locale) {
         title: "سنگ ساختمانی",
         description: "ثبت درخواست بررسی سنگ ساختمانی",
       }),
-    component: BuildingStoneRoute,
+    component: lazyRouteComponent(() => import("./views/building-stone"), "BuildingStoneRoute"),
   };
-}
-
-type BuildingStoneData = Awaited<
-  ReturnType<ReturnType<typeof buildingStoneRouteOptions>["loader"]>
->;
-
-function BuildingStoneRoute() {
-  const { site, termsDocument } = useRouteData<BuildingStoneData>();
-  return <BuildingStonePage site={site} termsDocument={termsDocument} />;
 }
 
 /* ----------------------------------------------------------------- quote */
@@ -352,23 +300,8 @@ export function quoteRouteOptions(locale: Locale) {
         title: "ثبت درخواست بررسی",
         description: "ثبت درخواست بررسی سفارش سنگ",
       }),
-    component: QuoteRoute,
+    component: lazyRouteComponent(() => import("./views/quote"), "QuoteRoute"),
   };
-}
-
-type QuoteData = Awaited<ReturnType<ReturnType<typeof quoteRouteOptions>["loader"]>>;
-
-function QuoteRoute() {
-  const { portfolioReferenceId, stoneworkCategoryId, site, termsDocument } =
-    useRouteData<QuoteData>();
-  return (
-    <QuotePage
-      portfolioReferenceId={portfolioReferenceId}
-      stoneworkCategoryId={stoneworkCategoryId}
-      site={site}
-      termsDocument={termsDocument}
-    />
-  );
 }
 
 /* ---------------------------------------------------------------- guides */
@@ -385,15 +318,13 @@ export function guideListRouteOptions(locale: Locale) {
       });
     },
     loader: async () => buildGuideListModel(contentListForLocale(await getGuides(), locale)),
-    pendingComponent: GuidesLoading,
-    errorComponent: GuideError,
-    component: GuideListRoute,
+    pendingComponent: lazyRouteComponent(
+      () => import("@/components/guides/guides"),
+      "GuidesLoading",
+    ),
+    errorComponent: lazyRouteComponent(() => import("@/components/guides/guides"), "GuideError"),
+    component: lazyRouteComponent(() => import("./views/guide-list"), "GuideListRoute"),
   };
-}
-
-function GuideListRoute() {
-  const items = useRouteData<GuideListItem[]>();
-  return <GuidesListPage items={items} />;
 }
 
 export function guideDetailRouteOptions(locale: Locale) {
@@ -422,16 +353,13 @@ export function guideDetailRouteOptions(locale: Locale) {
       if (!guide) throw notFound();
       return guide;
     },
-    pendingComponent: GuidesLoading,
-    errorComponent: GuideError,
-    component: GuideDetailRoute,
+    pendingComponent: lazyRouteComponent(
+      () => import("@/components/guides/guides"),
+      "GuidesLoading",
+    ),
+    errorComponent: lazyRouteComponent(() => import("@/components/guides/guides"), "GuideError"),
+    component: lazyRouteComponent(() => import("./views/guide-detail"), "GuideDetailRoute"),
   };
-}
-
-function GuideDetailRoute() {
-  const guide = useRouteData<GuideDetailModel | undefined>();
-  if (!guide) return null;
-  return <GuideDetailPage guide={guide} />;
 }
 
 /* ------------------------------------------------- static and legal pages */
@@ -461,7 +389,7 @@ function staticPageOptions(
   basePath: string,
   slug: "about" | "privacy" | "terms",
   fallbackTitle: string,
-  component: () => React.ReactElement,
+  component: RouteComponent,
 ) {
   return {
     head: (ctx: { loaderData?: StaticPageModel | null }) =>
@@ -471,21 +399,34 @@ function staticPageOptions(
   };
 }
 
-function StaticPageRoute() {
-  const page = useRouteData<StaticPageModel | null>() ?? null;
-  return page ? <StaticPageView page={page} /> : <ContentBlockedState />;
-}
-
 export function aboutRouteOptions(locale: Locale) {
-  return staticPageOptions(locale, "/about", "about", "درباره ما", StaticPageRoute);
+  return staticPageOptions(
+    locale,
+    "/about",
+    "about",
+    "درباره ما",
+    lazyRouteComponent(() => import("./views/static"), "StaticPageRoute"),
+  );
 }
 
 export function privacyRouteOptions(locale: Locale) {
-  return staticPageOptions(locale, "/privacy", "privacy", "حریم خصوصی", StaticPageRoute);
+  return staticPageOptions(
+    locale,
+    "/privacy",
+    "privacy",
+    "حریم خصوصی",
+    lazyRouteComponent(() => import("./views/static"), "StaticPageRoute"),
+  );
 }
 
 export function termsRouteOptions(locale: Locale) {
-  return staticPageOptions(locale, "/terms", "terms", "شرایط استفاده", StaticPageRoute);
+  return staticPageOptions(
+    locale,
+    "/terms",
+    "terms",
+    "شرایط استفاده",
+    lazyRouteComponent(() => import("./views/static"), "StaticPageRoute"),
+  );
 }
 
 export function contactRouteOptions(locale: Locale) {
@@ -496,16 +437,6 @@ export function contactRouteOptions(locale: Locale) {
       const [page, site] = await Promise.all([getPage("contact"), getSite()]);
       return buildContactPageModel(contentForLocale(page, locale), siteForLocale(site, locale));
     },
-    component: ContactRoute,
+    component: lazyRouteComponent(() => import("./views/contact"), "ContactRoute"),
   };
-}
-
-function ContactRoute() {
-  const model = useRouteData<ContactPageModel | undefined>();
-  if (!model?.page) return <ContentBlockedState />;
-  return (
-    <StaticPageView page={model.page}>
-      <ContactDetailsList entries={model.details} />
-    </StaticPageView>
-  );
 }

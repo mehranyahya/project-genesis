@@ -257,7 +257,13 @@ test("static routes delegate to the shared factory with their own slug", () => {
       assert.equal(source.includes("getSite"), false, rel);
       assert.equal(source.includes("getPage("), false, rel);
     }
-    assert.match(factory, new RegExp(`"${slug}", "[^"]+", StaticPageRoute`));
+    const start = factory.indexOf(`export function ${slug}RouteOptions(`);
+    const end = factory.indexOf("\nexport function ", start + 1);
+    const section = factory.slice(start, end === -1 ? undefined : end);
+    assert.ok(section.includes(`"/${slug}"`));
+    assert.ok(section.includes(`"${slug}"`));
+    assert.match(section, /import\("\.\/views\/static"\)/);
+    assert.match(section, /"StaticPageRoute"/);
   }
   // The static-page factory reads exactly one page adapter and never the site.
   assert.match(
@@ -350,6 +356,8 @@ test("static page sources add no backend, supabase or unsafe html", () => {
     "src/routes/en/terms.tsx",
     "src/lib/route-defs/pages.tsx",
     "src/routes/__root.tsx",
+    "src/lib/route-defs/views/static.tsx",
+    "src/lib/route-defs/views/contact.tsx",
   ]) {
     const source = read(path);
     assert.equal(/supabase/i.test(source), false, path);

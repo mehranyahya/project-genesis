@@ -66,8 +66,14 @@ test("4 no local notFoundComponent is declared", () => {
 
 test("5 pending and error components are real and wired", () => {
   const route = routeSource();
-  assert.ok(route.includes("pendingComponent: ProductDetailLoading"));
-  assert.ok(route.includes("errorComponent: ProductDetailError"));
+  assert.match(
+    route,
+    /pendingComponent:\s*lazyRouteComponent\(\s*\(\) => import\("@\/components\/product\/product-detail-states"\),\s*"ProductDetailLoading"/,
+  );
+  assert.match(
+    route,
+    /errorComponent:\s*lazyRouteComponent\(\s*\(\) => import\("@\/components\/product\/product-detail-states"\),\s*"ProductDetailError"/,
+  );
   assert.ok(!route.includes("RouteSkeleton"));
 });
 
@@ -85,9 +91,14 @@ test("8 the product media stage uses the exact 4:5 ratio", () => {
   assert.ok(read(STATES).includes("aspect-[4/5]"));
 });
 
-test("9 list and portfolio cards now expose intentional 4:5 media stages", () => {
+test("9 catalogue portraits remain 4:5 while portfolio uses a matching portrait or landscape frame", () => {
   assert.ok(read("components/grave-stones/grave-stone-card.tsx").includes("aspect-[4/5]"));
-  assert.ok(read("components/portfolio/portfolio-card.tsx").includes("aspect-[4/5]"));
+  assert.ok(
+    read("components/portfolio/portfolio-card.tsx").includes(
+      'card.media.width > card.media.height ? "aspect-[3/2]" : "aspect-[4/5]"',
+    ),
+  );
+  assert.ok(read("components/portfolio/portfolio-card.tsx").includes('fit="contain"'));
 });
 
 test("10 the list card renders only the sanitized PublicMedia DTO", () => {
@@ -107,7 +118,7 @@ test("11 public media owns img/srcSet/fixed dimensions and AVIF source", () => {
   assert.ok(media.includes("srcSet={media.srcSet}"));
   assert.ok(media.includes("width={media.width}"));
   assert.ok(media.includes("height={media.height}"));
-  assert.ok(media.includes('loading={priority ? "eager" : "lazy"}'));
+  assert.ok(media.includes('loading={priority || eager ? "eager" : "lazy"}'));
   assert.ok(media.includes('fetchPriority={priority ? "high" : "auto"}'));
 });
 
@@ -137,12 +148,14 @@ test("13 gallery controls and a polite live position are present", () => {
   assert.ok(stage.includes("رسانه بعدی"));
   assert.ok(stage.includes('aria-live="polite"'));
   assert.ok(stage.includes("total > 1"));
-  assert.ok(stage.includes('Intl.NumberFormat("fa-IR")'));
+  assert.ok(stage.includes('new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en")'));
 });
 
-test("14 gallery surfaces are solid and unanimated", () => {
+test("14 gallery surfaces are solid, respect reduced motion and never autoplay", () => {
   const stage = read(STAGE);
   assert.ok(stage.includes("bg-surface-media"));
+  assert.ok(stage.includes("motion-reduce:transition-none"));
+  assert.ok(stage.includes('window.matchMedia("(prefers-reduced-motion: reduce)")'));
   const stageCode = stage.replace(/disabled:opacity-45/g, "");
   assert.ok(!/\/\d0\b|animate-|autoplay|carousel|embla/i.test(stageCode));
 });

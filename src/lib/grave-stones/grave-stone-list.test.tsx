@@ -120,8 +120,14 @@ test("error state is an alert with a real retry and no raw message", () => {
 
 test("route wires pending and error components and defines no local notFound", () => {
   const route = routeSource();
-  assert.ok(route.includes("pendingComponent: GraveStoneListLoading"));
-  assert.ok(route.includes("errorComponent: GraveStoneListError"));
+  assert.match(
+    route,
+    /pendingComponent:\s*lazyRouteComponent\(\s*\(\) => import\("@\/components\/grave-stones\/grave-stone-list-states"\),\s*"GraveStoneListLoading"/,
+  );
+  assert.match(
+    route,
+    /errorComponent:\s*lazyRouteComponent\(\s*\(\) => import\("@\/components\/grave-stones\/grave-stone-list-states"\),\s*"GraveStoneListError"/,
+  );
   assert.ok(!route.includes("notFoundComponent"));
 });
 

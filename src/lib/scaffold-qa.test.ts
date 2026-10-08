@@ -44,7 +44,11 @@ const isServerApiRoute = (rel: string) => rel.startsWith(path.join("routes", "ap
  * Unused shadcn primitives remain outside this QA gate as before.
  */
 const uiFiles = () =>
-  [...runtimeFiles("routes"), ...runtimeFiles("components")].filter(
+  [
+    ...runtimeFiles("routes"),
+    ...runtimeFiles("components"),
+    ...runtimeFiles("lib/route-defs/views"),
+  ].filter(
     (rel) => !isServerApiRoute(rel) && !rel.startsWith(path.join("components", "ui") + path.sep),
   );
 
@@ -66,7 +70,10 @@ test("server API routes are excluded from the UI-only import gate and nothing el
   const apiRoutes = routes.filter(isServerApiRoute);
   assert.deepEqual(apiRoutes, [path.join("routes", "api", "submit-request.ts")]);
   assert.equal(uiFiles().includes(path.join("routes", "api", "submit-request.ts")), false);
-  for (const rel of routes.filter((route) => !isServerApiRoute(route))) {
+  for (const rel of [
+    ...routes.filter((route) => !isServerApiRoute(route)),
+    ...runtimeFiles("lib/route-defs/views"),
+  ]) {
     assert.equal(uiFiles().includes(rel), true, `public UI route escaped QA: ${rel}`);
   }
 });
