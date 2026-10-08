@@ -31,6 +31,12 @@ import { submitRequestWithTurnstile as submitRequest } from "@/lib/request-submi
 import type { RequestSubmitTransport, SubmitOutcome } from "@/lib/request-submit";
 import { SUBMIT_MESSAGES, createSubmissionId, rememberTrackingCode } from "@/lib/request-submit";
 import { useT } from "@/lib/i18n/react";
+import {
+  stoneworkNoteLimit,
+  stoneworkRequestIdentity,
+  valuesForStoneworkRequest,
+} from "@/lib/stonework-request";
+import type { StoneworkRequestContext } from "@/lib/stonework-request";
 
 export const SUBMIT_LABEL = "ثبت درخواست بررسی";
 
@@ -161,6 +167,7 @@ export function RequestForm({
   submitRequest: transport,
   extension,
   onSuccess,
+  stoneworkContext = null,
 }: {
   source: RequestSource;
   site: Site | null;
@@ -168,7 +175,9 @@ export function RequestForm({
   submitRequest?: RequestSubmitTransport;
   extension?: BuildingStoneFormBinding | null;
   onSuccess?: (trackingCode: string) => void;
+  stoneworkContext?: StoneworkRequestContext | null;
 }) {
+  const t = useT();
   const [values, setValues] = useState<RequestFormValues>(PII_FREE_VALUES);
   const [errors, setErrors] = useState<RequestFieldErrors>({});
   const [extensionErrors, setExtensionErrors] = useState<Readonly<Record<string, string>>>({});
@@ -183,6 +192,7 @@ export function RequestForm({
 
   const submissionId = useRef<string | null>(null);
   const inFlight = useRef(false);
+  const mounted = useRef(true);
   const turnstileRef = useRef<TurnstileFieldHandle | null>(null);
 
   // A binding is only active when the outer kind and the bound contract kind
@@ -195,7 +205,8 @@ export function RequestForm({
   const contract = binding === null ? null : binding.contract;
   const extensionFieldId = binding?.fieldId ?? DEFAULT_EXTENSION_FIELD_ID;
 
-  const identity = sourceIdentity(source);
+  const commission = source.kind === "contact" ? stoneworkContext : null;
+  const identity = stoneworkRequestIdentity(sourceIdentity(source), commission);
 
   // The attempt token of the running request; a response from an older
   // identity is discarded before any result state is applied.
@@ -208,6 +219,13 @@ export function RequestForm({
   const generationTracker = useRef<GenerationTracker | null>(null);
   generationTracker.current ??= createGenerationTracker(identity);
   const generation = generationTracker.current.observe(identity);
+  // A request completing after navigation must not trigger the old page callback.
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   // Only a real semantic selection change resets the source-coupled state.
   useEffect(() => {
@@ -255,7 +273,12 @@ export function RequestForm({
       // the main submit button and the Enter key stay inert.
       if (freshAttemptRequired && !allowFreshAttempt) return;
 
-      const validation = validateRequestForm({ values, source, extension: contract });
+      const submittedValues = valuesForStoneworkRequest(values, commission, t);
+      const validation = validateRequestForm({
+        values: submittedValues,
+        source,
+        extension: contract,
+      });
       setErrors(validation.errors);
       setExtensionErrors(validation.extensionErrors);
       if (!validation.valid) {
@@ -269,7 +292,7 @@ export function RequestForm({
       const payload = buildRequestPayload({
         submissionId: submissionId.current,
         source,
-        values,
+        values: submittedValues,
         termsDocument: terms,
         priceRevision: revision,
         extension: contract,
@@ -285,11 +308,10 @@ export function RequestForm({
 
       const turnstileProof = (await turnstileRef.current?.execute()) ?? null;
       if (
+        !mounted.current ||
         attempt !== attemptIdentity.current ||
         isStaleAttempt(attemptGeneration, generationTracker.current?.current() ?? generation)
       ) {
-        inFlight.current = false;
-        resetTurnstile();
         return;
       }
 
@@ -297,8 +319,7 @@ export function RequestForm({
       const result = await submitRequest(
         transport ? { payload, turnstileToken, transport } : { payload, turnstileToken },
       );
-      resetTurnstile();
-
+      if (!mounted.current) return;
       // A stale response from an obsolete source attempt is ignored completely.
       if (attempt !== attemptIdentity.current) return;
       // An A -> B -> A cycle restores the identity string but never the epoch.
@@ -306,6 +327,7 @@ export function RequestForm({
         return;
       }
 
+      resetTurnstile();
       inFlight.current = false;
       setOutcome(result);
 
@@ -345,6 +367,7 @@ export function RequestForm({
       setPhase("editing");
     },
     [
+      commission,
       contract,
       extensionFieldId,
       freshAttemptRequired,
@@ -355,6 +378,7 @@ export function RequestForm({
       source,
       terms,
       termsReady,
+      t,
       transport,
       values,
     ],
@@ -367,59 +391,63 @@ export function RequestForm({
   const submitting = phase === "submitting";
 
   return (
-    <form
-      noValidate
-      aria-busy={submitting ? true : undefined}
-      className="grid grid-cols-4 gap-x-4 gap-y-5 md:grid-cols-8 lg:grid-cols-12"
-      onSubmit={(event) => {
-        event.preventDefault();
-        void run(priceRevision);
-      }}
-    >
-      <div className="col-span-4 flex flex-col gap-5 md:col-span-8 lg:col-span-8">
-        {binding === null
-          ? null
-          : binding.renderExtensionFields({ errors: extensionErrors, disabled: submitting })}
+    <div className="request-form-container">
+      <form
+        noValidate
+        aria-busy={submitting ? true : undefined}
+        className="request-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void run(priceRevision);
+        }}
+      >
+        <div className="flex min-w-0 flex-col gap-6">
+          {binding === null
+            ? null
+            : binding.renderExtensionFields({ errors: extensionErrors, disabled: submitting })}
 
-        <RequestFormFields
-          values={values}
-          errors={errors}
-          source={source}
-          disabled={submitting}
-          onChange={(next) => setValues((current) => ({ ...current, ...next }))}
-        />
-      </div>
+          <RequestFormFields
+            values={values}
+            errors={errors}
+            source={source}
+            commission={commission !== null}
+            noteLimit={commission ? stoneworkNoteLimit(commission, t) : undefined}
+            disabled={submitting}
+            onChange={(next) => setValues((current) => ({ ...current, ...next }))}
+          />
+        </div>
 
-      <div className="col-span-4 flex flex-col gap-4 md:col-span-8 lg:col-span-4">
-        {termsReady ? <TurnstileField ref={turnstileRef} /> : null}
+        <div className="request-form-actions flex min-w-0 flex-col gap-4">
+          {termsReady ? <TurnstileField ref={turnstileRef} /> : null}
 
-        <button
-          type="submit"
-          className={ACTION}
-          disabled={!termsReady || submitting || selectionBlocked}
-        >
-          {submitting ? SUBMIT_MESSAGES.submitting : SUBMIT_LABEL}
-        </button>
+          <button
+            type="submit"
+            className={ACTION}
+            disabled={!termsReady || submitting || selectionBlocked}
+          >
+            {t(submitting ? SUBMIT_MESSAGES.submitting : SUBMIT_LABEL)}
+          </button>
 
-        {!termsReady ? (
-          <p className="text-sm text-text-secondary">{SUBMISSION_BLOCKED_TEXT}</p>
-        ) : null}
+          {!termsReady ? (
+            <p className="text-sm text-text-secondary">{t(SUBMISSION_BLOCKED_TEXT)}</p>
+          ) : null}
 
-        <RequestFormState
-          outcome={submitting ? null : outcome}
-          onRetry={() => void run(priceRevision)}
-          onConfirmPrice={() => void run(priceRevision)}
-          onNewAttempt={() => {
-            // A second click while the fresh attempt is running must not touch
-            // the submission id, the outcome or the fresh-attempt block.
-            if (inFlight.current) return;
-            submissionId.current = null;
-            setOutcome(null);
-            setFreshAttemptRequired(false);
-            void run(priceRevision, { allowFreshAttempt: true });
-          }}
-        />
-      </div>
-    </form>
+          <RequestFormState
+            outcome={submitting ? null : outcome}
+            onRetry={() => void run(priceRevision)}
+            onConfirmPrice={() => void run(priceRevision)}
+            onNewAttempt={() => {
+              // A second click while the fresh attempt is running must not touch
+              // the submission id, the outcome or the fresh-attempt block.
+              if (inFlight.current) return;
+              submissionId.current = null;
+              setOutcome(null);
+              setFreshAttemptRequired(false);
+              void run(priceRevision, { allowFreshAttempt: true });
+            }}
+          />
+        </div>
+      </form>
+    </div>
   );
 }

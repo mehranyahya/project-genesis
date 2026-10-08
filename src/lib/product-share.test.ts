@@ -37,6 +37,18 @@ test("share text carries only title and display code", () => {
   }
 });
 
+test("English share and copy keep the locale and carry no selection or query", () => {
+  const url = new URL(productShareUrl("honed-granite", "https://example.com", "en"));
+  assert.equal(url.pathname, "/en/grave-stones/honed-granite");
+  assert.equal(url.search, "");
+  assert.equal(url.hash, "");
+  assert.equal(
+    productShareUrl("honed-granite", "https://example.com", "fa"),
+    "https://example.com/grave-stones/honed-granite",
+  );
+  assert.ok(shareSource.includes("productShareUrl(slug, window.location.origin, locale)"));
+});
+
 test("browser globals are only touched inside guarded runtime code", () => {
   assert.ok(shareSource.includes('typeof window === "undefined"'));
   assert.ok(shareSource.includes('typeof navigator.share !== "function"'));

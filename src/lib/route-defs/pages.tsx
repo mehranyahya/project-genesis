@@ -53,6 +53,8 @@ import { findPortfolioReference, normalizePortfolioReference } from "@/lib/portf
 import { buildProductDetailModel } from "@/lib/product-detail";
 import { getRequestTermsDocument } from "@/lib/request-terms";
 import { STONEWORKS_META_DESCRIPTION, STONEWORKS_META_TITLE } from "@/lib/stoneworks";
+import { normalizeStoneworkCategory } from "@/lib/stonework-category";
+import type { StoneworkCategoryId } from "@/lib/stonework-category";
 import {
   buildContactPageModel,
   buildStaticPageModel,
@@ -303,21 +305,33 @@ function BuildingStoneRoute() {
 /* ----------------------------------------------------------------- quote */
 
 export interface QuoteSearch {
-  readonly source?: "portfolio";
+  readonly source?: "portfolio" | "stoneworks";
   readonly reference?: string;
+  readonly category?: StoneworkCategoryId;
 }
 
 export function quoteRouteOptions(locale: Locale) {
   return {
     validateSearch: (search: Record<string, unknown>): QuoteSearch => {
+      if (search["source"] === "stoneworks") {
+        const category = normalizeStoneworkCategory(search["category"]);
+        return category ? { source: "stoneworks", category } : {};
+      }
       const reference = normalizePortfolioReference(search["reference"]);
       if (search["source"] !== "portfolio" || reference === null) return {};
       return { source: "portfolio", reference };
     },
-    loaderDeps: ({ search }: { search: QuoteSearch }) => ({ reference: search.reference ?? null }),
-    loader: async ({ deps }: { deps: { reference: string | null } }) => {
+    loaderDeps: ({ search }: { search: QuoteSearch }) => ({
+      reference: search.reference ?? null,
+      category: search.category ?? null,
+    }),
+    loader: async ({
+      deps,
+    }: {
+      deps: { reference: string | null; category: StoneworkCategoryId | null };
+    }) => {
       const [portfolioItems, site, termsDocument] = await Promise.all([
-        getPortfolioItems(),
+        deps.reference ? getPortfolioItems() : Promise.resolve([]),
         getSite(),
         getRequestTermsDocument(),
       ]);
@@ -326,6 +340,7 @@ export function quoteRouteOptions(locale: Locale) {
           contentListForLocale(portfolioItems, locale),
           deps.reference,
         ),
+        stoneworkCategoryId: deps.category,
         site: siteForLocale(site, locale),
         termsDocument,
       };
@@ -334,7 +349,7 @@ export function quoteRouteOptions(locale: Locale) {
       localizedHead({
         locale,
         basePath: "/quote",
-        title: "ثبت سفارش",
+        title: "ثبت درخواست بررسی",
         description: "ثبت درخواست بررسی سفارش سنگ",
       }),
     component: QuoteRoute,
@@ -344,10 +359,12 @@ export function quoteRouteOptions(locale: Locale) {
 type QuoteData = Awaited<ReturnType<ReturnType<typeof quoteRouteOptions>["loader"]>>;
 
 function QuoteRoute() {
-  const { portfolioReferenceId, site, termsDocument } = useRouteData<QuoteData>();
+  const { portfolioReferenceId, stoneworkCategoryId, site, termsDocument } =
+    useRouteData<QuoteData>();
   return (
     <QuotePage
       portfolioReferenceId={portfolioReferenceId}
+      stoneworkCategoryId={stoneworkCategoryId}
       site={site}
       termsDocument={termsDocument}
     />

@@ -189,7 +189,9 @@ test("client executes fresh proof before transport while Siteverify authority li
   assert.match(field, /execution: "execute"/);
   assert.match(field, /"refresh-expired": "auto"/);
   assert.match(field, /appearance: "interaction-only"/);
-  assert.match(field, /size: "flexible"/);
+  assert.match(field, /size: "compact"/);
+  assert.match(field, /language: locale/);
+  assert.match(field, /useLocale\(\)/);
   assert.match(field, /api\.execute\(container\)/);
   assert.match(field, /readonly execute: \(\) => Promise<string \| null>/);
   assert.match(field, /VITE_TURNSTILE_SITE_KEY/);

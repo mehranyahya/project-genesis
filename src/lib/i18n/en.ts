@@ -43,6 +43,7 @@ export const EN_MESSAGES = {
   "نمونه‌کارهای سنگ مزار، سنگ ساختمانی و ساخت سفارشی":
     "Projects in memorial stone, architectural stone and bespoke stonework",
   "{count} محصول": "{count} models",
+  "۱ محصول": "1 model",
   "{current} از {total}": "{current} of {total}",
   "در حال آماده‌سازی تصویر…": "Preparing the image…",
   "تصویر در حال حاضر در دسترس نیست.": "The image is currently unavailable.",
@@ -243,6 +244,9 @@ export const EN_MESSAGES = {
   "تماس تلفنی": "Phone call",
   "زمان مناسب تماس": "Best time to call",
   "توضیح کوتاه": "Short note",
+  "ابعاد و شرح ایده": "Dimensions and project brief",
+  "اگر ابعاد مشخص است، طول، عرض و ارتفاع را با واحد اندازه‌گیری بنویسید و ایده، نوع سنگ و شرایط محل را توضیح دهید. نام دسته همراه این متن ثبت می‌شود؛ حداکثر {count} نویسه برای توضیح.":
+    "If you know the dimensions, include the length, width and height with their units, then describe your idea, stone and site conditions. The category is included with this note; your brief can use up to {count} characters.",
   "شرایط ثبت": "Submission terms",
   "شرایط ثبت را خوانده‌ام و می‌پذیرم.": "I have read and accept the submission terms.",
   "نام باید بین ۲ تا ۸۰ نویسه باشد.": "The name must be between 2 and 80 characters.",

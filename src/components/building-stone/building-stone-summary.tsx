@@ -23,7 +23,7 @@ export function BuildingStoneSummary({ values }: { values: BuildingStoneValues }
             <dt className="text-sm text-text-secondary">{t(row.label)}</dt>
             <dd className="text-sm font-bold text-text-primary">
               {row.latin ? <bdi dir="ltr">{row.value}</bdi> : t(row.value)}
-              {row.unit === null ? null : <span className="pr-1 font-normal">{t(row.unit)}</span>}
+              {row.unit === null ? null : <span className="ps-1 font-normal">{t(row.unit)}</span>}
             </dd>
           </div>
         ))}

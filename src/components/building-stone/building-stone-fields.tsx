@@ -51,7 +51,7 @@ function RadioGroup<TValue extends string>({
   const errId = buildingStoneErrorId(fieldKey);
   return (
     <fieldset className="border border-border-subtle p-4">
-      <legend className="px-2 text-sm font-bold text-text-primary">{legend}</legend>
+      <legend className="px-2 text-sm font-bold text-text-primary">{t(legend)}</legend>
       <div className="flex flex-col gap-3 pt-2">
         {options.map((option, index) => {
           // The first control carries the group id so focus lands on the group.
@@ -71,6 +71,7 @@ function RadioGroup<TValue extends string>({
                 disabled={disabled}
                 aria-invalid={error ? true : undefined}
                 aria-errormessage={error ? errId : undefined}
+                aria-describedby={error ? errId : undefined}
                 onChange={() => onSelect(option.value)}
               />
               <span className="text-sm text-text-primary">{t(option.label)}</span>
@@ -98,6 +99,7 @@ export function BuildingStoneFields({
   disabled: boolean;
   onChange: (next: Partial<BuildingStoneValues>) => void;
 }): ReactNode {
+  const t = useT();
   const areaId = buildingStoneFieldId("areaM2");
   const areaErrorId = buildingStoneErrorId("areaM2");
   const areaError = errors["areaM2"];
@@ -125,12 +127,12 @@ export function BuildingStoneFields({
       />
 
       {values.application === "other" ? (
-        <p className="text-sm text-text-secondary">{BUILDING_STONE_OTHER_HELPER}</p>
+        <p className="text-sm text-text-secondary">{t(BUILDING_STONE_OTHER_HELPER)}</p>
       ) : null}
 
       <div className="flex flex-col gap-2">
         <label htmlFor={areaId} className="text-sm font-bold text-text-primary">
-          {BUILDING_STONE_FIELD_LABELS.areaM2}
+          {t(BUILDING_STONE_FIELD_LABELS.areaM2)}
         </label>
         <input
           id={areaId}
@@ -142,6 +144,7 @@ export function BuildingStoneFields({
           disabled={disabled}
           aria-invalid={areaError ? true : undefined}
           aria-errormessage={areaError ? areaErrorId : undefined}
+          aria-describedby={areaError ? areaErrorId : undefined}
           onChange={(event) => onChange({ areaM2Input: event.currentTarget.value })}
         />
         <FieldError id={areaErrorId} message={areaError} />

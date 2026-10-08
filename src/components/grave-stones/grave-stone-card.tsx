@@ -29,7 +29,7 @@ export function GraveStoneCard({ item }: { item: GraveStoneListItem }) {
 
         {item.summary ? <p className="text-sm text-text-secondary">{item.summary}</p> : null}
 
-        <p className="text-sm text-text-secondary">{TYPE_LABELS.get(item.type)}</p>
+        <p className="text-sm text-text-secondary">{t(TYPE_LABELS.get(item.type) ?? "")}</p>
 
         {item.sizeCodes.length > 0 ? (
           <div>
@@ -40,7 +40,7 @@ export function GraveStoneCard({ item }: { item: GraveStoneListItem }) {
                   key={code}
                   className="border border-border-subtle px-2 py-1 text-sm text-text-primary"
                 >
-                  {SIZE_LABELS.get(code)}
+                  {t(SIZE_LABELS.get(code) ?? "")}
                 </li>
               ))}
             </ul>
