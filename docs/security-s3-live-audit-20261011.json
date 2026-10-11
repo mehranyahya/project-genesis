@@ -1,0 +1,745 @@
+{
+  "schema_version": 1,
+  "captured_date": "2026-10-11",
+  "mode": "read_only",
+  "source_head": "bb419ad0c26fb1644ab02f57c8578cba9541908a",
+  "live_main": {
+    "name": "main",
+    "sha": "73868949c34e581af636e8ef2d4fc36fb3c42321"
+  },
+  "project": {
+    "name": "Project Genesis",
+    "status": "ACTIVE_HEALTHY",
+    "database_release": "17.6.1.155",
+    "server_version": "17.6"
+  },
+  "observed_projects": 1,
+  "observed_branches": ["main"],
+  "preview_isolation": "UNVERIFIED",
+  "catalog": {
+    "extensions": [
+      {
+        "name": "pg_stat_statements",
+        "version": "1.11"
+      },
+      {
+        "name": "pgcrypto",
+        "version": "1.3"
+      },
+      {
+        "name": "plpgsql",
+        "version": "1.0"
+      },
+      {
+        "name": "supabase_vault",
+        "version": "0.3.1"
+      },
+      {
+        "name": "uuid-ossp",
+        "version": "1.1"
+      }
+    ],
+    "database_owner": "postgres",
+    "server_version": "17.6",
+    "public_creators": [
+      {
+        "role": "pg_database_owner",
+        "login": false,
+        "bypass_rls": false
+      },
+      {
+        "role": "postgres",
+        "login": true,
+        "bypass_rls": true
+      },
+      {
+        "role": "supabase_admin",
+        "login": true,
+        "bypass_rls": true
+      }
+    ],
+    "current_exposure_counts": [
+      {
+        "role": "anon",
+        "functions": 0,
+        "relations": 0,
+        "sequences": 0,
+        "column_relations": 0
+      },
+      {
+        "role": "authenticated",
+        "functions": 0,
+        "relations": 0,
+        "sequences": 0,
+        "column_relations": 0
+      }
+    ],
+    "future_public_exposures": [
+      {
+        "creator": "pg_database_owner",
+        "grantee": "PUBLIC",
+        "privilege": "EXECUTE",
+        "object_type": "function"
+      },
+      {
+        "creator": "postgres",
+        "grantee": "PUBLIC",
+        "privilege": "EXECUTE",
+        "object_type": "function"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "PUBLIC",
+        "privilege": "EXECUTE",
+        "object_type": "function"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "anon",
+        "privilege": "EXECUTE",
+        "object_type": "function"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "authenticated",
+        "privilege": "EXECUTE",
+        "object_type": "function"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "anon",
+        "privilege": "SELECT",
+        "object_type": "sequence"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "anon",
+        "privilege": "UPDATE",
+        "object_type": "sequence"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "anon",
+        "privilege": "USAGE",
+        "object_type": "sequence"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "authenticated",
+        "privilege": "SELECT",
+        "object_type": "sequence"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "authenticated",
+        "privilege": "UPDATE",
+        "object_type": "sequence"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "authenticated",
+        "privilege": "USAGE",
+        "object_type": "sequence"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "anon",
+        "privilege": "DELETE",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "anon",
+        "privilege": "INSERT",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "anon",
+        "privilege": "MAINTAIN",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "anon",
+        "privilege": "REFERENCES",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "anon",
+        "privilege": "SELECT",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "anon",
+        "privilege": "TRIGGER",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "anon",
+        "privilege": "TRUNCATE",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "anon",
+        "privilege": "UPDATE",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "authenticated",
+        "privilege": "DELETE",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "authenticated",
+        "privilege": "INSERT",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "authenticated",
+        "privilege": "MAINTAIN",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "authenticated",
+        "privilege": "REFERENCES",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "authenticated",
+        "privilege": "SELECT",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "authenticated",
+        "privilege": "TRIGGER",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "authenticated",
+        "privilege": "TRUNCATE",
+        "object_type": "table"
+      },
+      {
+        "creator": "supabase_admin",
+        "grantee": "authenticated",
+        "privilege": "UPDATE",
+        "object_type": "table"
+      }
+    ]
+  },
+  "structure": {
+    "counts": {
+      "requests": 0,
+      "auth_users": 0,
+      "site_primary": 0,
+      "products_active": 0,
+      "storage_objects": 0,
+      "portfolio_active": 0,
+      "building_items_active": 0,
+      "approved_product_media": 0,
+      "approved_building_media": 0,
+      "approved_portfolio_media": 0
+    },
+    "rate_policy": [
+      {
+        "enabled": false
+      }
+    ],
+    "connection_tls": true,
+    "database_owner": "postgres",
+    "storage_buckets": [
+      {
+        "id": "catalog-media",
+        "public": false,
+        "objects": 0,
+        "file_size_limit": 20971520,
+        "allowed_mime_types": ["image/jpeg", "image/png", "image/webp", "image/avif"]
+      }
+    ],
+    "logging_settings": [
+      {
+        "name": "log_min_error_statement",
+        "value": "error"
+      },
+      {
+        "name": "log_parameter_max_length",
+        "value": "-1"
+      },
+      {
+        "name": "log_parameter_max_length_on_error",
+        "value": "0"
+      },
+      {
+        "name": "log_statement",
+        "value": "ddl"
+      },
+      {
+        "name": "ssl",
+        "value": "on"
+      }
+    ],
+    "public_functions": [
+      {
+        "name": "claim_gateway_nonce",
+        "owner": "postgres",
+        "arguments": "p_nonce text, p_gateway_key_id text, p_received_at_unix bigint",
+        "search_path": "search_path=pg_catalog",
+        "anon_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "name": "claim_telegram_notifications",
+        "owner": "postgres",
+        "arguments": "p_limit integer, p_request_id uuid",
+        "search_path": "search_path=pg_catalog",
+        "anon_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "name": "complete_telegram_notification",
+        "owner": "postgres",
+        "arguments": "p_request_id uuid, p_attempt integer, p_outcome text, p_retry_after_seconds integer",
+        "search_path": "search_path=pg_catalog",
+        "anon_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "name": "compute_operational_catalog_version",
+        "owner": "postgres",
+        "arguments": "",
+        "search_path": "search_path=pg_catalog",
+        "anon_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "name": "create_request_atomic",
+        "owner": "postgres",
+        "arguments": "p_payload jsonb, p_request_fingerprint text, p_request_fingerprint_key_id text, p_current_terms_version text, p_current_terms_hash text, p_bot_verification text, p_risk_flags jsonb, p_ip_hash text",
+        "search_path": "search_path=pg_catalog",
+        "anon_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "name": "create_request_atomic_core",
+        "owner": "postgres",
+        "arguments": "p_payload jsonb, p_request_fingerprint text, p_request_fingerprint_key_id text, p_current_terms_version text, p_current_terms_hash text, p_bot_verification text, p_risk_flags jsonb, p_ip_hash text",
+        "search_path": "search_path=pg_catalog",
+        "anon_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "name": "create_request_atomic_storage",
+        "owner": "postgres",
+        "arguments": "p_submission_id uuid, p_request_fingerprint text, p_request_fingerprint_key_id text, p_request_type text, p_client_catalog_version text, p_server_catalog_version text, p_configuration_snapshot jsonb, p_price_snapshot jsonb, p_customer_name text, p_phone_normalized text, p_city text, p_location_text text, p_preferred_contact text, p_preferred_contact_time text, p_customer_note text, p_terms_version text, p_terms_content_hash text, p_bot_verification text, p_risk_flags jsonb, p_ip_hash text, p_tracking_code_prefix text",
+        "search_path": "search_path=pg_catalog",
+        "anon_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "name": "inspect_request_idempotency",
+        "owner": "postgres",
+        "arguments": "p_submission_id uuid, p_request_fingerprint text, p_request_fingerprint_key_id text",
+        "search_path": "search_path=pg_catalog",
+        "anon_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "name": "requests_before_update",
+        "owner": "postgres",
+        "arguments": "",
+        "search_path": "search_path=pg_catalog",
+        "anon_execute": false,
+        "security_definer": false,
+        "authenticated_execute": false
+      },
+      {
+        "name": "rls_auto_enable",
+        "owner": "postgres",
+        "arguments": "",
+        "search_path": "search_path=pg_catalog",
+        "anon_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "name": "touch_updated_at",
+        "owner": "postgres",
+        "arguments": "",
+        "search_path": "search_path=pg_catalog",
+        "anon_execute": false,
+        "security_definer": false,
+        "authenticated_execute": false
+      }
+    ],
+    "public_relations": [
+      {
+        "rls": true,
+        "kind": "r",
+        "name": "building_stone_items",
+        "owner": "postgres",
+        "force_rls": true,
+        "policy_count": 0
+      },
+      {
+        "rls": true,
+        "kind": "r",
+        "name": "building_stone_media",
+        "owner": "postgres",
+        "force_rls": true,
+        "policy_count": 0
+      },
+      {
+        "rls": true,
+        "kind": "r",
+        "name": "gateway_nonces",
+        "owner": "postgres",
+        "force_rls": true,
+        "policy_count": 0
+      },
+      {
+        "rls": true,
+        "kind": "r",
+        "name": "portfolio_items",
+        "owner": "postgres",
+        "force_rls": true,
+        "policy_count": 0
+      },
+      {
+        "rls": true,
+        "kind": "r",
+        "name": "portfolio_media",
+        "owner": "postgres",
+        "force_rls": true,
+        "policy_count": 0
+      },
+      {
+        "rls": true,
+        "kind": "r",
+        "name": "product_media",
+        "owner": "postgres",
+        "force_rls": true,
+        "policy_count": 0
+      },
+      {
+        "rls": true,
+        "kind": "r",
+        "name": "product_options",
+        "owner": "postgres",
+        "force_rls": true,
+        "policy_count": 0
+      },
+      {
+        "rls": true,
+        "kind": "r",
+        "name": "product_variants",
+        "owner": "postgres",
+        "force_rls": true,
+        "policy_count": 0
+      },
+      {
+        "rls": true,
+        "kind": "r",
+        "name": "products",
+        "owner": "postgres",
+        "force_rls": true,
+        "policy_count": 0
+      },
+      {
+        "rls": true,
+        "kind": "r",
+        "name": "request_rate_limit_policy",
+        "owner": "postgres",
+        "force_rls": true,
+        "policy_count": 0
+      },
+      {
+        "rls": true,
+        "kind": "r",
+        "name": "requests",
+        "owner": "postgres",
+        "force_rls": true,
+        "policy_count": 0
+      },
+      {
+        "rls": true,
+        "kind": "r",
+        "name": "site_settings",
+        "owner": "postgres",
+        "force_rls": true,
+        "policy_count": 0
+      }
+    ],
+    "public_sequences": [
+      {
+        "name": "request_code_seq",
+        "owner": "postgres",
+        "anon_access": false,
+        "authenticated_access": false
+      }
+    ],
+    "maintain_exposure": [
+      {
+        "role": "anon",
+        "relations": 0
+      },
+      {
+        "role": "authenticated",
+        "relations": 0
+      }
+    ],
+    "schema_privileges": [
+      {
+        "role": "anon",
+        "login": false,
+        "bypass_rls": false,
+        "public_usage": true,
+        "public_create": false
+      },
+      {
+        "role": "authenticated",
+        "login": false,
+        "bypass_rls": false,
+        "public_usage": true,
+        "public_create": false
+      },
+      {
+        "role": "service_role",
+        "login": false,
+        "bypass_rls": true,
+        "public_usage": true,
+        "public_create": false
+      }
+    ]
+  },
+  "upgrade_catalog_screen": {
+    "encoding": "UTF8",
+    "ltree_indexes": 0,
+    "collation_provider": "i",
+    "gist_float_indexes": 0,
+    "external_pgp_callers": "UNKNOWN",
+    "public_bytea_columns": 0,
+    "custom_estimator_operators": 0,
+    "pgcrypto_data_verification": "NOT_PERFORMED",
+    "public_routine_pgp_references": 0
+  },
+  "edge_source_comparison": [
+    {
+      "file": "supabase/functions/submit-request/index.ts",
+      "live_sha256": "e3bd5a1c0025351a76b420e033c9d0d444ae10737d6c8bab5d0dec556863ca55",
+      "matches_main": true,
+      "matches_s3": false
+    },
+    {
+      "file": "supabase/functions/_shared/crypto.ts",
+      "live_sha256": "30c4551571c19f3a2628d3eaec38755ac6efbea1ee80d1d499fce275493e6568",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/json.ts",
+      "live_sha256": "43e66bd11ddcd81273018d24ce99154b0ba4a884a78eab9029506f76da78e093",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/gateway-auth.ts",
+      "live_sha256": "d24e123cb2c159755793e6f28a18351a8a85dfa94960db79a1031074a22f00ba",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/supabase-rest.ts",
+      "live_sha256": "a1d33ac3d1dfac213e384aaf16505f78e042c091ef57ba292f3069b9a42107a4",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/request-business.ts",
+      "live_sha256": "73266f70a72fcb41a6d70f477ac408ec15aee826d9802b4e08ae7236484cc7e4",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/terms-registry.generated.ts",
+      "live_sha256": "2ecc9d9a9fe9a1cbb55695b3a1a234a818735f23858c92e88797c23da62cb8e9",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/request-contract.ts",
+      "live_sha256": "a81e3ce9b6396bde279d48b96dc75d8b50c6cca4e1fc702e27c9cf8f7ad1f6d3",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/telegram-delivery.ts",
+      "live_sha256": "00a95142daa6b3d7c8cc912e4463a98b50645523a74ed38d90b61ae7a91b134a",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/turnstile.ts",
+      "live_sha256": "03a529fa11d98012790a5bc65fb4e8c6572029dc9cd88e8475e4fc874a1e6970",
+      "matches_main": true,
+      "matches_s3": false
+    },
+    {
+      "file": "supabase/functions/telegram-recovery/index.ts",
+      "live_sha256": "e9e5cf06fa1090d460fa3119e1d4e05b6117634c44c4cdc7846cb5cfcf39728c",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/cron-auth.ts",
+      "live_sha256": "8b7a9d5a17edf1bfdbb966e432be41e711f490fa3cd198314a940fccb5b042eb",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/crypto.ts",
+      "live_sha256": "30c4551571c19f3a2628d3eaec38755ac6efbea1ee80d1d499fce275493e6568",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/json.ts",
+      "live_sha256": "43e66bd11ddcd81273018d24ce99154b0ba4a884a78eab9029506f76da78e093",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/gateway-auth.ts",
+      "live_sha256": "d24e123cb2c159755793e6f28a18351a8a85dfa94960db79a1031074a22f00ba",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/supabase-rest.ts",
+      "live_sha256": "a1d33ac3d1dfac213e384aaf16505f78e042c091ef57ba292f3069b9a42107a4",
+      "matches_main": true,
+      "matches_s3": true
+    },
+    {
+      "file": "supabase/functions/_shared/telegram-delivery.ts",
+      "live_sha256": "00a95142daa6b3d7c8cc912e4463a98b50645523a74ed38d90b61ae7a91b134a",
+      "matches_main": true,
+      "matches_s3": true
+    }
+  ],
+  "migrations": [
+    {
+      "version": "20260807132437",
+      "name": "harden_rls_auto_enable_function"
+    },
+    {
+      "version": "20260807160605",
+      "name": "operational_catalog_and_requests_foundation"
+    },
+    {
+      "version": "20260807164329",
+      "name": "align_building_stone_request_contract"
+    },
+    {
+      "version": "20260807164742",
+      "name": "create_request_atomic_rpc"
+    },
+    {
+      "version": "20260807173000",
+      "name": "add_request_rate_limit_policy"
+    },
+    {
+      "version": "20260807173100",
+      "name": "ensure_request_rate_limit_indexes"
+    },
+    {
+      "version": "20260807173200",
+      "name": "lock_request_rate_limit_window"
+    },
+    {
+      "version": "20260807190349",
+      "name": "add_telegram_outbox_rpcs"
+    },
+    {
+      "version": "20260807201233",
+      "name": "align_turnstile_and_rate_limits_v23"
+    },
+    {
+      "version": "20260807201245",
+      "name": "add_v23_rate_limit_indexes"
+    },
+    {
+      "version": "20260807203909",
+      "name": "inspect_request_idempotency"
+    },
+    {
+      "version": "20260824190653",
+      "name": "add_gateway_nonce_replay_guard"
+    },
+    {
+      "version": "20260824190800",
+      "name": "add_narrow_request_storage_rpc"
+    },
+    {
+      "version": "20260824190853",
+      "name": "secure_catalog_media_and_whatsapp_url"
+    }
+  ],
+  "advisors": {
+    "security": {
+      "level": "INFO",
+      "finding": "rls_enabled_no_policy",
+      "count": 12,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy"
+    },
+    "performance": {
+      "level": "INFO",
+      "finding": "unused_index",
+      "count": 19,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index"
+    }
+  },
+  "backup": {
+    "run_id": 38126012981,
+    "head": "73868949c34e581af636e8ef2d4fc36fb3c42321",
+    "conclusion": "success",
+    "dump_restore_checksum_encrypt": "success",
+    "encrypted_artifact": "success",
+    "r2": "skipped",
+    "monitor": "skipped",
+    "offline_decrypt": "UNVERIFIED",
+    "managed_restore": "UNVERIFIED",
+    "storage_byte_restore": "UNVERIFIED"
+  },
+  "residuals": [
+    "Postgres upgrade not applied",
+    "Default ACL proposal not executed",
+    "Cloudflare Access/bindings/secrets not inspected",
+    "Auth settings, operator MFA and network enforcement not verified",
+    "Durable backup, offline decrypt and managed restore not accepted",
+    "Private Storage byte backup required before real media",
+    "Live S2 Turnstile changes not deployed",
+    "No real form request or notification sent"
+  ],
+  "mutations_performed": [],
+  "snapshot_written_at_utc": "2026-10-11T17:23:23.980506+00:00"
+}

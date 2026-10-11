@@ -1,5 +1,8 @@
--- READ ONLY: catalog metadata, effective privileges and counts, never row values.
+-- PostgreSQL 17. READ ONLY: catalog metadata, privileges and counts, never row values.
 -- Run separately in each already-authorized project; no automatic migration.
+begin read only;
+set local statement_timeout = '10000ms';
+
 with creators as (
   select r.oid, r.rolname, r.rolcanlogin, r.rolbypassrls
   from pg_catalog.pg_roles r
@@ -24,17 +27,25 @@ with creators as (
   where a.grantee = 0 or a.grantee in (
     select oid from pg_catalog.pg_roles where rolname in ('anon', 'authenticated')
   )
-), public_relations as (
+-- Materialize typed OID sets: privilege helpers can throw on an index/sequence
+-- if the planner evaluates them before an inlined catalog filter.
+), public_relations as materialized (
   select c.oid from pg_catalog.pg_class c
   join pg_catalog.pg_namespace n on n.oid = c.relnamespace
   where n.nspname = 'public' and c.relkind in ('r', 'p', 'v', 'm', 'f')
-), public_functions as (
+), public_functions as materialized (
   select p.oid from pg_catalog.pg_proc p
   join pg_catalog.pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public' and p.prokind in ('f', 'p')
+), public_sequences as materialized (
+  select c.oid from pg_catalog.pg_class c
+  join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'public' and c.relkind = 'S'
 )
 select pg_catalog.jsonb_build_object(
   'server_version', pg_catalog.current_setting('server_version'),
+  'database_owner', (select pg_catalog.pg_get_userbyid(datdba)
+    from pg_catalog.pg_database where datname = pg_catalog.current_database()),
   'extensions', (select coalesce(pg_catalog.jsonb_agg(
     pg_catalog.jsonb_build_object('name', extname, 'version', extversion) order by extname
   ), '[]'::jsonb) from pg_catalog.pg_extension),
@@ -53,9 +64,17 @@ select pg_catalog.jsonb_build_object(
     pg_catalog.jsonb_build_object(
       'role', r.rolname,
       'relations', (select count(*) from public_relations c where pg_catalog.has_table_privilege(
-        r.oid, c.oid, 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER'
+        r.oid, c.oid, 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN'
+      )),
+      'column_relations', (select count(*) from public_relations c where pg_catalog.has_any_column_privilege(
+        r.oid, c.oid, 'SELECT, INSERT, UPDATE, REFERENCES'
+      )),
+      'sequences', (select count(*) from public_sequences s where pg_catalog.has_sequence_privilege(
+        r.oid, s.oid, 'USAGE, SELECT, UPDATE'
       )),
       'functions', (select count(*) from public_functions p where pg_catalog.has_function_privilege(r.oid, p.oid, 'EXECUTE'))
     ) order by r.rolname
   ), '[]'::jsonb) from pg_catalog.pg_roles r where r.rolname in ('anon', 'authenticated'))
 )::text;
+
+commit;
