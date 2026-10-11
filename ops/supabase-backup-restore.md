@@ -1,6 +1,6 @@
 # Supabase backup and restore runbook
 
-This project is currently on the Supabase Free plan, so launch work must not rely on managed daily backups. The repository workflow creates a logical database backup every day at 02:17 UTC and whenever a migration, the workflow, compatibility preflight, or restore manifest changes on `main`.
+The last inspected plan was Supabase Free (2026-10-08); this package does not reverify today's plan. Launch work must not rely on an unverified managed-backup entitlement. The repository workflow creates a logical database backup every day at 02:17 UTC and whenever a migration, the workflow, compatibility preflight, or restore manifest changes on `main`.
 
 ## Backup outputs
 
@@ -13,38 +13,38 @@ The encrypted archive contains:
 - `history_schema.sql` and `history_data.sql`, the `supabase_migrations` history;
 - data-minimizing metadata, compatibility evidence, and internal SHA-256 checksums.
 
-The workflow pins Supabase CLI `2.115.0` and the exact digest of the Supabase PostgreSQL `17.6.1.136` drill image. Before encryption it validates the hosted project's restore assumptions, restores the supported drill scope into an isolated container, and compares a deterministic source/restore manifest covering table counts, RLS, constraints, indexes, functions, triggers, policies, sequences, and migration history. It then encrypts the archive with `age` and deletes every plaintext copy before upload.
+The workflow pins Supabase CLI `2.115.0` and the exact digest of the Supabase PostgreSQL `17.6.1.136` drill image. Before encryption it validates the hosted project's restore assumptions, restores the supported drill scope into an isolated container, and compares a deterministic source/restore manifest covering table counts, RLS, constraints, indexes, functions, triggers, policies, sequences, and migration history. It validates the exact archive layout and all internal checksums with `scripts/verify-backup-archive.py`, then encrypts the archive with `age` and deletes every plaintext copy before upload.
 
 Every successful run keeps:
 
 - an encrypted GitHub Actions artifact for 7 days;
-- an encrypted durable R2 copy when all R2 secrets are configured;
+- an encrypted durable R2 copy with downloaded-byte and checksum verification;
 - a matching SHA-256 checksum next to each encrypted archive.
 
 Supabase Storage objects are not contained in a database dump. A separate object-backup policy is required before real media is uploaded.
 
 ## Required GitHub secrets
 
-| Secret | Required | Purpose |
-| --- | --- | --- |
-| `SUPABASE_PROJECT_REF` | Yes | Guards the backup against the wrong project. |
-| `SUPABASE_DB_SESSION_POOLER_URL` | Yes | Full session-pooler PostgreSQL URL used only by the backup job. |
-| `BACKUP_ENCRYPTION_RECIPIENT` | Yes | Public `age1...` or supported SSH recipient. Keep the private key offline. |
-| `R2_ACCOUNT_ID` | Durable copy | Cloudflare account that owns the backup bucket. |
-| `R2_ACCESS_KEY_ID` | Durable copy | R2 S3 access key limited to the backup bucket. |
-| `R2_SECRET_ACCESS_KEY` | Durable copy | Matching R2 S3 secret. |
-| `R2_BACKUP_BUCKET` | Durable copy | Private bucket name. |
-| `HEALTHCHECKS_BACKUP_PING_URL` | Optional | Success/failure monitor endpoint. |
+| Secret                           | Required | Purpose                                                                    |
+| -------------------------------- | -------- | -------------------------------------------------------------------------- |
+| `SUPABASE_PROJECT_REF`           | Yes      | Guards the backup against the wrong project.                               |
+| `SUPABASE_DB_SESSION_POOLER_URL` | Yes      | Full session-pooler PostgreSQL URL used only by the backup job.            |
+| `BACKUP_ENCRYPTION_RECIPIENT`    | Yes      | Public `age1...` or supported SSH recipient. Keep the private key offline. |
+| `R2_ACCOUNT_ID`                  | Yes      | Cloudflare account that owns the backup bucket.                            |
+| `R2_ACCESS_KEY_ID`               | Yes      | R2 S3 access key limited to the backup bucket.                             |
+| `R2_SECRET_ACCESS_KEY`           | Yes      | Matching R2 S3 secret.                                                     |
+| `R2_BACKUP_BUCKET`               | Yes      | Private bucket name.                                                       |
+| `HEALTHCHECKS_BACKUP_PING_URL`   | Yes      | Private success/failure monitor endpoint.                                  |
 
-If none of the four R2 secrets is set, the workflow succeeds with only the encrypted 7-day Actions artifact. A partial R2 configuration fails closed.
+All four R2 secrets and the monitor endpoint are required. Missing configuration fails before the dump; a 7-day artifact alone no longer counts as a successful complete backup. The DB URL must select the expected `postgres.<project-ref>` session-pooler account on port 5432, `/postgres`, with an explicit TLS `sslmode` and no query overrides. This is an intentional stricter contract; configure it before merging/running this proposal.
 
 ## First launch gate
 
 1. Configure the three required secrets.
-2. Preferably configure all four R2 secrets and a private bucket lifecycle policy.
+2. Configure all four R2 secrets, monitoring, private-bucket retention, and recovery access; keep at least two independently verified generations.
 3. Merge a reviewed backup-workflow change or run **Supabase database backup** manually.
-4. Confirm the dump, automatic restore drill, encryption and artifact steps are green.
-5. Download the encrypted artifact plus checksum and verify the checksum locally.
+4. Confirm dump, automatic scoped drill, archive verification, encryption, artifact, R2 download/readback and monitoring steps are green for the reviewed code.
+5. Independently download the durable encrypted generation, verify its checksum, decrypt with the offline identity, validate the inner archive, and record a restore drill.
 6. Do not apply production migrations until this gate passes.
 
 ## Decrypt and inspect
@@ -57,8 +57,12 @@ age --decrypt \
   --identity /secure/path/backup-age-key.txt \
   --output backup.tar.gz \
   supabase-<project-ref>-<timestamp>.tar.gz.age
-tar -xzf backup.tar.gz
-cd <timestamp>
+python3 scripts/verify-backup-archive.py backup.tar.gz
+# Only after validation, extract into a new private directory:
+umask 077
+mkdir recovered-backup
+tar -xzf backup.tar.gz -C recovered-backup
+cd recovered-backup/<timestamp>
 sha256sum --check SHA256SUMS
 ```
 
@@ -77,7 +81,7 @@ Hosted Supabase Auth and Storage schemas can be newer than those in a raw Postgr
 
 If Auth application data, Storage objects, another bucket, a custom application schema, or a managed-schema dependency appears later, the workflow fails closed. Extend and test the backup strategy instead of weakening the preflight.
 
-This scoped automatic drill satisfies the current Preview migration gate because the live project has no Auth accounts or Storage objects and `public` is self-contained. A managed-project drill remains the stronger release exercise before the first Production launch or after a major PostgreSQL/platform upgrade.
+The scoped drill is valid only while its live read-only preflight remains true. It is not independent age decryption, durable retention, Storage-byte recovery or a managed-project restore. Those acceptance checks remain required before the relevant migration/release; see [S3 environment acceptance](environment-acceptance-fa.md). No live backup/restore or DB change was executed by this package.
 
 ## Managed-project restore exercise
 
@@ -107,5 +111,5 @@ After restore, verify table counts, constraints, RLS, critical RPCs, and migrati
 
 - Rotate the age key by changing the recipient only after one backup with the new key has been decrypted successfully.
 - Use bucket-scoped R2 credentials; never reuse deployment credentials.
-- A failed dump, encryption, artifact upload, R2 upload, or size verification fails the workflow.
+- A failed configuration gate, dump, drill, archive verification, encryption, artifact upload, R2 upload/download, byte/checksum comparison or monitoring fails the workflow.
 - Keep at least two independently verified generations before deleting an older durable backup.

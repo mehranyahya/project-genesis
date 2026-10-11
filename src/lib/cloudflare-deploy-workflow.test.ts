@@ -84,13 +84,14 @@ test("preview uploads a version while production alone uses wrangler deploy", ()
   assert.match(reusableWorkflow, /bunx wrangler deploy/);
   assert.match(reusableWorkflow, /--dry-run/);
 
-  for (const option of ["--secrets-file", "--keep-vars"] as const) {
+  for (const option of ["--secrets-file"] as const) {
     assert.equal(
       reusableWorkflow.split(option).length - 1,
       2,
       `${option} must protect both targets`,
     );
   }
+  assert.doesNotMatch(reusableWorkflow, /--keep-vars/);
   assert.equal(reusableWorkflow.split("--strict").length - 1, 3);
   assert.match(reusableWorkflow, /if: \$\{\{ always\(\) \}\}/);
   assert.match(reusableWorkflow, /rm -f .*cloudflare-runtime-secrets\.json/);

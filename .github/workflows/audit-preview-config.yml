@@ -9,6 +9,8 @@ on:
       - ".github/workflows/audit-preview-config.yml"
       - ".github/workflows/deploy-cloudflare.yml"
       - ".github/workflows/deploy-cloudflare-reusable.yml"
+      - "scripts/deployment-isolation.mjs"
+      - "scripts/check-deployment-isolation.mjs"
 
 permissions:
   contents: read
@@ -20,7 +22,7 @@ jobs:
     timeout-minutes: 5
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_PROJECT_REF: ${{ vars.PREVIEW_SUPABASE_PROJECT_REF }}
       PREVIEW_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.PREVIEW_CLOUDFLARE_ACCOUNT_ID }}
       PREVIEW_CLOUDFLARE_API_TOKEN: ${{ secrets.PREVIEW_CLOUDFLARE_API_TOKEN }}
       PREVIEW_VITE_TURNSTILE_SITE_KEY: ${{ secrets.PREVIEW_VITE_TURNSTILE_SITE_KEY }}
@@ -33,7 +35,30 @@ jobs:
       PREVIEW_SITE_URL: ${{ vars.PREVIEW_SITE_URL }}
       PREVIEW_ALLOWED_ORIGINS: ${{ vars.PREVIEW_ALLOWED_ORIGINS }}
 
+      DEPLOY_TARGET: preview
+      SITE_URL: ${{ vars.PREVIEW_SITE_URL }}
+      ALLOWED_ORIGINS: ${{ vars.PREVIEW_ALLOWED_ORIGINS }}
+      PREVIEW_WORKER_NAME: ${{ vars.PREVIEW_WORKER_NAME }}
+      PRODUCTION_WORKER_NAME: ${{ vars.PRODUCTION_WORKER_NAME }}
+      PREVIEW_SUPABASE_PROJECT_REF: ${{ vars.PREVIEW_SUPABASE_PROJECT_REF }}
+      PRODUCTION_SUPABASE_PROJECT_REF: ${{ vars.PRODUCTION_SUPABASE_PROJECT_REF }}
+      PRODUCTION_SITE_URL: ${{ vars.PRODUCTION_SITE_URL }}
+      PRODUCTION_ALLOWED_ORIGINS: ${{ vars.PRODUCTION_ALLOWED_ORIGINS }}
+      SUPABASE_FUNCTION_BASE_URL: ${{ secrets.PREVIEW_SUPABASE_FUNCTION_BASE_URL }}
+      BUILD_SUPABASE_URL: ${{ secrets.PREVIEW_BUILD_SUPABASE_URL }}
+      EDGE_GATEWAY_KEYS_JSON: ${{ secrets.PREVIEW_EDGE_GATEWAY_KEYS_JSON }}
+      IP_HASH_SECRET: ${{ secrets.PREVIEW_IP_HASH_SECRET }}
+      BUILD_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PREVIEW_BUILD_SUPABASE_SERVICE_ROLE_KEY }}
+      VITE_TURNSTILE_SITE_KEY: ${{ secrets.PREVIEW_VITE_TURNSTILE_SITE_KEY }}
+      OTHER_EDGE_GATEWAY_KEYS_JSON: ${{ secrets.PRODUCTION_EDGE_GATEWAY_KEYS_JSON }}
+      OTHER_IP_HASH_SECRET: ${{ secrets.PRODUCTION_IP_HASH_SECRET }}
+      OTHER_BUILD_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PRODUCTION_BUILD_SUPABASE_SERVICE_ROLE_KEY }}
+      OTHER_VITE_TURNSTILE_SITE_KEY: ${{ secrets.PRODUCTION_VITE_TURNSTILE_SITE_KEY }}
+
     steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@aa3515eac405eac768fa4a72147c22d88a283c7b # v3
         with:
@@ -99,18 +124,8 @@ jobs:
             exit 1
           fi
 
-          node <<'NODE'
-          const site = new URL(process.env.PREVIEW_SITE_URL);
-          if (site.protocol !== "https:") throw new Error("PREVIEW_SITE_URL must use HTTPS");
-          const allowed = process.env.PREVIEW_ALLOWED_ORIGINS
-            .split(",")
-            .map((value) => value.trim())
-            .filter(Boolean)
-            .map((value) => new URL(value).origin);
-          if (!allowed.includes(site.origin)) {
-            throw new Error("PREVIEW_ALLOWED_ORIGINS must contain PREVIEW_SITE_URL origin");
-          }
-          NODE
+      - name: Verify Preview destination and credential isolation
+        run: node scripts/check-deployment-isolation.mjs
 
       - name: Validate Supabase Edge secret names
         shell: bash
@@ -155,4 +170,3 @@ jobs:
           fi
 
           echo "GitHub Preview configuration and Supabase Edge secret names are complete."
-

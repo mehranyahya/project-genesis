@@ -21,6 +21,24 @@ on:
       allowed_origins:
         required: true
         type: string
+      preview_worker_name:
+        required: true
+        type: string
+      production_worker_name:
+        required: true
+        type: string
+      preview_supabase_project_ref:
+        required: true
+        type: string
+      production_supabase_project_ref:
+        required: true
+        type: string
+      other_site_url:
+        required: true
+        type: string
+      other_allowed_origins:
+        required: true
+        type: string
     secrets:
       CLOUDFLARE_ACCOUNT_ID:
         required: true
@@ -41,6 +59,15 @@ on:
       BUILD_SUPABASE_SERVICE_ROLE_KEY:
         required: true
 
+      OTHER_EDGE_GATEWAY_KEYS_JSON:
+        required: true
+      OTHER_IP_HASH_SECRET:
+        required: true
+      OTHER_BUILD_SUPABASE_SERVICE_ROLE_KEY:
+        required: true
+      OTHER_VITE_TURNSTILE_SITE_KEY:
+        required: true
+
 permissions:
   contents: read
 
@@ -52,6 +79,18 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      DEPLOY_TARGET: ${{ inputs.target }}
+      SITE_URL: ${{ inputs.site_url }}
+      ALLOWED_ORIGINS: ${{ inputs.allowed_origins }}
+      PREVIEW_WORKER_NAME: ${{ inputs.preview_worker_name }}
+      PRODUCTION_WORKER_NAME: ${{ inputs.production_worker_name }}
+      PREVIEW_SUPABASE_PROJECT_REF: ${{ inputs.preview_supabase_project_ref }}
+      PRODUCTION_SUPABASE_PROJECT_REF: ${{ inputs.production_supabase_project_ref }}
+      PREVIEW_SITE_URL: ${{ inputs.target == 'preview' && inputs.site_url || inputs.other_site_url }}
+      PREVIEW_ALLOWED_ORIGINS: ${{ inputs.target == 'preview' && inputs.allowed_origins || inputs.other_allowed_origins }}
+      PRODUCTION_SITE_URL: ${{ inputs.target == 'production' && inputs.site_url || inputs.other_site_url }}
+      PRODUCTION_ALLOWED_ORIGINS: ${{ inputs.target == 'production' && inputs.allowed_origins || inputs.other_allowed_origins }}
     steps:
       - name: Validate manual deployment request
         shell: bash
@@ -100,6 +139,20 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Verify deployment isolation before data access
+        env:
+          SUPABASE_FUNCTION_BASE_URL: ${{ secrets.SUPABASE_FUNCTION_BASE_URL }}
+          BUILD_SUPABASE_URL: ${{ secrets.BUILD_SUPABASE_URL }}
+          EDGE_GATEWAY_KEYS_JSON: ${{ secrets.EDGE_GATEWAY_KEYS_JSON }}
+          IP_HASH_SECRET: ${{ secrets.IP_HASH_SECRET }}
+          BUILD_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.BUILD_SUPABASE_SERVICE_ROLE_KEY }}
+          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
+          OTHER_EDGE_GATEWAY_KEYS_JSON: ${{ secrets.OTHER_EDGE_GATEWAY_KEYS_JSON }}
+          OTHER_IP_HASH_SECRET: ${{ secrets.OTHER_IP_HASH_SECRET }}
+          OTHER_BUILD_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.OTHER_BUILD_SUPABASE_SERVICE_ROLE_KEY }}
+          OTHER_VITE_TURNSTILE_SITE_KEY: ${{ secrets.OTHER_VITE_TURNSTILE_SITE_KEY }}
+        run: node scripts/check-deployment-isolation.mjs
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
@@ -212,7 +265,6 @@ jobs:
           --config .output/server/wrangler.json
           --secrets-file "$RUNNER_TEMP/cloudflare-runtime-secrets.json"
           --preview-alias staging
-          --keep-vars
           --strict
 
       - name: Deploy production
@@ -224,7 +276,6 @@ jobs:
           bunx wrangler deploy
           --config .output/server/wrangler.json
           --secrets-file "$RUNNER_TEMP/cloudflare-runtime-secrets.json"
-          --keep-vars
           --strict
 
       - name: Remove runtime secret file

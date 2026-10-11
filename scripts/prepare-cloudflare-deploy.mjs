@@ -1,4 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
+import { getDeploymentIsolation } from "./deployment-isolation.mjs";
 
 const CONFIG_PATH = new URL("../.output/server/wrangler.json", import.meta.url);
 const TELEGRAM_RECOVERY_CRON = "0 * * * *";
@@ -15,6 +16,7 @@ const deployTarget = process.env["DEPLOY_TARGET"]?.trim() ?? "";
 if (deployTarget !== "" && deployTarget !== "preview" && deployTarget !== "production") {
   throw new Error("DEPLOY_TARGET must be preview or production when provided");
 }
+const identity = deployTarget === "" ? null : getDeploymentIsolation(process.env);
 
 function normalizeOrigin(value, label) {
   let parsed;
@@ -90,9 +92,23 @@ const flags = Array.isArray(config.compatibility_flags)
 if (!flags.includes("nodejs_compat")) flags.push("nodejs_compat");
 config.compatibility_flags = [...new Set(flags)].sort();
 
+if (identity !== null) {
+  config.name = identity.worker;
+  config.keep_vars = false;
+  // A version of an existing Worker does not isolate its resources. Preview
+  // uses a distinct Worker and must not inherit production routes or schedules.
+  if (deployTarget === "preview") {
+    delete config.route;
+    delete config.env;
+    config.routes = [];
+    config.workers_dev = false;
+    config.preview_urls = true;
+  }
+}
+
 config.triggers = {
   ...(typeof config.triggers === "object" && config.triggers !== null ? config.triggers : {}),
-  crons: [TELEGRAM_RECOVERY_CRON],
+  crons: identity?.crons ?? [TELEGRAM_RECOVERY_CRON],
 };
 
 const rateLimits = Array.isArray(config.ratelimits)
@@ -101,16 +117,17 @@ const rateLimits = Array.isArray(config.ratelimits)
         typeof value !== "object" || value === null || value.name !== SUBMIT_FLOOD_LIMITER.name,
     )
   : [];
-config.ratelimits = [...rateLimits, SUBMIT_FLOOD_LIMITER];
+config.ratelimits = [
+  ...rateLimits,
+  {
+    ...SUBMIT_FLOOD_LIMITER,
+    namespace_id: identity?.floodNamespace ?? SUBMIT_FLOOD_LIMITER.namespace_id,
+  },
+];
 
 if (deployTarget !== "" && siteUrl !== null && allowedOrigins !== null) {
-  const vars =
-    typeof config.vars === "object" && config.vars !== null && !Array.isArray(config.vars)
-      ? { ...config.vars }
-      : {};
-  delete vars.PUBLIC_SITE_ORIGIN;
+  // Only these reviewed non-secret bindings belong in the deploy artifact.
   config.vars = {
-    ...vars,
     DEPLOY_TARGET: deployTarget,
     SITE_URL: siteUrl,
     ALLOWED_ORIGINS: allowedOrigins,

@@ -160,6 +160,10 @@ test("backup workflow verifies the durable R2 copy and always cleans the runner"
   assert.match(workflow, /local_size/);
   assert.match(workflow, /remote_checksum_size/);
   assert.match(workflow, /local_checksum_size/);
+  assert.match(workflow, /python3 scripts\/backup-config\.py/);
+  assert.match(workflow, /readback_dir\/archive\.age/);
+  assert.match(workflow, /verify-backup-readback\.sh/);
+  assert.doesNotMatch(workflow, /r2_enabled/);
   assert.match(workflow, /if: always\(\)/);
   assert.match(workflow, /rm -rf "\$RUNNER_TEMP\/supabase-backup"/);
 });

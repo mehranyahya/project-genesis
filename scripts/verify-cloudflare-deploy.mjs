@@ -1,6 +1,7 @@
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
+import { getDeploymentIsolation } from "./deployment-isolation.mjs";
 
 const GENERATED_CONFIG = new URL("../.output/server/wrangler.json", import.meta.url);
 const REDIRECT_CONFIG = new URL("../.wrangler/deploy/config.json", import.meta.url);
@@ -9,6 +10,7 @@ const deployTarget = process.env["DEPLOY_TARGET"]?.trim() ?? "";
 if (deployTarget !== "" && deployTarget !== "preview" && deployTarget !== "production") {
   throw new Error("DEPLOY_TARGET must be preview or production when provided");
 }
+const identity = deployTarget === "" ? null : getDeploymentIsolation(process.env);
 
 function normalizeOrigin(value, label) {
   let parsed;
@@ -54,9 +56,21 @@ if (
 ) {
   throw new Error("Cloudflare deploy config must enable nodejs_compat");
 }
-if (JSON.stringify(config.triggers?.crons) !== JSON.stringify(["0 * * * *"])) {
-  throw new Error("Cloudflare deploy config must expose exactly the hourly recovery cron");
+if (JSON.stringify(config.triggers?.crons) !== JSON.stringify(identity?.crons ?? ["0 * * * *"])) {
+  throw new Error("Cloudflare deploy config recovery cron does not match the target");
 }
+if (identity !== null && (config.name !== identity.worker || config.keep_vars !== false)) {
+  throw new Error("Cloudflare Worker identity or variable replacement does not match the target");
+}
+if (
+  deployTarget === "preview" &&
+  (config.route != null ||
+    config.env != null ||
+    JSON.stringify(config.routes) !== "[]" ||
+    config.workers_dev !== false ||
+    config.preview_urls !== true)
+)
+  throw new Error("Preview must expose only its isolated version URL without production routes");
 if (
   config.assets &&
   JSON.stringify(config.assets.run_worker_first) !== JSON.stringify(["/api/*", "/sitemap.xml"])
@@ -88,7 +102,7 @@ if (submitFloodLimiters.length !== 1) {
 }
 const submitFloodLimiter = submitFloodLimiters[0];
 if (
-  submitFloodLimiter.namespace_id !== "1322772730" ||
+  submitFloodLimiter.namespace_id !== (identity?.floodNamespace ?? "1322772730") ||
   submitFloodLimiter.simple?.limit !== 300 ||
   submitFloodLimiter.simple?.period !== 60
 ) {
@@ -119,6 +133,11 @@ if (deployTarget !== "") {
   if (config.vars?.PUBLIC_SITE_ORIGIN != null) {
     throw new Error("Legacy PUBLIC_SITE_ORIGIN binding must not be emitted");
   }
+  if (
+    JSON.stringify(Object.keys(config.vars ?? {}).sort()) !==
+    JSON.stringify(["ALLOWED_ORIGINS", "DEPLOY_TARGET", "PUBLIC_INDEXING", "SITE_URL"])
+  )
+    throw new Error("Cloudflare target vars must contain only reviewed public bindings");
 }
 
 if (typeof config.main !== "string" || !config.main.endsWith("index.mjs")) {
