@@ -40,6 +40,12 @@ jobs:
       production_confirmation: ${{ inputs.production_confirmation }}
       site_url: ${{ vars.PREVIEW_SITE_URL }}
       allowed_origins: ${{ vars.PREVIEW_ALLOWED_ORIGINS }}
+      preview_worker_name: ${{ vars.PREVIEW_WORKER_NAME }}
+      production_worker_name: ${{ vars.PRODUCTION_WORKER_NAME }}
+      preview_supabase_project_ref: ${{ vars.PREVIEW_SUPABASE_PROJECT_REF }}
+      production_supabase_project_ref: ${{ vars.PRODUCTION_SUPABASE_PROJECT_REF }}
+      other_site_url: ${{ vars.PRODUCTION_SITE_URL }}
+      other_allowed_origins: ${{ vars.PRODUCTION_ALLOWED_ORIGINS }}
     secrets:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.PREVIEW_CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.PREVIEW_CLOUDFLARE_API_TOKEN }}
@@ -50,6 +56,10 @@ jobs:
       IP_HASH_SECRET: ${{ secrets.PREVIEW_IP_HASH_SECRET }}
       BUILD_SUPABASE_URL: ${{ secrets.PREVIEW_BUILD_SUPABASE_URL }}
       BUILD_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PREVIEW_BUILD_SUPABASE_SERVICE_ROLE_KEY }}
+      OTHER_EDGE_GATEWAY_KEYS_JSON: ${{ secrets.PRODUCTION_EDGE_GATEWAY_KEYS_JSON }}
+      OTHER_IP_HASH_SECRET: ${{ secrets.PRODUCTION_IP_HASH_SECRET }}
+      OTHER_BUILD_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PRODUCTION_BUILD_SUPABASE_SERVICE_ROLE_KEY }}
+      OTHER_VITE_TURNSTILE_SITE_KEY: ${{ secrets.PRODUCTION_VITE_TURNSTILE_SITE_KEY }}
 
   production:
     if: ${{ inputs.deploy_target == 'production' }}
@@ -61,6 +71,12 @@ jobs:
       production_confirmation: ${{ inputs.production_confirmation }}
       site_url: ${{ vars.PRODUCTION_SITE_URL }}
       allowed_origins: ${{ vars.PRODUCTION_ALLOWED_ORIGINS }}
+      preview_worker_name: ${{ vars.PREVIEW_WORKER_NAME }}
+      production_worker_name: ${{ vars.PRODUCTION_WORKER_NAME }}
+      preview_supabase_project_ref: ${{ vars.PREVIEW_SUPABASE_PROJECT_REF }}
+      production_supabase_project_ref: ${{ vars.PRODUCTION_SUPABASE_PROJECT_REF }}
+      other_site_url: ${{ vars.PREVIEW_SITE_URL }}
+      other_allowed_origins: ${{ vars.PREVIEW_ALLOWED_ORIGINS }}
     secrets:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.PRODUCTION_CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.PRODUCTION_CLOUDFLARE_API_TOKEN }}
@@ -71,3 +87,7 @@ jobs:
       IP_HASH_SECRET: ${{ secrets.PRODUCTION_IP_HASH_SECRET }}
       BUILD_SUPABASE_URL: ${{ secrets.PRODUCTION_BUILD_SUPABASE_URL }}
       BUILD_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PRODUCTION_BUILD_SUPABASE_SERVICE_ROLE_KEY }}
+      OTHER_EDGE_GATEWAY_KEYS_JSON: ${{ secrets.PREVIEW_EDGE_GATEWAY_KEYS_JSON }}
+      OTHER_IP_HASH_SECRET: ${{ secrets.PREVIEW_IP_HASH_SECRET }}
+      OTHER_BUILD_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.PREVIEW_BUILD_SUPABASE_SERVICE_ROLE_KEY }}
+      OTHER_VITE_TURNSTILE_SITE_KEY: ${{ secrets.PREVIEW_VITE_TURNSTILE_SITE_KEY }}
