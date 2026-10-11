@@ -136,22 +136,28 @@ def database_digest(archive, checksum, ref, stamp):
     generation(stamp)
     expected_name = f"supabase-{ref}-{stamp}.tar.gz.age"
     require(Path(archive).name == expected_name)
-    with open_regular(checksum) as source:
-        raw = source.read(1024)
-        require(source.read(1) == b"")
+    with open_regular(archive) as source:
+        return ciphertext_digest(source, checksum, expected_name, 2 * MAX_TOTAL + 64 * CHUNK)
+
+
+def ciphertext_digest(source, checksum, expected_name, limit):
+    with open_regular(checksum) as sidecar:
+        raw = sidecar.read(1024)
+        require(sidecar.read(1) == b"")
     match = re.fullmatch(rb"([a-f0-9]{64})  " + re.escape(expected_name.encode()) + rb"\n", raw)
     require(match is not None)
     digest = hashlib.sha256()
-    with open_regular(archive) as source:
-        # Header is a format check, not a proof of decryptability or age authentication.
-        require(source.read(22) == b"age-encryption.org/v1\n")
-        source.seek(0)
-        total = 0
-        while chunk := source.read(CHUNK):
-            total += len(chunk)
-            require(total <= 2 * MAX_TOTAL + 64 * CHUNK)
-            digest.update(chunk)
+    # Header is a format check, not a proof of decryptability or age authentication.
+    source.seek(0)
+    require(source.read(22) == b"age-encryption.org/v1\n")
+    source.seek(0)
+    total = 0
+    while chunk := source.read(CHUNK):
+        total += len(chunk)
+        require(total <= limit)
+        digest.update(chunk)
     require(digest.hexdigest() == match[1].decode("ascii"))
+    source.seek(0)
     return digest.hexdigest()
 
 
@@ -409,6 +415,54 @@ def encrypt(args):
         raise
 
 
+def decrypt(args):
+    # Native unencrypted X25519 identities only: no interactive prompts or plugins.
+    # The private key is passed by inherited descriptor, never copied or logged.
+    require(shutil.which("age") is not None)
+    name = Path(args.archive).name
+    match = re.fullmatch(r"storage-([a-z]{20})-([0-9]{8}T[0-9]{6}Z)\.zip\.age", name)
+    require(match is not None)
+    ref, stamp = match.groups()
+    generation(stamp)
+    target = private_parent(args.output)
+    identity_path = private_parent(args.identity)
+    owned = False
+    try:
+        with open_regular(args.archive) as source, open_regular(identity_path) as identity:
+            info = os.fstat(identity.fileno())
+            require(info.st_uid == os.getuid() and info.st_mode & 0o077 == 0)
+            key_lines = [line for line in identity.read(4097).decode("ascii").splitlines()
+                         if line and not line.startswith("#")]
+            require(info.st_size <= 4096 and len(key_lines) == 1
+                    and re.fullmatch(r"AGE-SECRET-KEY-1[AC-HJ-NP-Z02-9]{58}", key_lines[0]))
+            identity.seek(0)
+            initial = os.fstat(source.fileno())
+            ciphertext_digest(source, args.checksum, name, MAX_TOTAL + MAX_MANIFEST + 64 * CHUNK)
+            with new_file(target) as output:
+                owned = True
+                result = subprocess.run(
+                    ["age", "--decrypt", "--identity", f"/proc/self/fd/{identity.fileno()}"],
+                    stdin=source, stdout=output, stderr=subprocess.DEVNULL,
+                    pass_fds=(identity.fileno(),), timeout=600, check=False,
+                )
+                final, final_key = os.fstat(source.fileno()), os.fstat(identity.fileno())
+                require(result.returncode == 0)
+                require((initial.st_size, initial.st_mtime_ns, initial.st_ctime_ns) ==
+                        (final.st_size, final.st_mtime_ns, final.st_ctime_ns))
+                require((info.st_size, info.st_mtime_ns, info.st_ctime_ns) ==
+                        (final_key.st_size, final_key.st_mtime_ns, final_key.st_ctime_ns))
+                ciphertext_digest(source, args.checksum, name, MAX_TOTAL + MAX_MANIFEST + 64 * CHUNK)
+                output.flush()
+                doc = verify(target)
+                require(doc["source_project_ref"] == ref and doc["generation"] == stamp)
+    except BaseException:
+        # age can emit authenticated partial plaintext before a late payload error.
+        # Retain no incomplete ZIP, including after timeout or manifest rejection.
+        if owned:
+            target.unlink(missing_ok=True)
+        raise
+
+
 class SafeParser(argparse.ArgumentParser):
     def error(self, message):
         raise ValueError("Invalid storage backup command")
@@ -431,8 +485,13 @@ def main():
     seal = sub.add_parser("encrypt")
     seal.add_argument("archive")
     seal.add_argument("--output", required=True)
+    unseal = sub.add_parser("decrypt")
+    unseal.add_argument("archive")
+    for name in ("checksum", "identity", "output"):
+        unseal.add_argument("--" + name, required=True)
     args = parser.parse_args()
-    {"pack": pack, "verify": lambda a: verify(a.archive), "recover": recover, "encrypt": encrypt}[args.command](args)
+    {"pack": pack, "verify": lambda a: verify(a.archive), "recover": recover,
+     "encrypt": encrypt, "decrypt": decrypt}[args.command](args)
     print("Storage backup operation passed (offline scope only)")
 
 
