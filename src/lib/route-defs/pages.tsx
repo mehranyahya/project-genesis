@@ -91,7 +91,7 @@ export function graveStoneListRouteOptions(locale: Locale) {
         title: "سنگ مزار",
         description: "فهرست مدل‌های سنگ مزار",
       }),
-    loader: async () => buildGraveStoneListModel(contentListForLocale(await getProducts(), locale)),
+    loader: async () => buildGraveStoneListModel(await getProducts({ locale })),
     pendingComponent: lazyRouteComponent(
       () => import("@/components/grave-stones/grave-stone-list-states"),
       "GraveStoneListLoading",
@@ -108,7 +108,7 @@ export function customFunnelRouteOptions(locale: Locale) {
   return {
     loader: async () => {
       const [products, catalogVersion, site, termsDocument] = await Promise.all([
-        getProducts({ type: "simple" }),
+        getProducts({ type: "simple", locale }),
         getCatalogVersion(),
         getSite(),
         getRequestTermsDocument(),
@@ -145,7 +145,7 @@ export function productDetailRouteOptions(locale: Locale) {
   return {
     loader: async ({ params }: { params: { slug: string } }) => {
       const [product, catalogVersion, site, termsDocument] = await Promise.all([
-        getProduct(params.slug),
+        getProduct(params.slug, locale),
         getCatalogVersion(),
         getSite(),
         getRequestTermsDocument(),
@@ -214,8 +214,7 @@ export function portfolioRouteOptions(locale: Locale) {
         title: "نمونه‌کارها",
         description: "نمونه‌کارهای اجراشدهٔ سنگ مزار",
       }),
-    loader: async () =>
-      buildPortfolioModel(contentListForLocale(await getPortfolioItems(), locale)),
+    loader: async () => buildPortfolioModel(await getPortfolioItems({ locale })),
     pendingComponent: lazyRouteComponent(
       () => import("@/components/portfolio/portfolio-states"),
       "PortfolioLoading",
@@ -276,7 +275,7 @@ export function quoteRouteOptions(locale: Locale) {
       deps: { reference: string | null; category: StoneworkCategoryId | null };
     }) => {
       const [portfolioItems, site, termsDocument] = await Promise.all([
-        deps.reference ? getPortfolioItems() : Promise.resolve([]),
+        deps.reference ? getPortfolioItems({ locale }) : Promise.resolve([]),
         getSite(),
         getRequestTermsDocument(),
       ]);

@@ -11,14 +11,17 @@ import {
 import { loadGitPage } from "../src/lib/content/git.server";
 import { PAGE_SLUGS } from "../src/lib/content/types";
 import { CURRENT_TERMS_RELEASE } from "../supabase/functions/_shared/terms-registry.generated";
+import { LOCALES } from "../src/lib/i18n/locale";
 
 // Local sanitized artifacts only; this command has no database or network client.
 // Guides and translated source ingestion remain blocked in the current adapters.
 try {
   const [catalogVersion, products, portfolioItems, site, pages] = await Promise.all([
     loadCatalogVersion(),
-    loadProducts(),
-    loadPortfolioItems(),
+    Promise.all(LOCALES.map((locale) => loadProducts({ locale }))).then((lists) => lists.flat()),
+    Promise.all(LOCALES.map((locale) => loadPortfolioItems({ locale }))).then((lists) =>
+      lists.flat(),
+    ),
     loadSite(),
     Promise.all(PAGE_SLUGS.map((slug) => loadGitPage(slug))),
   ]);

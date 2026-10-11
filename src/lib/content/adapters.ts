@@ -26,13 +26,17 @@ import {
   getProductsFromServer,
   getSiteFromServer,
 } from "./supabase.functions";
+import { DEFAULT_LOCALE, type Locale } from "../i18n/locale";
 
 export async function getProducts(query?: ProductQuery): Promise<Product[]> {
   return getProductsFromServer({ data: query ?? {} });
 }
 
-export async function getProduct(slug: string): Promise<Product | null> {
-  return getProductFromServer({ data: { slug } });
+export async function getProduct(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<Product | null> {
+  return getProductFromServer({ data: { slug, locale } });
 }
 
 export async function getPortfolioItems(query?: PortfolioQuery): Promise<PortfolioItem[]> {

@@ -1,4 +1,5 @@
 import { readBoundedBytes, readBoundedJson } from "./bounded-response.mjs";
+import { createDataApiBudget, readPaginatedRows } from "./data-api-pagination.mjs";
 import { validateSiteLink } from "./site-links.mjs";
 import { createHash } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
@@ -13,6 +14,8 @@ const BUCKET = "catalog-media";
 const REQUEST_TIMEOUT_MS = 15_000;
 const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 const MAX_DATA_API_BYTES = 4 * 1024 * 1024;
+const MAX_TABLE_ROWS = 10_000;
+const PARENT_BATCH_SIZE = 25;
 const MAX_SOURCE_PIXELS = 40_000_000;
 const MIN_SOURCE_WIDTH = 1280;
 const OUTPUT_WIDTHS = [320, 640, 1280];
@@ -79,6 +82,63 @@ async function dataApi(path, init = {}) {
     }),
   });
   return readBoundedJson(response, MAX_DATA_API_BYTES);
+}
+
+async function dataRows(path, columns, budget, maxRows = MAX_TABLE_ROWS) {
+  const { baseUrl, serviceRoleKey } = config();
+  return readPaginatedRows(
+    (headers) =>
+      checkedFetch(`${baseUrl}/rest/v1/${path}`, {
+        headers: authHeaders(serviceRoleKey, { accept: "application/json", ...headers }),
+      }),
+    columns,
+    { budget, maxRows },
+  );
+}
+
+async function relatedRows(table, select, foreignKey, parentIds, order, columns, budget) {
+  if (
+    parentIds.some(
+      (id) => typeof id !== "string" || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/.test(id),
+    ) ||
+    new Set(parentIds).size !== parentIds.length
+  ) {
+    throw new Error("Build content has invalid parent identifiers");
+  }
+  const rows = [];
+  const seen = new Set();
+  for (let offset = 0; offset < parentIds.length; offset += PARENT_BATCH_SIZE) {
+    const ids = parentIds.slice(offset, offset + PARENT_BATCH_SIZE);
+    const batch = await dataRows(
+      `${table}?select=${select}&${foreignKey}=${encodeURIComponent(idsFilter(ids))}&order=${order}`,
+      columns,
+      budget,
+      MAX_TABLE_ROWS - rows.length,
+    );
+    const allowed = new Set(ids);
+    if (batch.some((row) => !allowed.has(row[foreignKey]))) {
+      throw new Error("Build content has an unexpected parent relationship");
+    }
+    for (const row of batch) {
+      const key = JSON.stringify(columns.map((column) => row[column]));
+      if (seen.has(key)) throw new Error("Build content repeats a related row across batches");
+      seen.add(key);
+    }
+    rows.push(...batch);
+  }
+  return rows;
+}
+
+async function readCatalogVersion() {
+  const version = await dataApi("rpc/compute_operational_catalog_version", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: "{}",
+  });
+  if (typeof version !== "string" || !CATALOG_VERSION.test(version)) {
+    throw new Error("Database returned an invalid catalog version");
+  }
+  return version;
 }
 
 function storagePath(path) {
@@ -304,60 +364,91 @@ function mapMedia(rows, publicByKey) {
 }
 
 async function loadStructuredContent() {
-  const products = await dataApi(
-    "products?select=id,code,slug,product_type,title,summary,description,is_active,is_featured,seo_title,seo_description,seo_canonical_path,seo_robots,sort_order,updated_at&is_active=eq.true&order=sort_order.asc,updated_at.desc",
+  const budget = createDataApiBudget();
+  const catalogVersion = await readCatalogVersion();
+  const products = await dataRows(
+    "products?select=id,code,slug,product_type,title,summary,description,is_active,is_featured,seo_title,seo_description,seo_canonical_path,seo_robots,sort_order,updated_at&is_active=eq.true&order=sort_order.asc,updated_at.desc,id.asc",
+    ["id"],
+    budget,
   );
   const productIds = products.map((row) => row.id);
   const [variants, productMediaRows] = productIds.length
     ? await Promise.all([
-        dataApi(
-          `product_variants?select=id,product_id,stone_code,size_code,price_type,amount_toman,price_updated_at,includes,excludes,is_available,sort_order&product_id=${encodeURIComponent(idsFilter(productIds))}`,
+        relatedRows(
+          "product_variants",
+          "id,product_id,stone_code,size_code,price_type,amount_toman,price_updated_at,includes,excludes,is_available,sort_order",
+          "product_id",
+          productIds,
+          "product_id.asc,sort_order.asc,id.asc",
+          ["id"],
+          budget,
         ),
-        dataApi(
-          `product_media?select=product_id,media_key,alt,caption,privacy_cleared,consent_reference,width,height,sort_order&product_id=${encodeURIComponent(idsFilter(productIds))}`,
+        relatedRows(
+          "product_media",
+          "product_id,media_key,alt,caption,privacy_cleared,consent_reference,width,height,sort_order",
+          "product_id",
+          productIds,
+          "product_id.asc,sort_order.asc,media_key.asc",
+          ["product_id", "media_key"],
+          budget,
         ),
       ])
     : [[], []];
   const variantIds = variants.map((row) => row.id);
   const options = variantIds.length
-    ? await dataApi(
-        `product_options?select=id,variant_id,title,price_type,amount_toman,price_updated_at,is_available,compatible_size_codes,sort_order&variant_id=${encodeURIComponent(idsFilter(variantIds))}`,
+    ? await relatedRows(
+        "product_options",
+        "id,variant_id,title,price_type,amount_toman,price_updated_at,is_available,compatible_size_codes,sort_order",
+        "variant_id",
+        variantIds,
+        "variant_id.asc,sort_order.asc,id.asc",
+        ["id"],
+        budget,
       )
     : [];
 
-  const portfolioRows = await dataApi(
+  const portfolioRows = await dataRows(
     "portfolio_items?select=public_reference_id,stone_code,size_code,summary,sort_order&is_active=eq.true&order=sort_order.asc,public_reference_id.asc",
+    ["public_reference_id"],
+    budget,
   );
   const portfolioRefs = portfolioRows.map((row) => row.public_reference_id);
   const portfolioMediaRows = portfolioRefs.length
-    ? await dataApi(
-        `portfolio_media?select=public_reference_id,media_key,alt,caption,privacy_cleared,consent_reference,width,height,sort_order&public_reference_id=${encodeURIComponent(idsFilter(portfolioRefs))}`,
+    ? await relatedRows(
+        "portfolio_media",
+        "public_reference_id,media_key,alt,caption,privacy_cleared,consent_reference,width,height,sort_order",
+        "public_reference_id",
+        portfolioRefs,
+        "public_reference_id.asc,sort_order.asc,media_key.asc",
+        ["public_reference_id", "media_key"],
+        budget,
       )
     : [];
 
-  const buildingRows = await dataApi(
+  const buildingRows = await dataRows(
     "building_stone_items?select=id&is_active=eq.true&order=sort_order.asc,id.asc",
+    ["id"],
+    budget,
   );
   const buildingIds = buildingRows.map((row) => row.id);
   const buildingMediaRows = buildingIds.length
-    ? await dataApi(
-        `building_stone_media?select=item_id,media_key,alt,caption,privacy_cleared,consent_reference,width,height,sort_order&item_id=${encodeURIComponent(idsFilter(buildingIds))}`,
+    ? await relatedRows(
+        "building_stone_media",
+        "item_id,media_key,alt,caption,privacy_cleared,consent_reference,width,height,sort_order",
+        "item_id",
+        buildingIds,
+        "item_id.asc,sort_order.asc,media_key.asc",
+        ["item_id", "media_key"],
+        budget,
       )
     : [];
 
-  const [siteRows, catalogVersion] = await Promise.all([
-    dataApi(
-      "site_settings?select=display_name,latin_name,phone,whatsapp_url,telegram,address,working_hours,instagram_url,website_url,map_url&id=eq.primary&limit=1",
-    ),
-    dataApi("rpc/compute_operational_catalog_version", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: "{}",
-    }),
-  ]);
-  if (typeof catalogVersion !== "string" || !CATALOG_VERSION.test(catalogVersion)) {
-    throw new Error("Database returned an invalid catalog version");
-  }
+  const siteRows = await dataRows(
+    "site_settings?select=id,display_name,latin_name,phone,whatsapp_url,telegram,address,working_hours,instagram_url,website_url,map_url&id=eq.primary&order=id.asc",
+    ["id"],
+    budget,
+    1,
+  );
 
   const productMedia = await approvedMedia(productMediaRows, "product");
   const portfolioMedia = await approvedMedia(portfolioMediaRows, "portfolio");
@@ -396,6 +487,7 @@ async function loadStructuredContent() {
         isAvailable: item.is_available,
       }));
     return {
+      locale: "fa",
       id: row.id,
       code: row.code,
       slug: row.slug,
@@ -421,6 +513,7 @@ async function loadStructuredContent() {
       throw new Error(`Active portfolio item has no approved media: ${row.public_reference_id}`);
     }
     return {
+      locale: "fa",
       publicReferenceId: row.public_reference_id,
       media,
       stoneCode: row.stone_code,
@@ -432,6 +525,7 @@ async function loadStructuredContent() {
   const siteRow = siteRows[0] ?? null;
   const site = siteRow
     ? {
+        locale: "fa",
         displayName: siteRow.display_name,
         latinName: siteRow.latin_name,
         phone: siteRow.phone,
@@ -446,6 +540,10 @@ async function loadStructuredContent() {
         },
       }
     : null;
+
+  if ((await readCatalogVersion()) !== catalogVersion) {
+    throw new Error("Operational catalog changed during content generation");
+  }
 
   return {
     products: mappedProducts,
