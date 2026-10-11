@@ -1,21 +1,24 @@
 # بکاپ و بازیابی فایل‌های اصلی سنگ — دامنهٔ آفلاین
 
-تاریخ: ۲۰۲۶-۱۰-۱۱. مبنا: `0c0fff6ce1642c8822411c48f4b1e39103ce657a`، ممیزی زندهٔ S3. این بسته ابزار مهندسی را آماده می‌کند؛ پذیرش محیط، بکاپ واقعی یا Restore روی Supabase انجام نشده است. [قرارداد پروژه](../AGENTS.md) و [پذیرش S3](environment-acceptance-fa.md) همچنان برقرارند.
+تاریخ: ۲۰۲۶-۱۰-۱۱. ابزار اولیه بر پایهٔ ممیزی S3 و تکمیل رمزنگاری بر پایهٔ `de3faff0ff85f49ca874481e1870ffb20c1f3b8a`، PR55، آماده شد. پذیرش محیط، بکاپ Production یا Restore روی Supabase انجام نشده است. [قرارداد پروژه](../AGENTS.md) و [پذیرش S3](environment-acceptance-fa.md) همچنان برقرارند.
 
 ## هدف و مرز فعلی
 
 بکاپ دیتابیس شامل بایت عکس‌های Storage نیست. برای هر نسل، آرشیو مستقل عکس‌های اصلی لازم است؛ فایل اصلی با نسخهٔ WebP/AVIF سایت جایگزین نمی‌شود. این ابزار آرشیو عکس‌ها را به **SHA-256 فایل رمزنگاری‌شدهٔ همان نسل دیتابیس** پیوند می‌دهد. اشتراک تاریخ یا نام فایل به‌تنهایی اثبات سازگاری منبع نیست.
 
-`scripts/storage-backup.py` هیچ اتصال شبکه، SQL تغییردهنده یا Upload ندارد. چهار فرمان دارد:
+`scripts/storage-backup.py` هیچ اتصال شبکه، SQL تغییردهنده یا Upload ندارد. پنج فرمان دارد:
 
 | فرمان     | کار واقعی                                                                            | چیزی که اثبات نمی‌کند                                        |
 | --------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
 | `pack`    | بررسی Inventory قبل/بعد، تمام فایل‌ها، اندازه و ETag ساده؛ ساخت ZIP خصوصی با SHA-256 | خودِ دانلود از Supabase، هویت پروژه یا توقف واقعی نویسنده‌ها |
 | `verify`  | خواندن جریانی همهٔ بایت‌ها، CRC/ETag/SHA-256، Layout و سقف‌ها، بدون Extract          | اصالت فرستنده یا امکان Decrypt با کلید آفلاین                |
 | `encrypt` | اجرای `age` موجود در PATH، فایل `0600` و Sidecar؛ حذف خروجی جدید در شکست             | نصب/اعتماد به Binary، نگهداری کلید خصوصی و بازیابی مستقل     |
+| `decrypt` | کنترل Sidecar، اجرای کامل `age` با Identity خصوصی، بررسی ZIP و نسل؛ حذف خروجی ناقص   | هویت مبدأ واقعی، Receiver اصلی، کپی ماندگار یا Restore زنده  |
 | `recover` | بررسی دوباره و بازیابی در پوشهٔ جدید `0700`، فایل‌های `0600` و برنامهٔ مقصد مستقل    | وجود/خالی‌بودن/خصوصی‌بودن مقصد یا Upload موفق                |
 
-در این نوبت بسته‌بندی/Verify/بازیابی محلی با Fixture اجرا شدند. `age` واقعی در محیط اجرا موجود نبود؛ موفقیت رمزنگاری/Decrypt واقعی ادعا نمی‌شود. Fixture هدر دیتابیس و Encoder شکست‌خورده، آزمون کنترل خطا هستند و هیچ‌کدام بکاپ رمزنگاری‌شدهٔ واقعی نیستند.
+در PR55 بسته‌بندی/Verify/بازیابی محلی با Fixture اجرا شدند؛ Binary واقعی Age موجود نبود. اکنون `scripts/check-storage-crypto.py` آزمون واقعی آفلاین را در CI **اجباری** می‌کند. Binary رسمی `age v1.3.2` برای Linux/amd64 با SHA-256 ثابت `cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10` نصب می‌شود؛ ابزار غایب، شکست است و Skip/Pass نمی‌شود. نتیجهٔ اجرا باید با Head و Run همان تحویل ثبت شود.
+
+آزمون، کلید X25519 موقتی، PNG مصنوعی بزرگ‌تر از ۱۲۸KiB، Key فارسی و Payload آزمایشی DB را واقعاً رمزنگاری و باز می‌کند؛ Payload DB، Dump/Restore دیتابیس نیست. ZIP و Export اولیه پیش از بازیابی حذف می‌شوند. ۹ سناریو شامل Round-trip/Recover، Identity اشتباه، Checksum نادرست، فساد انتهای Payload با Sidecar دوباره‌محاسبه‌شده، فایل بریده، Plaintext نامعتبر، نسل/Ref ناسازگار، خروجی موجود و دسترسی Identity است. کلید/Plaintext/خروجی خام Subprocess چاپ یا Upload نمی‌شوند و Workspace موقت جمع می‌شود. این آزمون جای Receiver اصلی یا Managed drill را نمی‌گیرد.
 
 Workflow فعلی دیتابیس همچنان با هر Object واقعی Storage، Auth خارج از Scope، Schema یا وابستگی پشتیبانی‌نشده **Fail می‌شود**. افزودن این ابزار Guard را باز نمی‌کند. اتصال Workflow و Managed restore پس از پذیرش واقعی همان سناریو، بستهٔ جداگانه‌اند.
 
@@ -29,6 +32,9 @@ Workflow فعلی دیتابیس همچنان با هر Object واقعی Storag
 - فقط فایل‌های Regular بدون Symlink/Hardlink خوانده می‌شوند. کل درخت Export باید دقیقاً با Inventory برابر باشد. خروجی موجود بازنویسی نمی‌شود؛ شکست بسته‌بندی یا بازیابی فقط خروجی تازهٔ همان عملیات را پاک می‌کند.
 - `source_writers_paused_attestation` صرفاً تأیید اپراتور است. دو Inventory برابر جلوی تمام Raceها یا تغییر و برگشت بین Snapshotها را نمی‌گیرد؛ Freeze واقعی شرط پذیرش است.
 - Recipient ابزار فعلاً فقط `age1...` نوع X25519 است؛ قرارداد قبلی دیتابیس SSH recipient را هم می‌پذیرد. قبل از اتصال، سازگاری Receiver واقعی تأیید شود؛ این ابزار به‌طور ضمنی الگوریتم را تغییر نمی‌دهد.
+- Decrypt فقط فایل Identity محلیِ بدون رمز و تک‌کلید X25519 را در Parent خصوصی و با دسترسی `0600` یا محدودتر می‌پذیرد؛ Plugin، SSH، کلید رمزدار/تعاملی، Symlink و Hardlink رد می‌شوند. کلید با Descriptor به Binary می‌رسد، کپی نمی‌شود و جزئیات خطا چاپ نمی‌شوند. این مسیر میزبان Linux مورداعتماد با `/proc/self/fd` لازم دارد؛ کلید واقعی هرگز در گفتگو درخواست نمی‌شود.
+- طبق مستندات رسمی، Age ممکن است در خطای انتهایی، Plaintext جزئیِ احراز‌شده تولید کند. `decrypt` فقط پس از Exit صفر، تطبیق دوبارهٔ Ciphertext، Verify کامل ZIP و تطبیق Ref/نسل موفق است؛ شکست/Timeout خروجی تازه را حذف می‌کند. Plaintext هنگام عملیات خصوصی است و تنها پس از پیام موفق باید مصرف شود؛ فایل/Link موجود حفظ می‌شود.
+- احراز صحت Ciphertext، امضای فرستنده نیست. کسی که Recipient عمومی را دارد می‌تواند فایل جدید رمز کند؛ منبع مورداعتماد، منشأ نسل، دسترسی مقصد و کنترل مستقل DB همچنان لازم‌اند.
 
 ## برداشت امن منبع — اجرای آینده، با مجوز و محیط پذیرفته‌شده
 
@@ -73,7 +79,14 @@ Recipient عمومی در `BACKUP_ENCRYPTION_RECIPIENT` تنظیم می‌شود
 
 ## بازیابی مستقل و معیار پایان
 
-۱. نسل DB و Storage را از کپی ماندگار دانلود کنید؛ Sidecar هر دو را مستقل بررسی و با هویت آفلاین Decrypt کنید. هدر Age به‌تنهایی اثبات Decrypt نیست. خروجی DB با [Validator موجود](../scripts/verify-backup-archive.py) و Storage با `verify` بررسی شوند.
+۱. نسل DB و Storage را از کپی ماندگار دانلود کنید؛ Sidecar هر دو را مستقل بررسی و با هویت آفلاین Decrypt کنید. هدر Age به‌تنهایی اثبات Decrypt نیست. خروجی DB با [Validator موجود](../scripts/verify-backup-archive.py) بررسی شود. Identity اصلی فقط روی میزبان آفلاین مورداعتماد می‌ماند؛ برای Storage از فرمان زیر استفاده شود تا خروجی ناقص در شکست باقی نماند:
+
+```bash
+python3 scripts/storage-backup.py decrypt "$STORAGE_CIPHERTEXT" \
+  --checksum "$STORAGE_CHECKSUM" \
+  --identity "$OFFLINE_STORAGE_IDENTITY_FILE" \
+  --output "$RECOVERY_WORKSPACE/storage.zip"
+```
 
 ۲. مقصد **واقعاً** مستقل، Disposable، با Bucket خصوصی و همان محدودیت‌ها باشد. تفاوت دو Ref در ابزار فقط Guard نحوی است؛ اپراتور هویت واقعی، ACL/RLS، دسترسی ناشناس و خالی‌بودن مقصد را با شواهد کنترل کند. سپس بازیابی محلی:
 
@@ -96,6 +109,7 @@ python3 scripts/storage-backup.py recover "$RECOVERY_WORKSPACE/storage.zip" \
 
 ## منابع و وضعیت بررسی
 
+- [Age v1.3.2](https://github.com/FiloSottile/age/releases/tag/v1.3.2) و [راهنمای همان نسخه](https://github.com/FiloSottile/age/blob/v1.3.2/doc/age.1.ronn): Exit صفر برای کل ورودی، امکان خروجی جزئی در شکست و سازگاری نسخه‌ها؛ نسخه و Digest Asset با API رسمی Release راستی‌آزمایی شدند.
 - [Supabase Database Backups](https://supabase.com/docs/guides/platform/backups): تفکیک Metadata دیتابیس از Object واقعی.
 - [Download Objects](https://supabase.com/docs/guides/storage/management/download-objects): روش‌های رسمی CLI/S3 دانلود.
 - [S3 Compatibility](https://supabase.com/docs/guides/storage/s3/compatibility): محدودیت نسخه‌بندی S3؛ نباید به بازیابی Object حذف‌شده با Versioning فرضی تکیه کرد.

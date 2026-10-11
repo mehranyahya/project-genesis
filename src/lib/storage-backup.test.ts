@@ -77,7 +77,7 @@ function fixture() {
   const run = (args: string[], extraEnv: Record<string, string> = {}) =>
     spawnSync(python, [script, ...args], {
       encoding: "utf8",
-      env: { PATH: process.env["PATH"], ...extraEnv },
+      env: { PATH: process.env["PATH"], PYTHONDONTWRITEBYTECODE: "1", ...extraEnv },
     });
   const packArgs = [
     "pack",
@@ -482,7 +482,10 @@ sys.argv = [sys.argv[1], *sys.argv[2:]]
 try: module.main()
 except Exception: print('Storage backup operation failed', file=sys.stderr); sys.exit(1)
 `;
-    const result = spawnSync(python, ["-c", race, script, ...f.recoverArgs], { encoding: "utf8" });
+    const result = spawnSync(python, ["-c", race, script, ...f.recoverArgs], {
+      encoding: "utf8",
+      env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1" },
+    });
     failed(result);
     assert.equal(existsSync(recovery), false);
   } finally {
@@ -530,6 +533,136 @@ test("failed age subprocess removes only its new outputs and suppresses private 
     failed(f.run(["encrypt", f.archive, "--output", output], env));
     assert.equal(existsSync(output), false);
     assert.equal(readFileSync(output + ".sha256", "utf8"), "synthetic-owner-checksum");
+  } finally {
+    f.cleanup();
+  }
+});
+
+function decryptFixture(body = "printf 'partial-plaintext'; exit 1") {
+  const f = fixture();
+  f.pack();
+  const bin = path.join(f.root, "decrypt-bin");
+  mkdirSync(bin, { mode: 0o700 });
+  const marker = path.join(f.root, "decoder-called");
+  writeFileSync(
+    path.join(bin, "age"),
+    `#!/bin/sh\nprintf 'called' > "$STORAGE_CRYPTO_TEST_MARKER"\nprintf 'synthetic-private-decoder-error' >&2\n${body}\n`,
+    { mode: 0o700 },
+  );
+  const identity = path.join(f.root, "offline-identity");
+  // Syntactic fixture only, intentionally not a real age key.
+  writeFileSync(identity, "AGE-SECRET-KEY-1" + "Q".repeat(58) + "\n", { mode: 0o600 });
+  const ciphertext = path.join(f.root, `storage-${sourceRef}-${stamp}.zip.age`);
+  const bytes = Buffer.from("age-encryption.org/v1\nsynthetic-encrypted-payload");
+  writeFileSync(ciphertext, bytes, { mode: 0o600 });
+  const checksum = ciphertext + ".sha256";
+  writeFileSync(
+    checksum,
+    `${createHash("sha256").update(bytes).digest("hex")}  ${path.basename(ciphertext)}\n`,
+    { mode: 0o600 },
+  );
+  const output = path.join(f.root, "opened.zip");
+  const args = [
+    "decrypt",
+    ciphertext,
+    "--checksum",
+    checksum,
+    "--identity",
+    identity,
+    "--output",
+    output,
+  ];
+  const env = { PATH: bin, STORAGE_CRYPTO_TEST_MARKER: marker };
+  return { ...f, bin, marker, identity, ciphertext, checksum, output, args, env };
+}
+
+test("decryption requires age without reporting a fake successful check", () => {
+  const f = decryptFixture();
+  try {
+    const emptyPath = path.join(f.root, "empty-bin");
+    mkdirSync(emptyPath, { mode: 0o700 });
+    failed(f.run(f.args, { PATH: emptyPath }));
+    assert.equal(existsSync(f.output), false);
+    assert.equal(existsSync(f.marker), false);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test("decryption removes partial plaintext on decoder failure and hides its stderr", () => {
+  const f = decryptFixture();
+  try {
+    failed(f.run(f.args, f.env));
+    assert.equal(readFileSync(f.marker, "utf8"), "called");
+    assert.equal(existsSync(f.output), false);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test("a successful decoder cannot leave a malformed ZIP or overwrite existing owner work", () => {
+  const f = decryptFixture("printf 'synthetic-not-a-valid-ZIP'; exit 0");
+  try {
+    failed(f.run(f.args, f.env));
+    assert.equal(existsSync(f.output), false);
+    rmSync(f.marker);
+    writeFileSync(f.output, "synthetic-owner-work", { mode: 0o600 });
+    failed(f.run(f.args, f.env));
+    assert.equal(readFileSync(f.output, "utf8"), "synthetic-owner-work");
+    assert.equal(existsSync(f.marker), false);
+    rmSync(f.output);
+    const owner = path.join(f.root, "owner-work");
+    writeFileSync(owner, "synthetic-owner-work", { mode: 0o600 });
+    symlinkSync(owner, f.output);
+    failed(f.run(f.args, f.env));
+    assert.equal(readFileSync(owner, "utf8"), "synthetic-owner-work");
+    assert.equal(existsSync(f.marker), false);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test("decryption rejects unsafe offline identity files before executing a decoder", () => {
+  const f = decryptFixture();
+  try {
+    chmodSync(f.identity, 0o640);
+    failed(f.run(f.args, f.env));
+    chmodSync(f.identity, 0o600);
+    const link = path.join(f.root, "identity-link");
+    symlinkSync(f.identity, link);
+    failed(
+      f.run(
+        f.args.map((value) => (value === f.identity ? link : value)),
+        f.env,
+      ),
+    );
+    rmSync(link);
+    linkSync(f.identity, link);
+    failed(f.run(f.args, f.env));
+    rmSync(link);
+    for (const invalid of [
+      "AGE-PLUGIN-EXAMPLE-1synthetic",
+      "ssh-private-key",
+      "",
+      "Q".repeat(4097),
+    ]) {
+      writeFileSync(f.identity, invalid, { mode: 0o600 });
+      failed(f.run(f.args, f.env));
+    }
+    assert.equal(existsSync(f.output), false);
+    assert.equal(existsSync(f.marker), false);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test("decryption rejects a wrong transfer checksum before invoking age", () => {
+  const f = decryptFixture();
+  try {
+    writeFileSync(f.checksum, "0".repeat(64) + "  " + path.basename(f.ciphertext) + "\n");
+    failed(f.run(f.args, f.env));
+    assert.equal(existsSync(f.output), false);
+    assert.equal(existsSync(f.marker), false);
   } finally {
     f.cleanup();
   }

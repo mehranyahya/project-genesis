@@ -32,7 +32,7 @@
 - اصلاح امنیت S3: [گزارش محافظ محیط و بکاپ](security-environment-s3-fa.md)؛ شاخهٔ `security/environment-hardening-s3-20261011` بر پایهٔ S2. ۸۰۱ آزمون پاس؛ آماده‌سازی کد انجام شده، پذیرش محیط/DB/Restore زنده باز است.
 - ادامهٔ برنامه: [فهرست کارهای باقی‌مانده و مراحل ۶ تا ۱۳](design-completion-roadmap-fa.md). پس از ممیزی، بسته‌های امنیتی S2/S3 پیش از مرحلهٔ ۶ قرار گرفته‌اند. آماده‌سازی مستقل محتوا، پذیرش محیط زنده را انجام‌شده نمی‌کند. این برنامه پذیرش محتوای نهایی و Preview مرحلهٔ ۵ را انجام‌شده اعلام نمی‌کند.
 - [ممیزی زندهٔ تکمیلی S3](security-environment-live-audit-s3-fa.md): DB، ACL/RLS، Storage، نسخه، Edge و بکاپ در ۱۱ اکتبر فقط‌خواندنی دوباره بررسی شدند؛ پذیرش کامل محیط هنوز باز است.
-- [ابزار و برنامهٔ بکاپ عکس‌های اصلی](../ops/storage-backup-recovery-fa.md): Pack/Verify/Encrypt/Recover آفلاین، تطبیق بایت و نسل DB؛ Export/Decrypt/Restore زنده و اتصال Workflow هنوز پذیرفته نشده‌اند.
+- [ابزار و برنامهٔ بکاپ عکس‌های اصلی](../ops/storage-backup-recovery-fa.md): Pack/Verify/Encrypt/Decrypt/Recover آفلاین، تطبیق بایت و نسل DB و آزمون واقعی با کلید موقتی در CI؛ Export/Receiver اصلی/Restore زنده و اتصال Workflow هنوز پذیرفته نشده‌اند.
 
 ## پالت مبنا
 
