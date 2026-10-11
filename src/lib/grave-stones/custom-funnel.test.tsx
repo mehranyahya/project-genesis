@@ -43,8 +43,9 @@ test("1 the route consumes only getProducts(), getCatalogVersion() and getSite()
   }
 });
 
-test('2 getProducts({ type: "simple" }) is used', () => {
-  assert.ok(routeSource().includes('getProducts({ type: "simple" })'));
+test("2 simple products are requested in the active locale", () => {
+  assert.ok(routeSource().includes('getProducts({ type: "simple", locale })'));
+  assert.equal(routeBody().includes('getProducts({ type: "simple" })'), false);
 });
 
 test("3 no JSON, markdown, fixture or asset import exists", () => {

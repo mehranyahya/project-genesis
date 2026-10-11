@@ -38,7 +38,8 @@ const ALL_CODE = FILES.map((rel) => stripComments(readUnit(rel))).join("\n");
 test("1 the route consumes only getProduct(), getCatalogVersion() and getSite()", () => {
   const route = routeSource();
   assert.ok(route.includes('from "@/lib/content/adapters"'));
-  assert.ok(route.includes("getProduct(params.slug)"));
+  assert.ok(route.includes("getProduct(params.slug, locale)"));
+  assert.equal(routeBody().includes("getProduct(params.slug)"), false);
   assert.ok(route.includes("getCatalogVersion()"));
   assert.ok(route.includes("getSite()"));
   assert.ok(route.includes("Promise.all"));

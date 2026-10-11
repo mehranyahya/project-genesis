@@ -12,6 +12,8 @@ import type {
   ProductQuery,
   Site,
 } from "./types";
+import { selectPortfolioItems, selectProduct, selectProducts } from "./catalog-queries";
+import { DEFAULT_LOCALE, type Locale } from "../i18n/locale";
 
 /**
  * Runtime structured content repository.
@@ -21,29 +23,18 @@ import type {
  * metadata in this module or the Worker bundle.
  */
 export async function loadProducts(query: ProductQuery = {}): Promise<Product[]> {
-  let products = GENERATED_PRODUCTS.filter((product) => product.isActive === true);
-  if (query.type) products = products.filter((product) => product.type === query.type);
-  if (query.featuredOnly) products = products.filter((product) => product.isFeatured === true);
-  if (query.sizeCode) {
-    products = products.filter((product) =>
-      product.variants.some(
-        (variant) => variant.isAvailable === true && variant.sizeCode === query.sizeCode,
-      ),
-    );
-  }
-  if (query.limit != null) products = products.slice(0, query.limit);
-  return products.slice();
+  return selectProducts(GENERATED_PRODUCTS, query);
 }
 
-export async function loadProduct(slug: string): Promise<Product | null> {
-  return (
-    GENERATED_PRODUCTS.find((product) => product.isActive === true && product.slug === slug) ?? null
-  );
+export async function loadProduct(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<Product | null> {
+  return selectProduct(GENERATED_PRODUCTS, slug, locale);
 }
 
 export async function loadPortfolioItems(query: PortfolioQuery = {}): Promise<PortfolioItem[]> {
-  const items = GENERATED_PORTFOLIO_ITEMS.slice();
-  return query.limit == null ? items : items.slice(0, query.limit);
+  return selectPortfolioItems(GENERATED_PORTFOLIO_ITEMS, query);
 }
 
 export async function loadSite(): Promise<Site | null> {

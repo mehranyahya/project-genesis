@@ -1,4 +1,4 @@
-import type { Guide, Media, PortfolioItem } from "./content/types";
+import type { Guide, Media, PortfolioItem, PortfolioQuery } from "./content/types";
 import { buildHomeViewModel, HOME_SERVICE_KEYS } from "./home";
 import type { HomeEditorialSelection, HomeServiceKey, HomeViewModel } from "./home";
 import { contentListForLocale } from "./i18n/content-gate";
@@ -67,7 +67,7 @@ export function resolveHomeEditorialSelection(
 
 export interface HomeContentReaders {
   readonly getGuides: () => Promise<Guide[]>;
-  readonly getPortfolioItems: () => Promise<PortfolioItem[]>;
+  readonly getPortfolioItems: (query?: PortfolioQuery) => Promise<PortfolioItem[]>;
 }
 
 /** The route supplies only the official adapters; filtering precedes selection. */
@@ -78,7 +78,7 @@ export async function loadHomeViewModel(
 ): Promise<HomeViewModel> {
   const [guides, portfolioItems] = await Promise.all([
     readers.getGuides(),
-    homeNeedsPortfolio(references) ? readers.getPortfolioItems() : Promise.resolve([]),
+    homeNeedsPortfolio(references) ? readers.getPortfolioItems({ locale }) : Promise.resolve([]),
   ]);
   return buildHomeViewModel(
     {

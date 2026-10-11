@@ -64,7 +64,8 @@ test("explicit references make exactly one work call and resolve the requested i
   const before = JSON.stringify({ items, refs });
   const model = await loadHomeViewModel("en", refs, {
     getGuides: async () => [],
-    getPortfolioItems: async () => {
+    getPortfolioItems: async (query) => {
+      assert.deepEqual(query, { locale: "en" });
       calls++;
       return items;
     },

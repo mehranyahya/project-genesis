@@ -1,0 +1,273 @@
+{
+  "base_commit": "776320e15ccfd4db66d87c01538729f00457e65c",
+  "proposed_branch": "content/catalog-retrieval-phase6a-20261012",
+  "artifact": "committed empty sanitized content, no real photos",
+  "measurement": "All public .js/.css/.woff2; Python gzip level 9, mtime 0; size, not browser speed",
+  "summary": {
+    "baseline": {
+      ".js": {
+        "files": 19,
+        "bytes": 530155,
+        "gzip": 166441
+      },
+      ".css": {
+        "files": 1,
+        "bytes": 26276,
+        "gzip": 6248
+      },
+      ".woff2": {
+        "files": 2,
+        "bytes": 130972,
+        "gzip": 131050
+      },
+      "total_bytes": 687403,
+      "total_gzip": 303739
+    },
+    "proposed": {
+      ".js": {
+        "files": 19,
+        "bytes": 530210,
+        "gzip": 166470
+      },
+      ".css": {
+        "files": 1,
+        "bytes": 26276,
+        "gzip": 6248
+      },
+      ".woff2": {
+        "files": 2,
+        "bytes": 130972,
+        "gzip": 131050
+      },
+      "total_bytes": 687458,
+      "total_gzip": 303768
+    },
+    "delta_bytes": 55,
+    "delta_gzip": 29,
+    "unchanged_css_fonts": true
+  },
+  "baseline": {
+    "assets/building-stone-DmH6MACt.js": {
+      "bytes": 4949,
+      "gzip": 1846,
+      "sha256": "d9f0b1520c638ae70a1ecc1986999b225459d9a33cd69e982c62f316f5eaec9c"
+    },
+    "assets/contact-0MwzFcMq.js": {
+      "bytes": 260,
+      "gzip": 209,
+      "sha256": "9a0a38b62bde5c8ec8dae22497e7ec6b4154efc46494a422eda1499246beb4d9"
+    },
+    "assets/custom-funnel-aBl8qXr3.js": {
+      "bytes": 12603,
+      "gzip": 3977,
+      "sha256": "d8813fd7544eac173dbbed166460d27533ac302644cb462c701c44a4c0f0215b"
+    },
+    "assets/custom-funnel-states-MwaloVLM.js": {
+      "bytes": 2432,
+      "gzip": 932,
+      "sha256": "417a82a7f373270ac1ff8f7af1e29ab9a5428a6c23210c539737d71c56670bd3"
+    },
+    "assets/grave-stone-list-states-C3cLvz95.js": {
+      "bytes": 2959,
+      "gzip": 1108,
+      "sha256": "92a41813109dc8fc8f5534abc0c7176f3287fb4e29850beb4342e446b5382209"
+    },
+    "assets/grave-stones-Dc1dyMaz.js": {
+      "bytes": 7369,
+      "gzip": 2152,
+      "sha256": "306aed61583dcd19dfe7ac5db0d823d269a719667b167f32e074d51df26ce40f"
+    },
+    "assets/guide-detail-aCFTLD2L.js": {
+      "bytes": 182,
+      "gzip": 169,
+      "sha256": "9d4aaef4058114cb47e2d2698d7b99999ebb7a4afc465d16d107bf40ff149e77"
+    },
+    "assets/guide-list-DuBAjIFI.js": {
+      "bytes": 165,
+      "gzip": 157,
+      "sha256": "5503a60e1afae04bdda93a2d12e43051e6832a00329ca4db403b3695aadd2594"
+    },
+    "assets/index-CvYzNzCi.js": {
+      "bytes": 383363,
+      "gzip": 116683,
+      "sha256": "d84e3252d6fdd2880a44d07cb2bdecd9bfc5ff4d1dc0d5c7e019b7e8597ea046"
+    },
+    "assets/portfolio-C-_NULgM.js": {
+      "bytes": 2883,
+      "gzip": 1229,
+      "sha256": "36aa7beb6843ced832b5103b82354e7f4ea53996884ad10b57aed9167318c9ff"
+    },
+    "assets/portfolio-states-Dxw2r1LQ.js": {
+      "bytes": 2115,
+      "gzip": 936,
+      "sha256": "b0ea24ba5e491642f0b0a2599e12a25f3af101b165d4ab97343a2fdb250be9a8"
+    },
+    "assets/product-CaG1dxl_.js": {
+      "bytes": 310,
+      "gzip": 217,
+      "sha256": "278aec2014e87bffa8b041d539542c91d1f9d14e54ce16322b1023e4bce5c6e3"
+    },
+    "assets/product-detail-page-Bqj1kK7i.js": {
+      "bytes": 15368,
+      "gzip": 4480,
+      "sha256": "c5c3b2ddef7d1224e54bd45fd86a442835bbb21c0cbaa9ca7286e05f68ebcf6b"
+    },
+    "assets/product-detail-states-Baaoy5Af.js": {
+      "bytes": 1840,
+      "gzip": 796,
+      "sha256": "3f8df554032e4dd1baf7dc034a660a07beeb92a32c3517526928c97f799b306f"
+    },
+    "assets/quote-4ZoMVB11.js": {
+      "bytes": 2287,
+      "gzip": 1009,
+      "sha256": "e9345e5000eb9a7d11991c9f240095749090166c30f49fee92133d5dbcabd996"
+    },
+    "assets/react-Dug6p2AF.js": {
+      "bytes": 63743,
+      "gzip": 21374,
+      "sha256": "d37e6bb383c65aa5cd926ec80134927da7176846e59c49d51c8a516d4a158788"
+    },
+    "assets/request-form-BFBJ2QKL.js": {
+      "bytes": 24551,
+      "gzip": 8135,
+      "sha256": "a9f71c73cddcf7247f8f8cad1ac4e48e7c1e49cf76fc1dd2028ac491cf8f58a2"
+    },
+    "assets/static-C0a95pGv.js": {
+      "bytes": 209,
+      "gzip": 181,
+      "sha256": "f602579790cb051c2663faa5dd8aab3ccbe75c38311abb911da88491e3b10ef7"
+    },
+    "assets/stoneworks-page-Dnrm2hI3.js": {
+      "bytes": 2567,
+      "gzip": 851,
+      "sha256": "abd0f21274808ee09f5bfc8cbfa404a39b818df9ab0b489e9a3530963a2e8cf7"
+    },
+    "assets/styles-CM3LgvSD.css": {
+      "bytes": 26276,
+      "gzip": 6248,
+      "sha256": "c1b2b738354749872047b314dcf54891d0c10fe00dc1d0e49b848e3eb6f20638"
+    },
+    "fonts/beiruti-500.woff2": {
+      "bytes": 54368,
+      "gzip": 54403,
+      "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+    },
+    "fonts/estedad-400-500.woff2": {
+      "bytes": 76604,
+      "gzip": 76647,
+      "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+    }
+  },
+  "proposed": {
+    "assets/building-stone-DeIAAL03.js": {
+      "bytes": 4949,
+      "gzip": 1841,
+      "sha256": "2821cd4518c53a0db688fa00b1e93553849e24e777df7c8fe7a775c9a94b4dc4"
+    },
+    "assets/contact-bW7S7Qyn.js": {
+      "bytes": 260,
+      "gzip": 211,
+      "sha256": "189b225ffecb1c47f857b40d703c0a71ec7e655efef6f8fedbff865626629c9e"
+    },
+    "assets/custom-funnel-CEOLGs1q.js": {
+      "bytes": 12603,
+      "gzip": 3977,
+      "sha256": "41f94d544363153c9c6e6609b7b5f6b93f556307dfd72af46a42475f89bbc9e3"
+    },
+    "assets/custom-funnel-states-MwaloVLM.js": {
+      "bytes": 2432,
+      "gzip": 932,
+      "sha256": "417a82a7f373270ac1ff8f7af1e29ab9a5428a6c23210c539737d71c56670bd3"
+    },
+    "assets/grave-stone-list-states-C3cLvz95.js": {
+      "bytes": 2959,
+      "gzip": 1108,
+      "sha256": "92a41813109dc8fc8f5534abc0c7176f3287fb4e29850beb4342e446b5382209"
+    },
+    "assets/grave-stones-BxHm0Ejn.js": {
+      "bytes": 7369,
+      "gzip": 2153,
+      "sha256": "c50e2577ab48363fff02177c8bac916ca968fc52a902e4bd829847048c93240c"
+    },
+    "assets/guide-detail-DdSbH5xQ.js": {
+      "bytes": 182,
+      "gzip": 169,
+      "sha256": "ffc07bdc6958455cc7707e90d7056e3a91e9e9d8f76efe1749ff63fb4f588579"
+    },
+    "assets/guide-list-Cqr-B03a.js": {
+      "bytes": 165,
+      "gzip": 157,
+      "sha256": "7ad0d9a9b1a7776e14fa9ce2283900a6d0aba00e640277d54479aa56d667ecc0"
+    },
+    "assets/index-BcJwVF_S.js": {
+      "bytes": 383418,
+      "gzip": 116710,
+      "sha256": "664cb2181161be554b67da0f54cbd620fb15c9ec9d6a2b8ae32dc36fbcd7b0b1"
+    },
+    "assets/portfolio-Bg6-g-Gs.js": {
+      "bytes": 2883,
+      "gzip": 1230,
+      "sha256": "0793f1d8d075e5eed28cd3a7b2c235e3df6da6222d756e65eab2ce3598657390"
+    },
+    "assets/portfolio-states-Dxw2r1LQ.js": {
+      "bytes": 2115,
+      "gzip": 936,
+      "sha256": "b0ea24ba5e491642f0b0a2599e12a25f3af101b165d4ab97343a2fdb250be9a8"
+    },
+    "assets/product-detail-page-BDxZVRGE.js": {
+      "bytes": 15368,
+      "gzip": 4479,
+      "sha256": "b6ebee09da12d9489c254d94670346c0f7e83e66d67b470e9613934b5ff9d213"
+    },
+    "assets/product-detail-states-Baaoy5Af.js": {
+      "bytes": 1840,
+      "gzip": 796,
+      "sha256": "3f8df554032e4dd1baf7dc034a660a07beeb92a32c3517526928c97f799b306f"
+    },
+    "assets/product-uEJuitSZ.js": {
+      "bytes": 310,
+      "gzip": 218,
+      "sha256": "030e0db6dbbb772656584200ea7944fc68bf6c9930d23bac89a5cc7aeb60a103"
+    },
+    "assets/quote-B_OkX2rI.js": {
+      "bytes": 2287,
+      "gzip": 1008,
+      "sha256": "00a598a4416e172e14f72f575ce55de4844d01ed6730cb4ec6c13c89ba6b69a3"
+    },
+    "assets/react-Dug6p2AF.js": {
+      "bytes": 63743,
+      "gzip": 21374,
+      "sha256": "d37e6bb383c65aa5cd926ec80134927da7176846e59c49d51c8a516d4a158788"
+    },
+    "assets/request-form-Gy_GRiGU.js": {
+      "bytes": 24551,
+      "gzip": 8134,
+      "sha256": "1584dc45f88561399d4c3f2afce825083277f4295d076da09c3f1a5c3c8d7d77"
+    },
+    "assets/static-DTdrrSB2.js": {
+      "bytes": 209,
+      "gzip": 184,
+      "sha256": "5c68dea182e373221fdc2a76cd4b7727cb34e06ba325f203e0cd415edbe99705"
+    },
+    "assets/stoneworks-page-FCQmjNHG.js": {
+      "bytes": 2567,
+      "gzip": 853,
+      "sha256": "f42b85ff9348fcbadba62f2aa3453880e896e8c5aaceb236f6c5b91ae2f5bd9f"
+    },
+    "assets/styles-CM3LgvSD.css": {
+      "bytes": 26276,
+      "gzip": 6248,
+      "sha256": "c1b2b738354749872047b314dcf54891d0c10fe00dc1d0e49b848e3eb6f20638"
+    },
+    "fonts/beiruti-500.woff2": {
+      "bytes": 54368,
+      "gzip": 54403,
+      "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+    },
+    "fonts/estedad-400-500.woff2": {
+      "bytes": 76604,
+      "gzip": 76647,
+      "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+    }
+  }
+}

@@ -2,6 +2,8 @@
  * Mehrara content types. Structure only — no fixtures, no sample data.
  */
 
+import type { Locale } from "../i18n/locale";
+
 export type PriceType = "fixed" | "estimate" | "review";
 
 /** Backwards-compatible alias for the price contract. */
@@ -148,6 +150,7 @@ export interface Page {
 }
 
 export interface ProductQuery {
+  locale?: Locale;
   type?: ProductType;
   featuredOnly?: boolean;
   sizeCode?: GraveStoneSizeCode;
@@ -155,6 +158,7 @@ export interface ProductQuery {
 }
 
 export interface PortfolioQuery {
+  locale?: Locale;
   limit?: number;
 }
 
