@@ -6,7 +6,7 @@
 
 - `main` امروز همچنان `73868949c34e581af636e8ef2d4fc36fb3c42321` است؛ بسته‌های طراحی و امنیت هنوز Draft هستند.
 - [بکاپ 38126012981](https://github.com/mehranyahya/project-genesis/actions/runs/38126012981) در ۱۱ اکتبر موفق است، ولی گام R2 و مانیتور Skip شدند. بکاپ‌های ۹ و ۱۰ اکتبر هم success گزارش شده‌اند. تعداد روزهای موفق، Decrypt مستقل و بازیابی فایل‌های Storage را اثبات نمی‌کند.
-- اتصال Supabase در این نوبت فعال نبود؛ نسخهٔ DB، ACL، پروژه/Branch، Auth، Secret، رسانه و Log امروز دوباره خوانده نشدند. مشاهدات ۸ اکتبر تاریخی‌اند: نسخهٔ ۱۷٫۶، Object و کاربر Auth صفر، Default ACL بازِ `supabase_admin`.
+- در نوبت تکمیلی ۱۱ اکتبر، اتصال برقرار و ممیزی فقط‌خواندنی انجام شد: نسخهٔ SQL، ۱۷٫۶ و فرادادهٔ پروژه، 17.6.1.155؛ دسترسی مؤثر anon/authenticated به جدول/تابع/Sequence موجود صفر؛ ۱۲ جدول RLS+FORCE دارند. Object و کاربر Auth صفرند؛ Preview مستقل در فهرست این اتصال دیده نشد. Default ACL تابع تازه برای سه سازنده PUBLIC EXECUTE دارد و supabase_admin Grant گسترده‌تر دارد. [شواهد زنده](../docs/security-environment-live-audit-s3-fa.md) و [Snapshot امن](../docs/security-s3-live-audit-20261011.json) جزئیات را ثبت می‌کنند. Auth config، Secret/Scope، MFA اپراتور، Retention و تنظیمات Cloudflare بررسی نشده‌اند.
 - کد جدید آفلاین آزموده می‌شود. وجود/Scope کلید واقعی، Access، مقصد اطلاع‌رسانی و بازیابی واقعی هنوز شرط پذیرش‌اند.
 
 ## ۱. هویت جدا برای Preview و Production
@@ -69,14 +69,15 @@ Guard فعلی همچنان با ورود Object واقعی یا Auth/Schema خ�
 
 ## ۴. وصلهٔ Postgres و Default ACL
 
-[اطلاعیهٔ رسمی ۲۵ سپتامبر](https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes) rollout از ۱۷٫۶ به ۱۷٫۱۱ و چهار ناحیهٔ سازگاری را توضیح می‌دهد. نسخهٔ امروز پروژه نامعلوم است؛ در این بسته نسخه یا Digest تصویر Drill حدس زده/عوض نشد.
+[اطلاعیهٔ رسمی ۲۵ سپتامبر](https://supabase.com/changelog/postgres-15-19-17-11-breaking-changes) rollout از ۱۷٫۶ به ۱۷٫۱۱ و چهار ناحیهٔ سازگاری را توضیح می‌دهد. ممیزی تکمیلی نسخهٔ پروژه را ۱۷٫۶ تأیید کرد؛ نسخه یا Digest تصویر Drill حدس زده/عوض نشد.
 
-- [ ] پس از اتصال، `scripts/supabase-environment-audit.sql` فقط‌خواندنی در هر پروژه اجرا و نسخه، Extension و سازندگان واقعی ثبت شوند؛ SQL هنوز روی DB اجرا نشده است.
-- [ ] Detection رسمی `ltree`، PGP legacy cipher، `btree_gist`/NaN و Custom operator بررسی شود؛ نبود کاربرد در تابع عمومی، تمام استفاده‌های بیرونی را رد نمی‌کند.
+- [x] `scripts/supabase-environment-audit.sql` نهایی روی پروژهٔ اصلی فقط‌خواندنی اجرا شد؛ نسخه، Extension، سازندگان، MAINTAIN، مجوز سطح ستون و Sequence ثبت شدند. پذیرش محیط آزمایشی جداگانه انجام نشده.
+- [x] `scripts/supabase-upgrade-preflight.sql` فقط‌خواندنی اجرا شد؛ Indexهای ltree و GiST float و Operator سفارشی مشمول صفر بودند. غربال Catalog، آزمون ارتقا نیست.
+- [ ] PGP legacy cipher و استفادهٔ بیرونی بررسی شود؛ صفر بودن ارجاع تابع/ستون bytea در public، Ciphertext متن یا Schemaهای دیگر و Client بیرونی را رد نمی‌کند. داده/کلید خوانده نشد.
 - [ ] تصویر جدید Drill از منبع رسمی با Digest واقعی انتخاب و همان Archive روی آن بازیابی شود؛ نسخهٔ Managed هدف و شرایط Downtime/Rollback روشن شوند.
 - [ ] ابتدا Preview، سپس تغییر اصلی فقط با Backup/Decrypt/Restore و اجازهٔ مالک؛ آزمون RPC/قیمت/درخواست و ACL پس از ارتقا.
 
-`ops/sql/default-acl-hardening.proposed.sql` خارج از مسیر Migration است و اجرا نشده. طرح برای دو سازندهٔ مشاهده‌شدهٔ ۸ اکتبر است؛ سازندگان دیگر باید قبل از تبدیل به Migration بررسی شوند. Query ممیزی، ACL جهانی/ضمنی را با Grant سطح Schema ترکیب می‌کند. Revoke فقط `IN SCHEMA public` نمی‌تواند `PUBLIC EXECUTE` جهانیِ تابع تازه را حذف کند؛ به همین دلیل طرح، Global و Schema را جدا بررسی می‌کند.
+`ops/sql/default-acl-hardening.proposed.sql` خارج از مسیر Migration است و اجرا نشده. طرح تکمیلی هر سه سازندهٔ مشاهده‌شده در ۱۱ اکتبر، postgres/supabase_admin/pg_database_owner، را پوشش می‌دهد؛ پیش از اجرا دوباره ممیزی شوند. pg_database_owner نقش ضمنی مالک DB است و Grant مستقل به کاربر جدید محسوب نمی‌شود؛ SET ROLE آن، Default ACL همان نقش را به‌کار می‌گیرد. Query ممیزی، ACL جهانی/ضمنی را با Grant سطح Schema ترکیب می‌کند. Revoke فقط `IN SCHEMA public` نمی‌تواند `PUBLIC EXECUTE` جهانیِ تابع تازه را حذف کند؛ به همین دلیل طرح، Global و Schema را جدا بررسی می‌کند.
 
 Revoke جهانی روی Objectهای **آیندهٔ Schemaهای دیگر** هم اثر دارد؛ سازگاری Extension/Platform در Preview شرط است. اشیای موجود، RLS و داده با طرح Default ACL عوض نمی‌شوند. آزمون لازم: زیر هر سازنده، جدول/Sequence/تابع مصنوعی ساخته شود، دسترسی مؤثر anon/auth/PUBLIC مسدود و Grant باریک service_role صریح بررسی شود؛ سپس Fixture حذف و ممیزی فعلی تکرار شود.
 
