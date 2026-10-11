@@ -21,7 +21,7 @@ Every successful run keeps:
 - an encrypted durable R2 copy with downloaded-byte and checksum verification;
 - a matching SHA-256 checksum next to each encrypted archive.
 
-Supabase Storage objects are not contained in a database dump. A separate object-backup policy is required before real media is uploaded.
+Supabase Storage objects are not contained in a database dump. The [original-media backup and recovery runbook](storage-backup-recovery-fa.md) and `scripts/storage-backup.py` now prepare offline packing, verification, age orchestration and safe local recovery. This does not integrate live Storage export with this workflow or accept a managed restore. The existing no-Storage-object preflight remains unchanged; prove the separate object backup and managed recovery before real media enters this scope.
 
 ## Required GitHub secrets
 
