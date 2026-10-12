@@ -7,6 +7,7 @@
 
 import type { PriceType } from "./content/types";
 import type { RequestFieldKey, RequestPayload, RequestTermsDocument } from "./request-form";
+import type { Locale } from "./i18n/locale";
 import { REQUEST_FIELD_ERRORS, isRequestTermsDocument } from "./request-form";
 
 export const SUBMIT_ENDPOINT = "/api/submit-request";
@@ -81,7 +82,11 @@ export type SubmitOutcome =
   | { readonly kind: "success"; readonly trackingCode: string; readonly replayed: boolean }
   | { readonly kind: "price_changed"; readonly price: SubmitPrice }
   | { readonly kind: "selection_unavailable" }
-  | { readonly kind: "terms_updated"; readonly termsDocument: RequestTermsDocument | null }
+  | {
+      readonly kind: "terms_updated";
+      readonly termsDocument: RequestTermsDocument | null;
+      readonly termsDocuments?: Readonly<Partial<Record<Locale, RequestTermsDocument>>>;
+    }
   | { readonly kind: "idempotency_conflict" }
   | { readonly kind: "idempotency_expired" }
   | {
@@ -172,8 +177,12 @@ function readPrice(value: unknown): SubmitPrice | null {
 
 function readTerms(value: unknown): RequestTermsDocument | null {
   if (typeof value !== "object" || value === null) return null;
-  const candidate = value as { version?: unknown; content_hash?: unknown };
-  const next = { version: candidate.version, contentHash: candidate.content_hash };
+  const candidate = value as { version?: unknown; content_hash?: unknown; locale?: unknown };
+  const next = {
+    version: candidate.version,
+    contentHash: candidate.content_hash,
+    ...(candidate.locale === undefined ? {} : { locale: candidate.locale }),
+  };
   return isRequestTermsDocument(next) ? next : null;
 }
 
@@ -218,10 +227,36 @@ export function interpretSubmitResponse(result: RequestSubmitTransportResult): S
     }
     case "SELECTION_UNAVAILABLE":
       return status === 409 ? { kind: "selection_unavailable" } : TEMPORARY;
-    case "TERMS_UPDATED":
-      return status === 409
-        ? { kind: "terms_updated", termsDocument: readTerms(body["terms"]) }
-        : TEMPORARY;
+    case "TERMS_UPDATED": {
+      if (status !== 409) return TEMPORARY;
+      const termsDocument = readTerms(body["terms"]);
+      if (!Object.hasOwn(body, "terms_by_locale")) return { kind: "terms_updated", termsDocument };
+      const rawDocuments = body["terms_by_locale"];
+      if (
+        !termsDocument ||
+        !rawDocuments ||
+        typeof rawDocuments !== "object" ||
+        Array.isArray(rawDocuments)
+      )
+        return TEMPORARY;
+      const documents: Partial<Record<Locale, RequestTermsDocument>> = {};
+      const hashes = new Set<string>();
+      for (const [locale, rawDocument] of Object.entries(rawDocuments)) {
+        if (locale !== "fa" && locale !== "en") return TEMPORARY;
+        const document = readTerms(rawDocument);
+        if (
+          !document ||
+          document.locale !== locale ||
+          document.version !== termsDocument.version ||
+          hashes.has(document.contentHash)
+        )
+          return TEMPORARY;
+        hashes.add(document.contentHash);
+        documents[locale] = document;
+      }
+      if (!hashes.has(termsDocument.contentHash)) return TEMPORARY;
+      return { kind: "terms_updated", termsDocument, termsDocuments: documents };
+    }
     case "IDEMPOTENCY_CONFLICT":
       return status === 409 ? { kind: "idempotency_conflict" } : TEMPORARY;
     case "IDEMPOTENCY_EXPIRED":

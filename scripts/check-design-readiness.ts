@@ -10,7 +10,7 @@ import {
 } from "../src/lib/content/supabase.server";
 import { loadGitPage } from "../src/lib/content/git.server";
 import { PAGE_SLUGS } from "../src/lib/content/types";
-import { CURRENT_TERMS_RELEASE } from "../supabase/functions/_shared/terms-registry.generated";
+import { CURRENT_TERMS_RELEASES } from "../supabase/functions/_shared/terms-registry.generated";
 import { LOCALES } from "../src/lib/i18n/locale";
 
 // Local sanitized artifacts only; this command has no database or network client.
@@ -23,7 +23,7 @@ try {
       lists.flat(),
     ),
     loadSite(),
-    Promise.all(PAGE_SLUGS.map((slug) => loadGitPage(slug))),
+    Promise.all(LOCALES.flatMap((locale) => PAGE_SLUGS.map((slug) => loadGitPage(slug, locale)))),
   ]);
   const report = assessDesignReadiness({
     generated: STRUCTURED_CONTENT_GENERATED,
@@ -34,7 +34,7 @@ try {
     pages: pages.filter((page) => page !== null),
     guides: [],
     editorial: HOME_EDITORIAL_REFERENCES,
-    termsRelease: CURRENT_TERMS_RELEASE,
+    termsReleases: CURRENT_TERMS_RELEASES,
     capabilities: { englishSources: false, guides: false },
   });
   console.log(JSON.stringify(report, null, 2));

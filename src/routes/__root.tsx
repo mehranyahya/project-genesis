@@ -16,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/layout/app-shell";
 import { NotFoundView } from "../components/static-pages/static-pages";
 import { getPage, getSite } from "../lib/content/adapters";
+import type { Page, Site } from "../lib/content/types";
 import { buildContentSecurityPolicy } from "../lib/csp";
 import { buildNotFoundModel } from "../lib/static-pages";
 import { LocaleProvider } from "../lib/i18n/react";
@@ -24,6 +25,7 @@ import { htmlDir, htmlLang, localeFromPathname, localizeRawPath } from "../lib/i
 import { translatorFor } from "../lib/i18n/messages";
 
 const CSP_MISSING_NONCE_POLICY = "default-src 'none'; frame-ancestors 'none'";
+type RootLoaderData = { site: Site | null; notFoundPage: Page | null };
 
 function NotFoundComponent() {
   const data = Route.useLoaderData() as
@@ -110,8 +112,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
-  loader: async () => {
-    const [site, notFoundPage] = await Promise.all([getSite(), getPage("not-found")]);
+  loader: async ({ location }: { location: { pathname: string } }): Promise<RootLoaderData> => {
+    const locale = localeFromPathname(location.pathname);
+    const [site, notFoundPage] = await Promise.all([getSite(), getPage("not-found", locale)]);
     return { site, notFoundPage };
   },
 

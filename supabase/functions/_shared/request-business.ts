@@ -1,4 +1,6 @@
-import { CURRENT_TERMS_RELEASE } from "./terms-registry.generated.ts";
+import { CURRENT_TERMS_RELEASES } from "./terms-registry.generated.ts";
+import { validateTermsConsent } from "./terms-consent.ts";
+import type { TermsConsentFailure } from "./terms-consent.ts";
 import type {
   BotVerification,
   BuildingStonePayload,
@@ -90,11 +92,7 @@ export type BusinessResult =
               readonly amount_toman: number | null;
             };
           }
-        | {
-            readonly code: "TERMS_UPDATED";
-            readonly terms: { readonly version: string; readonly content_hash: string };
-          }
-        | { readonly code: "TEMPORARILY_UNAVAILABLE" };
+        | TermsConsentFailure["body"];
     };
 
 function temporaryUnavailable(): BusinessResult {
@@ -157,31 +155,7 @@ function commonStorage(
 }
 
 function validateTerms(request: RequestPayload): BusinessResult | null {
-  const current = CURRENT_TERMS_RELEASE;
-  if (current === null) return temporaryUnavailable();
-  if (
-    current.version.trim() === "" ||
-    !HASH_PATTERN.test(current.currentContentHash) ||
-    current.allowedContentHashes.length === 0 ||
-    !current.allowedContentHashes.every((hash) => HASH_PATTERN.test(hash)) ||
-    !current.allowedContentHashes.includes(current.currentContentHash)
-  ) {
-    return temporaryUnavailable();
-  }
-  if (
-    request.terms_version !== current.version ||
-    !current.allowedContentHashes.includes(request.terms_content_hash)
-  ) {
-    return {
-      ok: false,
-      status: 409,
-      body: {
-        code: "TERMS_UPDATED",
-        terms: { version: current.version, content_hash: current.currentContentHash },
-      },
-    };
-  }
-  return null;
+  return validateTermsConsent(request, CURRENT_TERMS_RELEASES);
 }
 
 function safeAmount(value: unknown): number | null {

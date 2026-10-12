@@ -268,7 +268,7 @@ test("static routes delegate to the shared factory with their own slug", () => {
   // The static-page factory reads exactly one page adapter and never the site.
   assert.match(
     factory,
-    /buildStaticPageModel\(contentForLocale\(await getPage\(slug\), locale\), slug\)/,
+    /buildStaticPageModel\(contentForLocale\(await getPage\(slug, locale\), locale\), slug\)/,
   );
   const staticSection = factory.slice(
     factory.indexOf("function staticPageOptions("),
@@ -280,7 +280,7 @@ test("static routes delegate to the shared factory with their own slug", () => {
 test('contact route reads getPage("contact") and getSite()', () => {
   const factory = read("src/lib/route-defs/pages.tsx");
   const contactSection = factory.slice(factory.indexOf("export function contactRouteOptions("));
-  assert.match(contactSection, /getPage\("contact"\)/);
+  assert.match(contactSection, /getPage\("contact", locale\)/);
   assert.match(contactSection, /getSite\(\)/);
   for (const rel of ["src/routes/contact.tsx", "src/routes/en/contact.tsx"]) {
     assert.match(read(rel), /contactRouteOptions\("(fa|en)"\)/, rel);
@@ -290,7 +290,7 @@ test('contact route reads getPage("contact") and getSite()', () => {
 test('root reads getSite() and getPage("not-found") and hard-codes no 404 copy', () => {
   const root = read("src/routes/__root.tsx");
   assert.match(root, /getSite\(\)/);
-  assert.match(root, /getPage\("not-found"\)/);
+  assert.match(root, /getPage\("not-found", locale\)/);
   assert.equal(root.includes("صفحه پیدا نشد"), false);
   assert.equal(root.includes("Page not found"), false);
 });

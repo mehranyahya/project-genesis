@@ -30,7 +30,8 @@ import {
 import { submitRequestWithTurnstile as submitRequest } from "@/lib/request-submit-turnstile";
 import type { RequestSubmitTransport, SubmitOutcome } from "@/lib/request-submit";
 import { SUBMIT_MESSAGES, createSubmissionId, rememberTrackingCode } from "@/lib/request-submit";
-import { useT } from "@/lib/i18n/react";
+import { useLocale, useT } from "@/lib/i18n/react";
+import { refreshUpdatedTerms } from "@/lib/request-terms-update";
 import {
   stoneworkNoteLimit,
   stoneworkRequestIdentity,
@@ -178,6 +179,7 @@ export function RequestForm({
   stoneworkContext?: StoneworkRequestContext | null;
 }) {
   const t = useT();
+  const locale = useLocale();
   const [values, setValues] = useState<RequestFormValues>(PII_FREE_VALUES);
   const [errors, setErrors] = useState<RequestFieldErrors>({});
   const [extensionErrors, setExtensionErrors] = useState<Readonly<Record<string, string>>>({});
@@ -206,7 +208,14 @@ export function RequestForm({
   const extensionFieldId = binding?.fieldId ?? DEFAULT_EXTENSION_FIELD_ID;
 
   const commission = source.kind === "contact" ? stoneworkContext : null;
-  const identity = stoneworkRequestIdentity(sourceIdentity(source), commission);
+  const identity = `${locale}~${stoneworkRequestIdentity(sourceIdentity(source), commission)}`;
+  const documentIdentity = isRequestTermsDocument(termsDocument)
+    ? `${termsDocument.locale ?? "fa"}~${termsDocument.version.trim()}~${termsDocument.contentHash}`
+    : "missing";
+  const documentTracker = useRef<GenerationTracker | null>(null);
+  documentTracker.current ??= createGenerationTracker(documentIdentity);
+  const documentGeneration = documentTracker.current.observe(documentIdentity);
+  const appliedDocumentIdentity = useRef(documentIdentity);
 
   // The attempt token of the running request; a response from an older
   // identity is discarded before any result state is applied.
@@ -244,8 +253,15 @@ export function RequestForm({
   }, [identity]);
 
   useEffect(() => {
+    if (appliedDocumentIdentity.current === documentIdentity) return;
+    appliedDocumentIdentity.current = documentIdentity;
     setTerms(termsDocument);
-  }, [termsDocument]);
+    setValues((current) => ({ ...current, termsAccepted: false }));
+    submissionId.current = null;
+    inFlight.current = false;
+    setPhase("editing");
+    setOutcome(null);
+  }, [documentIdentity, termsDocument]);
 
   // Focus runs only after React has committed the error state and the pending
   // focus target. No validation path focuses an element directly.
@@ -257,7 +273,8 @@ export function RequestForm({
     setPendingFocusId(null);
   }, [pendingFocusId]);
 
-  const termsReady = isRequestTermsDocument(terms);
+  const termsReady =
+    appliedDocumentIdentity.current === documentIdentity && isRequestTermsDocument(terms, locale);
   const selectionBlocked = selectionBlockedByCatalog;
 
   const resetTurnstile = useCallback(() => {
@@ -301,6 +318,7 @@ export function RequestForm({
 
       const attempt = attemptIdentity.current;
       const attemptGeneration = generationTracker.current?.current() ?? generation;
+      const attemptDocumentGeneration = documentTracker.current?.current() ?? documentGeneration;
 
       inFlight.current = true;
       setPhase("submitting");
@@ -310,7 +328,11 @@ export function RequestForm({
       if (
         !mounted.current ||
         attempt !== attemptIdentity.current ||
-        isStaleAttempt(attemptGeneration, generationTracker.current?.current() ?? generation)
+        isStaleAttempt(attemptGeneration, generationTracker.current?.current() ?? generation) ||
+        isStaleAttempt(
+          attemptDocumentGeneration,
+          documentTracker.current?.current() ?? documentGeneration,
+        )
       ) {
         return;
       }
@@ -326,6 +348,25 @@ export function RequestForm({
       if (isStaleAttempt(attemptGeneration, generationTracker.current?.current() ?? generation)) {
         return;
       }
+      if (
+        isStaleAttempt(
+          attemptDocumentGeneration,
+          documentTracker.current?.current() ?? documentGeneration,
+        )
+      )
+        return;
+      const updatedTerms =
+        result.kind === "terms_updated" ? await refreshUpdatedTerms(result, locale) : null;
+      if (
+        !mounted.current ||
+        attempt !== attemptIdentity.current ||
+        isStaleAttempt(attemptGeneration, generationTracker.current?.current() ?? generation) ||
+        isStaleAttempt(
+          attemptDocumentGeneration,
+          documentTracker.current?.current() ?? documentGeneration,
+        )
+      )
+        return;
 
       resetTurnstile();
       inFlight.current = false;
@@ -345,8 +386,9 @@ export function RequestForm({
           setPriceRevision(result.price);
           break;
         case "terms_updated":
-          setTerms(result.termsDocument);
+          setTerms(updatedTerms);
           setValues((current) => ({ ...current, termsAccepted: false }));
+          submissionId.current = null;
           break;
         case "selection_unavailable":
           setSelectionBlocked(true);
@@ -372,6 +414,8 @@ export function RequestForm({
       extensionFieldId,
       freshAttemptRequired,
       generation,
+      documentGeneration,
+      locale,
       onSuccess,
       resetTurnstile,
       selectionBlocked,
