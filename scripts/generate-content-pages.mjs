@@ -1,5 +1,13 @@
-import { createHash } from "node:crypto";
-import { readFile, readdir, writeFile } from "node:fs/promises";
+import { constants } from "node:fs";
+import { open, readFile, readdir, writeFile } from "node:fs/promises";
+import { format } from "prettier";
+import {
+  ALLOWED_PAGE_SLUGS,
+  MAX_FILE_BYTES,
+  PAGE_LOCALES,
+  parseGitPage,
+  termsReleases,
+} from "./git-pages.mjs";
 
 const CONTENT_DIRECTORY = new URL("../content/pages/", import.meta.url);
 const OUTPUT_FILE = new URL("../src/lib/content/generated-pages.ts", import.meta.url);
@@ -11,121 +19,102 @@ const STRUCTURED_CONTENT_ARTIFACT = new URL(
   "../src/lib/content/generated-structured-content.ts",
   import.meta.url,
 );
-const MAX_FILE_BYTES = 256 * 1024;
-const ALLOWED_PAGE_SLUGS = new Set([
-  "home",
-  "building-stone",
-  "about",
-  "contact",
-  "privacy",
-  "terms",
-  "not-found",
-]);
 const CHECK_ONLY = process.argv.includes("--check");
 const RELEASE_CHECK = process.argv.includes("--release-check");
-const REQUIRED_RELEASE_PAGES = ["privacy", "terms"];
+if (CHECK_ONLY && RELEASE_CHECK) throw new Error("Choose either --check or --release-check");
 
-if (CHECK_ONLY && RELEASE_CHECK) {
-  throw new Error("Choose either --check or --release-check");
-}
-
-const entries = await readdir(CONTENT_DIRECTORY, { withFileTypes: true });
-const sources = {};
-
-function termsRelease(raw) {
-  if (typeof raw !== "string") return null;
-  const normalized = raw.replace(/\r\n?/g, "\n");
-  if (!normalized.startsWith("---\n")) return null;
-  const close = normalized.indexOf("\n---\n", 4);
-  if (close < 0) return null;
-  const body = normalized.slice(close + 5).trim();
-  if (body === "") return null;
-
-  const meta = {};
-  for (const line of normalized.slice(4, close).split("\n")) {
-    if (line.trim() === "") continue;
-    const match = /^([A-Za-z][A-Za-z0-9]*):\s*(.+)$/.exec(line);
-    if (!match || Object.prototype.hasOwnProperty.call(meta, match[1])) return null;
-    try {
-      meta[match[1]] = JSON.parse(match[2]);
-    } catch {
-      return null;
+async function sourceText(url) {
+  const file = await open(url, constants.O_RDONLY | constants.O_NOFOLLOW);
+  try {
+    const stat = await file.stat();
+    if (!stat.isFile() || stat.nlink !== 1 || stat.size > MAX_FILE_BYTES)
+      throw new Error("Invalid Git page source file");
+    const bytes = Buffer.alloc(MAX_FILE_BYTES + 1);
+    let used = 0;
+    while (used < bytes.length) {
+      const { bytesRead } = await file.read(bytes, used, bytes.length - used, null);
+      if (bytesRead === 0) break;
+      used += bytesRead;
     }
+    if (used > MAX_FILE_BYTES) throw new Error("Git page exceeds source byte limit");
+    try {
+      return new TextDecoder("utf-8", { fatal: true }).decode(bytes.subarray(0, used));
+    } catch {
+      throw new Error("Git page is not valid UTF-8");
+    }
+  } finally {
+    await file.close();
   }
-
-  const version = typeof meta.version === "string" ? meta.version.trim() : "";
-  if (meta.slug !== "terms" || version === "" || version.length > 80) return null;
-  const currentContentHash = createHash("sha256")
-    .update(`${version}\n${body}`, "utf8")
-    .digest("hex");
-  return { version, currentContentHash, allowedContentHashes: [currentContentHash] };
 }
 
-for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name, "en"))) {
-  if (!entry.isFile() || entry.name === "README.md") continue;
-  const match = /^([a-z][a-z0-9-]*)\.md$/.exec(entry.name);
-  if (!match) throw new Error(`Invalid Git page filename: ${entry.name}`);
-
-  const slug = match[1];
-  if (!ALLOWED_PAGE_SLUGS.has(slug)) {
-    throw new Error(`Git page is outside the PageSlug allowlist: ${slug}`);
+const pages = { fa: {}, en: {} };
+const entries = await readdir(CONTENT_DIRECTORY, { withFileTypes: true });
+for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name, "en"))) {
+  if (entry.name === "README.md" && entry.isFile()) continue;
+  if (!PAGE_LOCALES.includes(entry.name) || !entry.isDirectory())
+    throw new Error("Git pages must use the allowlisted locale directories");
+  const locale = entry.name;
+  const directory = new URL(`${locale}/`, CONTENT_DIRECTORY);
+  const files = await readdir(directory, { withFileTypes: true });
+  for (const file of files.sort((a, b) => a.name.localeCompare(b.name, "en"))) {
+    if (file.name === "README.md" && file.isFile()) continue;
+    const match = /^([a-z][a-z0-9-]*)\.md$/.exec(file.name);
+    if (!file.isFile() || !match || !ALLOWED_PAGE_SLUGS.has(match[1]))
+      throw new Error("Invalid Git page filename or file type");
+    const page = parseGitPage(await sourceText(new URL(file.name, directory)), match[1], locale);
+    if (page) pages[locale][match[1]] = page;
   }
-
-  const raw = await readFile(new URL(entry.name, CONTENT_DIRECTORY), "utf8");
-  if (Buffer.byteLength(raw, "utf8") > MAX_FILE_BYTES) {
-    throw new Error(`Git page exceeds ${MAX_FILE_BYTES} bytes: ${entry.name}`);
-  }
-  sources[slug] = raw;
 }
-
-const generated = [
-  "/* Generated by scripts/generate-content-pages.mjs. Do not edit by hand. */",
-  `export const GIT_PAGE_SOURCES: Readonly<Record<string, string>> = Object.freeze(${JSON.stringify(sources, null, 2)});`,
-  "",
-].join("\n");
-const currentTermsRelease = termsRelease(sources.terms);
-const generatedTermsRegistry = [
-  "// Generated by scripts/generate-content-pages.mjs. Do not edit by hand.",
-  "export interface TermsRelease {",
-  "  readonly version: string;",
-  "  readonly currentContentHash: string;",
-  "  readonly allowedContentHashes: readonly string[];",
-  "}",
-  "",
-  `export const CURRENT_TERMS_RELEASE: TermsRelease | null = ${JSON.stringify(currentTermsRelease, null, 2)};`,
-  "",
-].join("\n");
-
-if (RELEASE_CHECK) {
-  const missing = REQUIRED_RELEASE_PAGES.filter((slug) => typeof sources[slug] !== "string");
-  const structuredArtifact = await readFile(STRUCTURED_CONTENT_ARTIFACT, "utf8");
-  const blockers = [];
-  if (missing.length > 0) {
-    blockers.push(`reviewed Git pages missing: ${missing.join(", ")}`);
-  }
-  if (!structuredArtifact.includes("STRUCTURED_CONTENT_GENERATED = true")) {
-    blockers.push("sanitized structured content/media artifact has not been generated");
-  }
-  if (currentTermsRelease === null) blockers.push("Terms registry has no reviewed current release");
-  if (blockers.length > 0) {
-    throw new Error(`Release content is incomplete; ${blockers.join("; ")}`);
-  }
-} else if (CHECK_ONLY) {
-  const current = await readFile(OUTPUT_FILE, "utf8");
-  if (current !== generated) {
+const releases = termsReleases(pages);
+const generated = await format(
+  [
+    "/* Generated by scripts/generate-content-pages.mjs. Do not edit by hand. */",
+    'import type { Page, PageSlug } from "./types";',
+    'import type { Locale } from "../i18n/locale";',
+    "",
+    `export const GIT_PAGES: Readonly<Record<Locale, Readonly<Partial<Record<PageSlug, Page>>>>> = Object.freeze(${JSON.stringify(pages, null, 2)});`,
+    "",
+  ].join("\n"),
+  { parser: "typescript", printWidth: 100 },
+);
+const generatedTermsRegistry = await format(
+  [
+    "// Generated by scripts/generate-content-pages.mjs. Do not edit by hand.",
+    "export interface TermsRelease {",
+    "  readonly version: string;",
+    "  readonly currentContentHash: string;",
+    "  readonly allowedContentHashes: readonly string[];",
+    "}",
+    "",
+    `export const CURRENT_TERMS_RELEASES: Readonly<Record<"fa" | "en", TermsRelease | null>> = ${JSON.stringify(releases, null, 2)};`,
+    "// Compatibility alias for tools that still inspect the Persian release.",
+    "export const CURRENT_TERMS_RELEASE: TermsRelease | null = CURRENT_TERMS_RELEASES.fa;",
+    "",
+  ].join("\n"),
+  { parser: "typescript", printWidth: 100 },
+);
+if (CHECK_ONLY || RELEASE_CHECK) {
+  if ((await readFile(OUTPUT_FILE, "utf8")) !== generated)
     throw new Error(
       "Generated Git page artifact is stale; run `bun run content:generate` and commit it",
     );
-  }
-  const currentTermsRegistry = await readFile(TERMS_REGISTRY_FILE, "utf8");
-  if (currentTermsRegistry !== generatedTermsRegistry) {
+  if ((await readFile(TERMS_REGISTRY_FILE, "utf8")) !== generatedTermsRegistry)
     throw new Error(
       "Generated Terms registry is stale; run `bun run content:generate` and commit it",
     );
+  if (RELEASE_CHECK) {
+    const missing = PAGE_LOCALES.flatMap((locale) =>
+      ["privacy", "terms"]
+        .filter((slug) => !pages[locale][slug])
+        .map((slug) => `${locale}.${slug}`),
+    );
+    const artifact = await readFile(STRUCTURED_CONTENT_ARTIFACT, "utf8");
+    if (missing.length || !artifact.includes("STRUCTURED_CONTENT_GENERATED = true"))
+      throw new Error(
+        `Release content is incomplete; reviewed bilingual legal pages or structured artifact missing (${missing.join(", ")})`,
+      );
   }
 } else {
-  await Promise.all([
-    writeFile(OUTPUT_FILE, generated, "utf8"),
-    writeFile(TERMS_REGISTRY_FILE, generatedTermsRegistry, "utf8"),
-  ]);
+  await writeFile(OUTPUT_FILE, generated, "utf8");
+  await writeFile(TERMS_REGISTRY_FILE, generatedTermsRegistry, "utf8");
 }

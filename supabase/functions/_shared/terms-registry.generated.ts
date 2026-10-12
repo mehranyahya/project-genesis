@@ -5,4 +5,9 @@ export interface TermsRelease {
   readonly allowedContentHashes: readonly string[];
 }
 
-export const CURRENT_TERMS_RELEASE: TermsRelease | null = null;
+export const CURRENT_TERMS_RELEASES: Readonly<Record<"fa" | "en", TermsRelease | null>> = {
+  fa: null,
+  en: null,
+};
+// Compatibility alias for tools that still inspect the Persian release.
+export const CURRENT_TERMS_RELEASE: TermsRelease | null = CURRENT_TERMS_RELEASES.fa;

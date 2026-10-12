@@ -60,6 +60,24 @@ function renderUi(locale: Locale, children: ReactNode, entry?: string): string {
   );
 }
 
+test("the rendered form enables consent only for its own reviewed language and links to that language's Terms", () => {
+  const fa = { locale: "fa", version: "test-v1", contentHash: "a".repeat(64) } as const;
+  const en = { locale: "en", version: "test-v1", contentHash: "b".repeat(64) } as const;
+  for (const locale of ["fa", "en"] as const) {
+    for (const termsDocument of [null, fa, en]) {
+      const html = renderUi(
+        locale,
+        <RequestForm source={CONTACT} site={null} termsDocument={termsDocument} />,
+      );
+      const button = html.match(/<button[^>]*type="submit"[^>]*>/)?.[0];
+      assert.ok(button);
+      assert.equal(button.includes('disabled=""'), termsDocument?.locale !== locale);
+      assert.ok(html.includes(`href="${locale === "en" ? "/en/terms" : "/terms"}"`));
+      if (locale === "en") assert.equal(ARABIC.test(html), false);
+    }
+  }
+});
+
 test("contact forms translate all labels and submission states, with autocomplete and a focusable contact group", () => {
   for (const locale of ["fa", "en"] as const) {
     const html = renderUi(

@@ -57,8 +57,12 @@ export async function getSite(): Promise<Site | null> {
   return getSiteFromServer();
 }
 
-export async function getPage(slug: PageSlug): Promise<Page | null> {
-  return getPageFromGitServer({ data: { slug } });
+export async function getPage(
+  slug: PageSlug,
+  locale: Locale = DEFAULT_LOCALE,
+  options?: { signal?: AbortSignal },
+): Promise<Page | null> {
+  return getPageFromGitServer({ data: { slug, locale }, ...options });
 }
 
 export async function getCatalogVersion(): Promise<CatalogVersion | null> {

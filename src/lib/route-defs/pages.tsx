@@ -111,7 +111,7 @@ export function customFunnelRouteOptions(locale: Locale) {
         getProducts({ type: "simple", locale }),
         getCatalogVersion(),
         getSite(),
-        getRequestTermsDocument(),
+        getRequestTermsDocument(locale),
       ]);
       return {
         products: contentListForLocale(products, locale),
@@ -148,7 +148,7 @@ export function productDetailRouteOptions(locale: Locale) {
         getProduct(params.slug, locale),
         getCatalogVersion(),
         getSite(),
-        getRequestTermsDocument(),
+        getRequestTermsDocument(locale),
       ]);
 
       const model = buildProductDetailModel(contentForLocale(product, locale), params.slug);
@@ -232,7 +232,7 @@ export function portfolioRouteOptions(locale: Locale) {
 export function buildingStoneRouteOptions(locale: Locale) {
   return {
     loader: async () => {
-      const [site, termsDocument] = await Promise.all([getSite(), getRequestTermsDocument()]);
+      const [site, termsDocument] = await Promise.all([getSite(), getRequestTermsDocument(locale)]);
       return { site: siteForLocale(site, locale), termsDocument };
     },
     head: () =>
@@ -277,7 +277,7 @@ export function quoteRouteOptions(locale: Locale) {
       const [portfolioItems, site, termsDocument] = await Promise.all([
         deps.reference ? getPortfolioItems({ locale }) : Promise.resolve([]),
         getSite(),
-        getRequestTermsDocument(),
+        getRequestTermsDocument(locale),
       ]);
       return {
         portfolioReferenceId: findPortfolioReference(
@@ -390,7 +390,8 @@ function staticPageOptions(
   return {
     head: (ctx: { loaderData?: StaticPageModel | null }) =>
       staticPageHead(locale, basePath, ctx.loaderData ?? null, fallbackTitle),
-    loader: async () => buildStaticPageModel(contentForLocale(await getPage(slug), locale), slug),
+    loader: async () =>
+      buildStaticPageModel(contentForLocale(await getPage(slug, locale), locale), slug),
     component,
   };
 }
@@ -430,7 +431,7 @@ export function contactRouteOptions(locale: Locale) {
     head: (ctx: { loaderData?: ContactPageModel }) =>
       staticPageHead(locale, "/contact", ctx.loaderData?.page ?? null, "تماس"),
     loader: async (): Promise<ContactPageModel> => {
-      const [page, site] = await Promise.all([getPage("contact"), getSite()]);
+      const [page, site] = await Promise.all([getPage("contact", locale), getSite()]);
       return buildContactPageModel(contentForLocale(page, locale), siteForLocale(site, locale));
     },
     component: lazyRouteComponent(() => import("./views/contact"), "ContactRoute"),

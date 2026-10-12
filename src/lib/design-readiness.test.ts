@@ -14,7 +14,7 @@ const EMPTY: DesignReadinessInput = {
   pages: [],
   guides: [],
   editorial: HOME_EDITORIAL_REFERENCES,
-  termsRelease: null,
+  termsReleases: { fa: null, en: null },
   capabilities: { englishSources: false, guides: false },
 };
 const hash = "a".repeat(64);
@@ -59,7 +59,7 @@ function populated(): DesignReadinessInput {
       body: "unpublished legal text",
       seo: null,
       version: "1",
-      contentHash: hash,
+      contentHash: locale === "fa" ? hash : "b".repeat(64),
     })),
   );
   const references = {
@@ -90,7 +90,10 @@ function populated(): DesignReadinessInput {
       links: { instagram: null, website: null, map: null },
     },
     editorial: { fa: references, en: references },
-    termsRelease: { version: "1", currentContentHash: hash },
+    termsReleases: {
+      fa: { version: "1", currentContentHash: hash },
+      en: { version: "1", currentContentHash: "b".repeat(64) },
+    },
     capabilities: { englishSources: true, guides: false },
   };
 }
@@ -138,7 +141,10 @@ test("unversioned or stale Terms cannot satisfy acceptance readiness", () => {
   const input = populated();
   const report = assessDesignReadiness({
     ...input,
-    termsRelease: { version: "2", currentContentHash: hash },
+    termsReleases: {
+      fa: { version: "2", currentContentHash: hash },
+      en: { version: "2", currentContentHash: "b".repeat(64) },
+    },
   });
   assert.ok(
     report.checks
@@ -162,6 +168,38 @@ test("missing product media, catalogue hash or English ingestion remain blockers
     "english_source_ingestion",
   ])
     assert.equal(report.checks.find((check) => check.key === key)?.status, "blocked");
+});
+
+test("readiness checks each Terms translation against its own registry instead of reusing the Persian hash", () => {
+  const input = populated();
+  const report = assessDesignReadiness({
+    ...input,
+    termsReleases: { ...input.termsReleases, en: null },
+  });
+  assert.equal(report.checks.find((check) => check.key === "fa.versioned_terms")?.status, "pass");
+  assert.equal(
+    report.checks.find((check) => check.key === "en.versioned_terms")?.status,
+    "blocked",
+  );
+  assert.equal(report.readyForPublication, false);
+});
+
+test("a mixed-version or identical-hash bilingual registry cannot pass readiness", () => {
+  const input = populated();
+  for (const en of [
+    { version: "2", currentContentHash: "b".repeat(64) },
+    { version: "1", currentContentHash: hash },
+  ]) {
+    const report = assessDesignReadiness({
+      ...input,
+      termsReleases: { ...input.termsReleases, en },
+    });
+    assert.ok(
+      report.checks
+        .filter((check) => check.key.endsWith(".versioned_terms"))
+        .every((check) => check.status === "blocked"),
+    );
+  }
 });
 
 test("the report contains fixed labels and counts without source text or contact values", () => {

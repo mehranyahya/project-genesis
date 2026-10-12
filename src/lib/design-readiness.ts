@@ -15,7 +15,9 @@ export interface DesignReadinessInput {
   readonly pages: readonly Page[];
   readonly guides: readonly Guide[];
   readonly editorial: Readonly<Record<Locale, HomeEditorialReferences>>;
-  readonly termsRelease: { readonly version: string; readonly currentContentHash: string } | null;
+  readonly termsReleases: Readonly<
+    Record<Locale, { readonly version: string; readonly currentContentHash: string } | null>
+  >;
   readonly capabilities: { readonly englishSources: boolean; readonly guides: boolean };
 }
 
@@ -84,12 +86,17 @@ export function assessDesignReadiness(input: DesignReadinessInput) {
       pages.some((page) => page.slug === "privacy"),
     );
     const terms = pages.find((page) => page.slug === "terms");
+    const release = input.termsReleases[locale];
+    const otherRelease = input.termsReleases[locale === "fa" ? "en" : "fa"];
     check(
       `${locale}.versioned_terms`,
       !!terms?.version &&
         /^[0-9a-f]{64}$/.test(terms.contentHash ?? "") &&
-        terms.version === input.termsRelease?.version &&
-        terms.contentHash === input.termsRelease?.currentContentHash,
+        terms.version === release?.version &&
+        terms.contentHash === release?.currentContentHash &&
+        (!otherRelease ||
+          (release.version === otherRelease.version &&
+            release.currentContentHash !== otherRelease.currentContentHash)),
     );
     check(`${locale}.home_guide`, model.showGuide, false);
   }

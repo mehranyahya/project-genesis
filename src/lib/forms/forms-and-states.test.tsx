@@ -132,7 +132,7 @@ test("10 the blocked selection state clears only on a real selection change", ()
   const form = read(FORM);
   assert.ok(form.includes("function sourceIdentity("));
   assert.ok(
-    form.includes("const identity = stoneworkRequestIdentity(sourceIdentity(source), commission)"),
+    form.includes("`${locale}~${stoneworkRequestIdentity(sourceIdentity(source), commission)}`"),
   );
   assert.ok(form.includes("}, [identity]);"));
   assert.ok(!form.includes("}, [source]);"));
@@ -323,7 +323,7 @@ test("25 a real semantic source change invalidates the source-coupled state only
 test("26 the reset depends on semantic identity, not object reference", () => {
   const form = stripComments(read(FORM));
   assert.ok(
-    form.includes("const identity = stoneworkRequestIdentity(sourceIdentity(source), commission)"),
+    form.includes("`${locale}~${stoneworkRequestIdentity(sourceIdentity(source), commission)}`"),
   );
   assert.ok(form.includes("}, [identity]);"));
   assert.ok(!form.includes("}, [source]);"));

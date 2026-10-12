@@ -14,6 +14,7 @@ import { buildingStoneExtension } from "./building-stone";
 
 import type { PriceType } from "./content/types";
 import { normalizePortfolioReference } from "./portfolio-reference";
+import { DEFAULT_LOCALE, isLocale, type Locale } from "./i18n/locale";
 import type { GraveStoneRequestDraft } from "./request-draft";
 
 /* -------------------------------------------------------------------------- */
@@ -48,15 +49,23 @@ export type RequestKind = RequestSource["kind"];
 /* -------------------------------------------------------------------------- */
 
 export interface RequestTermsDocument {
+  /** Legacy unlabelled metadata belongs only to Persian. */
+  readonly locale?: Locale;
   readonly version: string;
   readonly contentHash: string;
 }
 
 export const TERMS_HASH_PATTERN = /^[0-9a-f]{64}$/;
 
-export function isRequestTermsDocument(value: unknown): value is RequestTermsDocument {
+export function isRequestTermsDocument(
+  value: unknown,
+  expectedLocale?: Locale,
+): value is RequestTermsDocument {
   if (typeof value !== "object" || value === null) return false;
-  const candidate = value as { version?: unknown; contentHash?: unknown };
+  const candidate = value as { version?: unknown; contentHash?: unknown; locale?: unknown };
+  if (candidate.locale !== undefined && !isLocale(candidate.locale)) return false;
+  if (expectedLocale !== undefined && (candidate.locale ?? DEFAULT_LOCALE) !== expectedLocale)
+    return false;
   if (typeof candidate.version !== "string" || typeof candidate.contentHash !== "string") {
     return false;
   }

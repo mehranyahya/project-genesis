@@ -1,52 +1,76 @@
-# Git-versioned pages
+# Reviewed bilingual Git pages
 
-Long-form editorial and legal pages remain versioned in Git. Runtime code reads
-only files whose slug is already present in the public `PageSlug` allowlist.
-Missing or invalid files resolve to `null`; runtime must never invent fallback
-copy, legal terms, SEO metadata, versions, or hashes.
+Runtime reads compiled public Page DTOs, not raw Markdown or frontmatter. Sources
+live in `content/pages/fa/<slug>.md` and `content/pages/en/<slug>.md`. The exact
+allowlist is `home`, `building-stone`, `about`, `contact`, `privacy`, `terms`, and
+`not-found`. Missing translations return `null`; there is no language fallback.
+Flat files at `content/pages/<slug>.md` are rejected rather than silently ignored.
 
-## File format
+## Source format and approval
 
-Create one Markdown file per page, for example `content/pages/terms.md`.
-The file starts with a deliberately small frontmatter format. Every value after
-`:` is a JSON literal so parsing is deterministic without an additional YAML
-runtime dependency.
+Every value after `:` is a JSON literal. Unknown or duplicate keys fail generation.
+This deliberately unpublished template is documentation, not approved legal copy:
 
 ```md
 ---
 slug: "terms"
+locale: "fa"
+status: "draft"
+reviewed: false
 title: "..."
-version: "..."
-seoTitle: "..."
+version: null
+seoTitle: null
 seoDescription: null
-canonicalPath: "/terms"
-robots: "index,follow"
+canonicalPath: null
+robots: null
 ---
-
-Real Markdown body goes here.
 ```
 
-Required for every page:
-- `slug`: must exactly match the requested allowlisted page slug.
-- `title`: non-empty string, maximum 160 characters.
-- body: non-empty Markdown after the closing frontmatter delimiter.
+For English, use the `en` directory and `locale: "en"`. Filename and source slug,
+directory and source locale must match. `title` is required (1–160 characters).
+Drafts produce no DTO, text or acceptance release. Only `status: "published"`
+and `reviewed: true` with a nonempty reviewed body can enter the public artifact.
+Legal review and publication approval must be obtained before setting those flags.
 
-Additional requirement for `terms`:
-- `version`: non-empty human-readable version, maximum 80 characters.
+Published Terms additionally require a reviewed `version` (1–80 characters).
+Published translations must share one legal version; their acceptance hashes are
+distinct. Publishing one language does not fabricate the other. Release readiness
+requires both `privacy` and `terms` in both languages and a generated structured
+artifact. It still does not grant deployment permission or replace Preview tests.
 
-Optional SEO keys are `seoTitle`, `seoDescription`, `canonicalPath`, and
-`robots`. When `seoTitle` is absent/null, the page exposes no SEO object instead
-of fabricating one.
+Optional SEO fields require `seoTitle` when present. Canonical paths, if supplied,
+must match the actual slug/language: `/terms`, `/en/terms`, `/` or `/en` for home.
+Limits: description 320, canonical 240, robots 120 characters. No SEO is invented.
 
-## Terms acceptance hash
+Sources must be regular single-link UTF-8 files no larger than 256 KiB. Symlinks,
+hardlinks, nested/unknown files and invalid UTF-8 are rejected. README files are
+ignored. Build errors never echo source text or frontmatter values.
 
-For `terms.md`, runtime computes SHA-256 over UTF-8 bytes of:
+## Generate and check
 
-`<trimmed version> + "\n" + <body with CRLF normalized to LF and outer whitespace trimmed>`
+- `bun run content:generate` compiles both languages into
+  `src/lib/content/generated-pages.ts` and the Edge Terms registry together.
+- `bun run content:check` verifies both committed artifacts without changing them.
+- `bun run content:release-check` additionally checks the required reviewed legal
+  translations and structured content. Empty sources intentionally fail this gate.
 
-The same parsed file supplies `/terms`, request-form acceptance metadata, and
-the request backend. There is intentionally no environment-variable or database
-copy of the current Terms version/hash.
+Keep the sources and both generated artifacts in the same reviewed commit. Deploy
+the web app and Edge registry from that exact approved version. Mixed deployments
+are blocked by the form/Edge comparison; they do not silently accept older terms.
+`CURRENT_TERMS_RELEASE` is a Persian compatibility alias; active validation uses
+`CURRENT_TERMS_RELEASES` and accepts only each language's current approved hash.
 
-Do not add placeholder legal copy. Until a real, reviewed `terms.md` exists,
-request submission stays blocked by design.
+## Deterministic Terms hash
+
+Build normalizes CRLF/CR to LF and trims outer whitespace. Let `base` be
+`<trimmed version> + "\n" + <normalized, trimmed body>`:
+
+- Persian hashes UTF-8 `base`, preserving the existing acceptance contract.
+- English hashes UTF-8 `"en\n" + base`, separating languages even for equal text.
+
+The request/RPC schema is unchanged: version and hash identify the approved
+translation. Old hashes are not kept in the active allowlist. A `TERMS_UPDATED`
+response includes current metadata per language; before another consent the form
+re-reads the actual Terms page in its own language and compares version/hash.
+Missing, old or failed reads keep submission blocked and clear prior acceptance.
+No request is retried automatically. Real legal text has not been added here.
