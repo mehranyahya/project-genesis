@@ -24,6 +24,7 @@ import { LocaleProvider } from "../lib/i18n/react";
 import { contentForLocale, siteForLocale } from "../lib/i18n/content-gate";
 import { htmlDir, htmlLang, localeFromPathname, localizeRawPath } from "../lib/i18n/locale";
 import { translatorFor } from "../lib/i18n/messages";
+import { isUnavailableHeadMatch } from "../lib/route-defs/shared";
 
 const CSP_MISSING_NONCE_POLICY = "default-src 'none'; frame-ancestors 'none'";
 type RootLoaderData = {
@@ -88,12 +89,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         : CSP_MISSING_NONCE_POLICY,
     };
   },
-  head: () => ({
+  head: ({ match }) => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      ...(isUnavailableHeadMatch(match) ? [{ name: "robots", content: "noindex,follow" }] : []),
     ],
     links: [
       {

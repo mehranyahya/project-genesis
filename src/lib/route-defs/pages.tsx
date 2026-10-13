@@ -13,6 +13,7 @@ import {
 } from "@/lib/content/adapters";
 import { buildGraveStoneListModel } from "@/lib/grave-stone-list";
 import { buildGuideDetailModel, buildGuideListModel } from "@/lib/guides";
+import { guideStructuredData } from "@/lib/guide-structured-data";
 import type { GuideDetailModel } from "@/lib/guides";
 import { loadHomeViewModel } from "@/lib/home-editorial";
 import { HOME_EDITORIAL_REFERENCES } from "@/lib/home-editorial-config";
@@ -39,7 +40,9 @@ import {
   availableStaticHead,
   loadStaticIndexableLocales,
   localizedHead,
-  localizedLinks,
+  isUnavailableHeadMatch,
+  unavailableHead,
+  type HeadMatchState,
   type AvailabilityHeadContext,
   type AvailabilityLoaderContext,
 } from "./shared";
@@ -196,17 +199,18 @@ export function productDetailRouteOptions(locale: Locale) {
         termsDocument,
       };
     },
-    head: (ctx: { loaderData?: ProductDetailData }) => {
+    head: (ctx: {
+      loaderData?: ProductDetailData;
+      params?: { slug: string };
+      match?: HeadMatchState;
+    }) => {
       const data = ctx.loaderData;
-      if (!data) {
-        return localizedHead({
-          locale,
-          basePath: "/grave-stones",
-          title: "جزئیات سنگ مزار",
-          description: PRODUCT_DESCRIPTION,
-          robots: "noindex",
-        });
-      }
+      if (
+        !data ||
+        isUnavailableHeadMatch(ctx.match) ||
+        (ctx.params && ctx.params.slug !== data.model.slug)
+      )
+        return unavailableHead();
       return localizedHead({
         locale,
         basePath: `/grave-stones/${data.model.slug}`,
@@ -394,15 +398,19 @@ export function guideListRouteOptions(locale: Locale) {
 
 export function guideDetailRouteOptions(locale: Locale) {
   return {
-    head: (ctx: { loaderData?: GuideDetailModel }) => {
+    head: (ctx: {
+      loaderData?: GuideDetailModel;
+      params?: { slug: string };
+      match?: HeadMatchState;
+    }) => {
       const guide = ctx.loaderData;
-      if (!guide) {
-        return {
-          meta: [{ name: "robots", content: "noindex" }],
-          links: localizedLinks("/guides", locale, []),
-        };
-      }
-      return localizedHead({
+      if (
+        !guide ||
+        isUnavailableHeadMatch(ctx.match) ||
+        (ctx.params && ctx.params.slug !== guide.slug)
+      )
+        return unavailableHead();
+      const head = localizedHead({
         locale,
         basePath: guide.path,
         title: "راهنماها",
@@ -410,7 +418,13 @@ export function guideDetailRouteOptions(locale: Locale) {
         rawDescription: guide.metaDescription ?? null,
         robots: guide.robots,
         translationLocales: guide.translationLocales,
+        ogType: "article",
       });
+      const schema = guideStructuredData(guide, locale, head.links[0]!.href);
+      return {
+        ...head,
+        scripts: schema ? [{ type: "application/ld+json", children: schema }] : [],
+      };
     },
     loader: async ({ params }: { params: { slug: string } }) => {
       const guide = buildGuideDetailModel(
