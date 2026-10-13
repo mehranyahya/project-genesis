@@ -1,15 +1,15 @@
 import { loadPortfolioItems, loadProducts, loadSite } from "./content/supabase.server";
 import { loadGitPage } from "./content/git.server";
 import { loadGitGuide, loadGitGuides } from "./content/guides.server";
-import type { Guide, Page, PageSlug, PortfolioItem, Product, Site } from "./content/types";
-import {
-  hasLocalizedSite,
-  isIndexableGuide,
-  isIndexablePage,
-  isIndexableProduct,
-} from "./content/indexability";
+import type { Guide, Page, PageSlug } from "./content/types";
+import { hasLocalizedSite, isIndexableGuide, isIndexableProduct } from "./content/indexability";
 import { BASE_STATIC_PATHS, LOCALES, localizeRawPath } from "./i18n/locale";
-import { buildPortfolioModel } from "./portfolio";
+import {
+  buildPublicRouteAvailability,
+  uniqueLocaleGuides,
+  uniqueLocaleProducts,
+  type PublicContentSnapshot,
+} from "./content/public-routes";
 
 /** Utility request flows and the not-found document are deliberately excluded. */
 export const SITEMAP_PAGE_SLUGS = [
@@ -21,13 +21,7 @@ export const SITEMAP_PAGE_SLUGS = [
   "terms",
 ] as const satisfies readonly PageSlug[];
 
-export interface SitemapContent {
-  readonly products: readonly Product[];
-  readonly guides: readonly Guide[];
-  readonly pages: readonly Page[];
-  readonly portfolioItems: readonly PortfolioItem[];
-  readonly sites: readonly Site[];
-}
+export type SitemapContent = PublicContentSnapshot;
 
 type SitemapDependencies = {
   readonly loadContent: () => Promise<SitemapContent>;
@@ -102,35 +96,17 @@ export function buildSitemapXml(origin: string, content: SitemapContent): string
     if (BASE_STATIC_PATHS.includes(basePath)) entries.set(localizeRawPath(basePath, locale), null);
   }
 
+  const available = buildPublicRouteAvailability(content);
+  for (const path of BASE_STATIC_PATHS)
+    for (const locale of available[path].indexableLocales) addStatic(path, locale);
   for (const locale of LOCALES) {
-    const sites = content.sites.filter((site) => (site.locale ?? "fa") === locale);
-    if (sites.length === 1 && hasLocalizedSite(sites[0]!, locale)) addStatic("/", locale);
-    for (const slug of SITEMAP_PAGE_SLUGS) {
-      const pages = content.pages.filter((page) => page.slug === slug && page.locale === locale);
-      if (pages.length === 1 && isIndexablePage(pages[0]!, locale)) addStatic(`/${slug}`, locale);
-    }
-    const portfolio = content.portfolioItems.filter((item) => (item.locale ?? "fa") === locale);
-    if (buildPortfolioModel(portfolio).length > 0) addStatic("/portfolio", locale);
-    // Ambiguous active translations are a repository error, never a sitemap URL.
-    const products = content.products.filter(
-      (product) => product.isActive === true && (product.locale ?? "fa") === locale,
-    );
-    const productCounts = new Map<string, number>();
-    for (const product of products)
-      productCounts.set(product.slug, (productCounts.get(product.slug) ?? 0) + 1);
-    for (const product of products) {
-      if (productCounts.get(product.slug) !== 1 || !isIndexableProduct(product, locale)) continue;
-      addStatic("/grave-stones", locale);
-      // A row timestamp does not cover variant/media/translation revisions.
-      // Omit product lastmod until an aggregate public-page date is available.
+    for (const product of uniqueLocaleProducts(content.products, locale)) {
+      if (!isIndexableProduct(product, locale)) continue;
+      // Product row timestamps do not cover variant/media/translation revisions.
       entries.set(localizeRawPath(`/grave-stones/${product.slug}`, locale), null);
     }
-    const guides = content.guides.filter((guide) => guide.locale === locale);
-    const guideCounts = new Map<string, number>();
-    for (const guide of guides) guideCounts.set(guide.slug, (guideCounts.get(guide.slug) ?? 0) + 1);
-    for (const guide of guides) {
-      if (guideCounts.get(guide.slug) !== 1 || !isIndexableGuide(guide, locale)) continue;
-      addStatic("/guides", locale);
+    for (const guide of uniqueLocaleGuides(content.guides, locale)) {
+      if (!isIndexableGuide(guide, locale)) continue;
       entries.set(
         localizeRawPath(`/guides/${guide.slug}`, locale),
         normalizedLastModified(guide.updatedAt),

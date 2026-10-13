@@ -4,6 +4,7 @@
 
 import type { Locale } from "../i18n/locale";
 import type { StoneworkCategoryId } from "../stonework-category";
+import type { PublicRouteAvailability } from "../i18n/route-availability";
 
 export type PriceType = "fixed" | "estimate" | "review";
 
@@ -102,6 +103,8 @@ export interface Product {
   updatedAt: string;
   /** Derived by the repository from renderable, indexable same-slug counterparts. */
   translationLocales?: Locale[];
+  /** Renderable counterparts, including owner-approved noindex copy. */
+  readableLocales?: Locale[];
 }
 
 export interface PortfolioItem {
@@ -123,6 +126,7 @@ export interface Guide {
   updatedAt: string;
   /** Derived from indexable published counterparts, never assumed from route parity. */
   translationLocales?: Locale[];
+  readableLocales?: Locale[];
 }
 
 /** Listing/home requests never transfer article bodies or unused SEO fields. */
@@ -144,6 +148,11 @@ export interface Site {
   address: string | null;
   workingHours: string | null;
   links: SiteLinks;
+}
+
+export interface SiteRouteContent {
+  readonly site: Site | null;
+  readonly routeAvailability: PublicRouteAvailability;
 }
 
 export interface Page {

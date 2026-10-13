@@ -86,7 +86,8 @@ for (const locale of ["fa", "en"]) {
   assert.equal(html.includes('id="home-guide"'), false);
   const links = pages.homeRouteOptions(locale).head().links;
   assert.equal(links.filter((link) => link.rel === "canonical").length, 1);
-  assert.equal(links.filter((link) => link.rel === "alternate").length, 3);
+  assert.equal(links.filter((link) => link.rel === "alternate").length, 0);
+  assert.ok(pages.homeRouteOptions(locale).head().meta.some((item) => item.name === "robots" && item.content === "noindex,follow"));
 }
 console.log("critical-home-runtime-passed");
 `;

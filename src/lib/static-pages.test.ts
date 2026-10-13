@@ -290,7 +290,7 @@ test('contact route reads getPage("contact") and getSite()', () => {
 
 test('root reads getSite() and getPage("not-found") and hard-codes no 404 copy', () => {
   const root = read("src/routes/__root.tsx");
-  assert.match(root, /getSite\(locale\)/);
+  assert.match(root, /getSite\(locale, \{ includeRouteAvailability: true \}\)/);
   assert.match(root, /getPage\("not-found", locale\)/);
   assert.equal(root.includes("صفحه پیدا نشد"), false);
   assert.equal(root.includes("Page not found"), false);

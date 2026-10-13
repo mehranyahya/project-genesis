@@ -34,7 +34,7 @@ const ALL_CODE = FILES.map((rel) => stripComments(readUnit(rel))).join("\n");
 test("route consumes only the official getProducts() adapter", () => {
   const route = routeSource();
   assert.ok(route.includes('from "@/lib/content/adapters"'));
-  assert.ok(route.includes("await getProducts({ locale })"));
+  assert.ok(route.includes("getProducts({ locale })"));
   assert.equal(routeBody().includes("getProducts()"), false);
   assert.ok(route.includes("buildGraveStoneListModel"));
   for (const name of ["getPortfolioItems", "getGuides", "getSite", "getPage", "getProduct("]) {

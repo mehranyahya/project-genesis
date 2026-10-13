@@ -6,6 +6,9 @@
  * `{name}` placeholders are substituted by `formatMessage`.
  */
 export const EN_MESSAGES = {
+  "ترجمهٔ این صفحه آماده نیست؛ ورود به صفحهٔ اصلی این زبان":
+    "This page is unavailable in this language. Open the homepage.",
+  "ورود به صفحهٔ اصلی این زبان": "Open the homepage in this language",
   منو: "Menu",
   "ساخت سفارشی": "Bespoke stonework",
   "شروع گفت‌وگو": "Start a conversation",

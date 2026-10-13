@@ -15,7 +15,7 @@ import type {
 import { selectPortfolioItems, selectProduct, selectProducts } from "./catalog-queries";
 import { DEFAULT_LOCALE, isLocale, LOCALES, type Locale } from "../i18n/locale";
 import { siteForLocale } from "../i18n/content-gate";
-import { isIndexableProduct } from "./indexability";
+import { isIndexableProduct, isReadableProduct } from "./indexability";
 
 /**
  * Runtime structured content repository.
@@ -48,6 +48,12 @@ export async function loadProduct(
         (item) => item.slug === slug,
       );
       return counterparts.length === 1 && isIndexableProduct(counterparts[0]!, language);
+    }),
+    readableLocales: LOCALES.filter((language) => {
+      const counterparts = selectProducts(GENERATED_PRODUCTS, { locale: language }).filter(
+        (item) => item.slug === slug,
+      );
+      return counterparts.length === 1 && isReadableProduct(counterparts[0]!, language);
     }),
   };
 }

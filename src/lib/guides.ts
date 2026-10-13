@@ -179,6 +179,7 @@ export interface GuideDetailModel {
   metaDescription: string | null;
   robots: string | null;
   translationLocales: Locale[];
+  readableLocales: Locale[];
 }
 
 /** Ordered list model. Entries without a real slug and title are dropped. */
@@ -240,6 +241,9 @@ export function buildGuideDetailModel(
     ),
     translationLocales: LOCALES.filter(
       (language) => guide.translationLocales?.includes(language) ?? language === locale,
+    ),
+    readableLocales: LOCALES.filter(
+      (language) => guide.readableLocales?.includes(language) ?? language === locale,
     ),
   };
 }

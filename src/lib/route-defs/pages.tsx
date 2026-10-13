@@ -13,7 +13,7 @@ import {
 } from "@/lib/content/adapters";
 import { buildGraveStoneListModel } from "@/lib/grave-stone-list";
 import { buildGuideDetailModel, buildGuideListModel } from "@/lib/guides";
-import type { GuideDetailModel, GuideListItem } from "@/lib/guides";
+import type { GuideDetailModel } from "@/lib/guides";
 import { loadHomeViewModel } from "@/lib/home-editorial";
 import { HOME_EDITORIAL_REFERENCES } from "@/lib/home-editorial-config";
 import type { Locale } from "@/lib/i18n/locale";
@@ -35,26 +35,41 @@ import {
 } from "@/lib/static-pages";
 import type { ContactPageModel, StaticPageModel } from "@/lib/static-pages";
 
-import { localizedHead, localizedLinks } from "./shared";
+import {
+  availableStaticHead,
+  loadStaticIndexableLocales,
+  localizedHead,
+  localizedLinks,
+  type AvailabilityHeadContext,
+  type AvailabilityLoaderContext,
+} from "./shared";
 import { HomeRoute } from "./views/home";
 
 /* ------------------------------------------------------------------ home */
 
 export function homeRouteOptions(locale: Locale) {
   return {
-    head: () =>
-      localizedHead({
-        locale,
-        basePath: "/",
-        title: "سنگ طبیعی؛ سنگ مزار، سنگ ساختمانی و ساخت سفارشی",
-        description:
-          "بررسی خدمات سنگ مزار، سنگ ساختمانی و ساخت سفارشی؛ انتخاب مسیر و ثبت درخواست بررسی.",
-      }),
-    loader: () =>
-      loadHomeViewModel(locale, HOME_EDITORIAL_REFERENCES[locale], {
-        getGuides,
-        getPortfolioItems,
-      }),
+    head: (ctx: AvailabilityHeadContext = {}) =>
+      availableStaticHead(
+        {
+          locale,
+          basePath: "/",
+          title: "سنگ طبیعی؛ سنگ مزار، سنگ ساختمانی و ساخت سفارشی",
+          description:
+            "بررسی خدمات سنگ مزار، سنگ ساختمانی و ساخت سفارشی؛ انتخاب مسیر و ثبت درخواست بررسی.",
+        },
+        ctx,
+      ),
+    loader: async (ctx: AvailabilityLoaderContext = {}) => {
+      const [model, indexableLocales] = await Promise.all([
+        loadHomeViewModel(locale, HOME_EDITORIAL_REFERENCES[locale], {
+          getGuides,
+          getPortfolioItems,
+        }),
+        loadStaticIndexableLocales(ctx, "/"),
+      ]);
+      return { ...model, indexableLocales };
+    },
     // Keep the small landing view critical: no extra chunk request before home hydration.
     component: HomeRoute,
   };
@@ -90,14 +105,23 @@ export function stoneworksRouteOptions(locale: Locale) {
 
 export function graveStoneListRouteOptions(locale: Locale) {
   return {
-    head: () =>
-      localizedHead({
-        locale,
-        basePath: "/grave-stones",
-        title: "سنگ مزار",
-        description: "فهرست مدل‌های سنگ مزار",
-      }),
-    loader: async () => buildGraveStoneListModel(await getProducts({ locale })),
+    head: (ctx: AvailabilityHeadContext = {}) =>
+      availableStaticHead(
+        {
+          locale,
+          basePath: "/grave-stones",
+          title: "سنگ مزار",
+          description: "فهرست مدل‌های سنگ مزار",
+        },
+        ctx,
+      ),
+    loader: async (ctx: AvailabilityLoaderContext = {}) => {
+      const [products, indexableLocales] = await Promise.all([
+        getProducts({ locale }),
+        loadStaticIndexableLocales(ctx, "/grave-stones"),
+      ]);
+      return { ...buildGraveStoneListModel(products), indexableLocales };
+    },
     pendingComponent: lazyRouteComponent(
       () => import("@/components/grave-stones/grave-stone-list-states"),
       "GraveStoneListLoading",
@@ -166,6 +190,7 @@ export function productDetailRouteOptions(locale: Locale) {
         model,
         seo: localizedProduct?.seo ?? null,
         translationLocales: localizedProduct?.translationLocales ?? [],
+        readableLocales: localizedProduct?.readableLocales ?? [],
         catalogVersion: catalogVersion ?? null,
         site: siteForLocale(site, locale),
         termsDocument,
@@ -209,6 +234,7 @@ export interface ProductDetailData {
   model: NonNullable<ReturnType<typeof buildProductDetailModel>>;
   seo: SeoMeta | null;
   translationLocales: Locale[];
+  readableLocales: Locale[];
   catalogVersion: Awaited<ReturnType<typeof getCatalogVersion>> | null;
   site: Awaited<ReturnType<typeof getSite>> | null;
   termsDocument: Awaited<ReturnType<typeof getRequestTermsDocument>>;
@@ -218,14 +244,23 @@ export interface ProductDetailData {
 
 export function portfolioRouteOptions(locale: Locale) {
   return {
-    head: () =>
-      localizedHead({
-        locale,
-        basePath: "/portfolio",
-        title: "نمونه‌کارها",
-        description: "نمونه‌کارهای سنگ مزار، سنگ ساختمانی و ساخت سفارشی",
-      }),
-    loader: async () => buildPortfolioModel(await getPortfolioItems({ locale })),
+    head: (ctx: AvailabilityHeadContext = {}) =>
+      availableStaticHead(
+        {
+          locale,
+          basePath: "/portfolio",
+          title: "نمونه‌کارها",
+          description: "نمونه‌کارهای سنگ مزار، سنگ ساختمانی و ساخت سفارشی",
+        },
+        ctx,
+      ),
+    loader: async (ctx: AvailabilityLoaderContext = {}) => {
+      const [items, indexableLocales] = await Promise.all([
+        getPortfolioItems({ locale }),
+        loadStaticIndexableLocales(ctx, "/portfolio"),
+      ]);
+      return { cards: buildPortfolioModel(items), indexableLocales };
+    },
     pendingComponent: lazyRouteComponent(
       () => import("@/components/portfolio/portfolio-states"),
       "PortfolioLoading",
@@ -328,17 +363,26 @@ export function quoteRouteOptions(locale: Locale) {
 
 export function guideListRouteOptions(locale: Locale) {
   return {
-    head: (ctx: { loaderData?: GuideListItem[] }) => {
-      const hasContent = (ctx.loaderData?.length ?? 0) > 0;
-      return localizedHead({
-        locale,
-        basePath: "/guides",
-        title: "راهنماها",
-        robots: hasContent ? null : "noindex",
-      });
+    head: (ctx: AvailabilityHeadContext = {}) => {
+      return availableStaticHead(
+        {
+          locale,
+          basePath: "/guides",
+          title: "راهنماها",
+        },
+        ctx,
+      );
     },
-    loader: async () =>
-      buildGuideListModel(contentListForLocale(await getGuides({ locale }), locale), locale),
+    loader: async (ctx: AvailabilityLoaderContext = {}) => {
+      const [guides, indexableLocales] = await Promise.all([
+        getGuides({ locale }),
+        loadStaticIndexableLocales(ctx, "/guides"),
+      ]);
+      return {
+        items: buildGuideListModel(contentListForLocale(guides, locale), locale),
+        indexableLocales,
+      };
+    },
     pendingComponent: lazyRouteComponent(
       () => import("@/components/guides/guides"),
       "GuidesLoading",

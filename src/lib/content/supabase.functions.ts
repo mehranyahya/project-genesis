@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { validateLocaleQuery } from "./locale-query";
+import { validateSiteQuery } from "./site-query";
+import { loadPublicRouteAvailability } from "./route-availability.server";
 
 import {
   validatePortfolioQuery,
@@ -27,8 +28,13 @@ export const getPortfolioItemsFromServer = createServerFn({ method: "GET" })
   .handler(({ data }) => loadPortfolioItems(data));
 
 export const getSiteFromServer = createServerFn({ method: "GET" })
-  .validator(validateLocaleQuery)
-  .handler(({ data }) => loadSite(data.locale));
+  .validator(validateSiteQuery)
+  .handler(async ({ data }) => {
+    const site = await loadSite(data.locale);
+    return data.includeRouteAvailability
+      ? { site, routeAvailability: loadPublicRouteAvailability() }
+      : site;
+  });
 
 export const getCatalogVersionFromServer = createServerFn({ method: "GET" }).handler(() =>
   loadCatalogVersion(),
