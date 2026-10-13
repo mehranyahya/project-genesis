@@ -83,12 +83,11 @@ export function stoneworkHeadingId(id: StoneworkCategoryId): string {
 export const STONEWORKS_HEADING = "محصولات سنگی خاص";
 
 export const STONEWORKS_INTRO =
-  "همهٔ کارهای این بخش سفارشی ساخته می‌شوند. نوع سنگ، ابعاد، جزئیات تراش، شرایط محل و نصب و شیوهٔ حمل برای هر سفارش جداگانه بررسی می‌شود، بنابراین وضعیت قیمت همهٔ دسته‌ها «نیازمند بررسی» است.";
+  "برای بررسی سفارش ساخت، ایده، ابعاد و شرایط محل را شرح دهید. نوع سنگ، جزئیات ساخت، حمل و نصب در بررسی درخواست مشخص می‌شود.";
 
 export const STONEWORKS_META_TITLE = "محصولات سنگی خاص و سفارش ساخت";
 
-export const STONEWORKS_META_DESCRIPTION =
-  "دسته‌های ساخت سفارشی سنگ: مجسمه، آبنما، عناصر معماری، دکور سنگی و یادمان. ثبت درخواست بررسی ساخت.";
+export const STONEWORKS_META_DESCRIPTION = "بررسی ایده، ابعاد و جزئیات سفارش ساخت محصولات سنگی.";
 
 export const STONEWORKS_CATEGORIES_HEADING = "دسته‌های ساخت";
 

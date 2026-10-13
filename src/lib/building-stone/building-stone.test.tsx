@@ -68,11 +68,14 @@ const filled = (over: Partial<RequestFormValues> = {}): RequestFormValues => ({
 /* Route and page surface                                                      */
 /* -------------------------------------------------------------------------- */
 
-test("1 the route is the real business route and reads only getSite()", () => {
+test("1 the route reads reviewed service text, site and Terms only through official adapters", () => {
   const route = routeSource();
   assert.ok(route.includes('createFileRoute("/building-stone")'));
   assert.ok(route.includes("getSite(locale)"));
-  for (const name of ["getProducts", "getProduct(", "getGuides", "getGuide(", "getPage"]) {
+  assert.ok(routeBody().includes('getPage("building-stone", locale)'));
+  assert.ok(routeBody().includes("getRequestTermsDocument(locale)"));
+  assert.ok(routeBody().includes('contentForLocale(page, locale), "building-stone"'));
+  for (const name of ["getProducts", "getProduct(", "getGuides", "getGuide("]) {
     assert.ok(!routeBody().includes(name), `route must not call ${name}`);
   }
 });

@@ -2,7 +2,7 @@
 
 Runtime reads compiled public Page DTOs, not raw Markdown or frontmatter. Sources
 live in `content/pages/fa/<slug>.md` and `content/pages/en/<slug>.md`. The exact
-allowlist is `home`, `building-stone`, `about`, `contact`, `privacy`, `terms`, and
+allowlist is `home`, `building-stone`, `stoneworks`, `about`, `contact`, `privacy`, `terms`, and
 `not-found`. Missing translations return `null`; there is no language fallback.
 Flat files at `content/pages/<slug>.md` are rejected rather than silently ignored.
 
@@ -41,6 +41,44 @@ artifact. It still does not grant deployment permission or replace Preview tests
 Optional SEO fields require `seoTitle` when present. Canonical paths, if supplied,
 must match the actual slug/language: `/terms`, `/en/terms`, `/` or `/en` for home.
 Limits: description 320, canonical 240, robots 120 characters. No SEO is invented.
+Published English title, body and SEO must contain no Persian/Arabic-script text;
+untranslated public copy fails generation. Drafts may remain unfinished.
+
+## Service pages
+
+`building-stone.md` and `stoneworks.md` provide the approved title, Markdown body
+and SEO for their corresponding service page, in each language. The service
+loaders use `getPage(slug, locale)`; missing translations do not reuse Persian
+copy. Missing service text adds no blank editorial frame and keeps the service
+page `noindex`. The operational request form remains available subject to Terms.
+
+A published `stoneworks.md` also requires `stoneworkCategories`, an explicit
+ordered JSON array of the categories actually approved by the owner. Allowed
+stable IDs are `sculpture_art`, `water_landscape`, `architectural_elements`,
+`furniture_interiors`, and `monuments_bespoke`. Review the labels, descriptions
+and applications for selected categories too; selection confirms an offering,
+not merely the existence of a request enum. Duplicates and unknown IDs fail.
+An empty array offers no category cards and uses the general enquiry path.
+If both translations are published, their IDs and order must match. This field
+cannot be used on another published page. Missing approval does not offer all
+five categories. Category request links retain the existing stable IDs and
+correct-language quote path; no new request or price schema is introduced.
+
+Example draft metadata only (no published service text or offerings):
+
+```md
+---
+slug: "stoneworks"
+locale: "fa"
+status: "draft"
+reviewed: false
+title: "..."
+stoneworkCategories: []
+---
+```
+
+Service photography and portfolio selection are the separate stage 7B packet.
+Do not embed raw source photos, Storage paths or external media URLs in page text.
 
 Sources must be regular single-link UTF-8 files no larger than 256 KiB. Symlinks,
 hardlinks, nested/unknown files and invalid UTF-8 are rejected. README files are

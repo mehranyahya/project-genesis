@@ -7,19 +7,25 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 test("real adapters and page/form route loaders read the requested compiled translation without fallback", async () => {
-  const root = await mkdtemp(join(tmpdir(), "genesis-git-pages-runtime-"));
   const repository = fileURLToPath(new URL("../../../", import.meta.url));
+  const root = await mkdtemp(join(repository, ".git-pages-runtime-"));
   try {
     const source = `
 import assert from "node:assert/strict";
 import { mock } from "bun:test";
+import { createElement } from "react";
+import { renderToString } from "react-dom/server";
+import { createRootRoute, createRoute, createRouter, createMemoryHistory, Outlet, RouterProvider } from "@tanstack/react-router";
+import { LocaleProvider } from ${JSON.stringify(join(repository, "src/lib/i18n/react.tsx"))};
 import { parseGitPage } from ${JSON.stringify(join(repository, "scripts/git-pages.mjs"))};
 import { validatePageLookup } from ${JSON.stringify(join(repository, "src/lib/content/page-lookup.ts"))};
 const pages = { fa: {}, en: {} }, calls = [];
-for (const locale of ["fa", "en"]) for (const slug of ["about", "privacy", "terms", "contact", "not-found"]) {
+for (const locale of ["fa", "en"]) for (const slug of ["about", "privacy", "terms", "contact", "not-found", "building-stone", "stoneworks"]) {
   const raw = ["---", 'slug: "' + slug + '"', 'locale: "' + locale + '"', 'status: "published"', "reviewed: true",
     'title: "' + locale + ' test title"', 'version: "test-v1"', 'seoTitle: "Test title"',
-    'canonicalPath: "' + (locale === "en" ? "/en" : "") + "/" + slug + '"', "---", locale + " synthetic test body"].join("\\n");
+    'canonicalPath: "' + (locale === "en" ? "/en" : "") + "/" + slug + '"',
+    ...(slug === "stoneworks" ? ['stoneworkCategories: ["water_landscape", "sculpture_art"]'] : []),
+    "---", locale + " synthetic test body"].join("\\n");
   pages[locale][slug] = parseGitPage(raw, slug, locale);
 }
 mock.module(${JSON.stringify(join(repository, "src/lib/content/generated-pages.ts"))}, () => ({ GIT_PAGES: pages }));
@@ -57,10 +63,33 @@ for (const locale of ["fa", "en"]) {
     await routes.productDetailRouteOptions(locale).loader({ params: { slug: "test-product" } }),
     await routes.buildingStoneRouteOptions(locale).loader(),
     await routes.quoteRouteOptions(locale).loader({ deps: { reference: null, category: null } })]) assert.deepEqual(data.termsDocument, doc);
+  for (const [slug, factory] of [["building-stone", routes.buildingStoneRouteOptions], ["stoneworks", routes.stoneworksRouteOptions]]) {
+    const options = factory(locale), loaded = await options.loader();
+    const model = slug === "stoneworks" ? loaded : loaded.page;
+    assert.equal(model.title, locale + " test title");
+    const meta = options.head({ loaderData: loaded }).meta;
+    assert.ok(meta.some((item) => item.title === "Test title"));
+    assert.equal(meta.some((item) => item.name === "robots" && item.content === "noindex"), false);
+    await options.component.preload();
+    const rootRoute = createRootRoute({ component: () => createElement(LocaleProvider, { locale }, createElement(Outlet)) });
+    const path = (locale === "en" ? "/en" : "") + "/" + slug;
+    const route = createRoute({ getParentRoute: () => rootRoute, path, ...options });
+    const router = createRouter({ routeTree: rootRoute.addChildren([route]), history: createMemoryHistory({ initialEntries: [path] }), isServer: true });
+    await router.load();
+    assert.equal(router.state.matches.at(-1).status, "success");
+    const html = renderToString(createElement(RouterProvider, { router }));
+    assert.ok(html.includes(locale + " synthetic test body"));
+    assert.equal((html.match(/<h1\\b/g) ?? []).length, 1);
+    if (slug === "stoneworks") assert.ok(html.includes("category=water_landscape"));
+    if (locale === "en") assert.doesNotMatch(html, /[\\u0600-\\u06FF]/);
+  }
 }
 const copy = await loadGitPage("terms", "en");
 copy.seo.title = "Changed test title";
 assert.equal((await loadGitPage("terms", "en")).seo.title, "Test title");
+const categoryCopy = await loadGitPage("stoneworks", "en");
+categoryCopy.stoneworkCategories.reverse();
+assert.deepEqual((await loadGitPage("stoneworks", "en")).stoneworkCategories, ["water_landscape", "sculpture_art"]);
 assert.equal((await adapters.getPage("terms")).locale, "fa");
 assert.notEqual(pages.fa.terms.contentHash, pages.en.terms.contentHash);
 delete pages.en.terms;
@@ -69,6 +98,15 @@ assert.equal(await routes.termsRouteOptions("en").loader(), null);
 assert.ok(await getRequestTermsDocument("fa"));
 assert.equal(await loadGitPage("terms", "ar"), null);
 assert.equal(await loadGitPage("unknown", "fa"), null);
+for (const [slug, factory] of [["building-stone", routes.buildingStoneRouteOptions], ["stoneworks", routes.stoneworksRouteOptions]]) {
+  delete pages.en[slug];
+  const options = factory("en"), data = await options.loader();
+  assert.equal(slug === "stoneworks" ? data : data.page, null);
+  assert.ok(options.head({ loaderData: data }).meta.some((item) => item.name === "robots" && item.content === "noindex"));
+  assert.ok(await factory("fa").loader());
+}
+const portfolioMeta = routes.portfolioRouteOptions("en").head().meta;
+assert.ok(portfolioMeta.some((item) => item.name === "description" && item.content.includes("architectural") && item.content.includes("bespoke")));
 assert.ok(calls.some((call) => call.slug === "terms" && call.locale === "en"));
 console.log("git-page-runtime-fixture-passed");
 `;

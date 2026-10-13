@@ -6,6 +6,6 @@ type BuildingStoneData = Awaited<
 import { useRouteData } from "../shared";
 
 export function BuildingStoneRoute() {
-  const { site, termsDocument } = useRouteData<BuildingStoneData>();
-  return <BuildingStonePage site={site} termsDocument={termsDocument} />;
+  const { page, site, termsDocument } = useRouteData<BuildingStoneData>();
+  return <BuildingStonePage page={page} site={site} termsDocument={termsDocument} />;
 }

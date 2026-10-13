@@ -65,6 +65,15 @@ for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name, "en"))) 
     if (page) pages[locale][match[1]] = page;
   }
 }
+const faStoneworks = pages.fa.stoneworks,
+  enStoneworks = pages.en.stoneworks;
+if (
+  faStoneworks &&
+  enStoneworks &&
+  JSON.stringify(faStoneworks.stoneworkCategories) !==
+    JSON.stringify(enStoneworks.stoneworkCategories)
+)
+  throw new Error("Published Stoneworks translations must share category IDs and order");
 const releases = termsReleases(pages);
 const generated = await format(
   [

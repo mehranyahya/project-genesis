@@ -5,6 +5,7 @@ import type { HomeEditorialReferences } from "./home-editorial";
 import { resolveHomeEditorialSelection } from "./home-editorial";
 import { contentListForLocale } from "./i18n/content-gate";
 import { LOCALES, type Locale } from "./i18n/locale";
+import { buildStoneworksPageModel } from "./service-pages";
 
 export interface DesignReadinessInput {
   readonly generated: boolean;
@@ -80,6 +81,10 @@ export function assessDesignReadiness(input: DesignReadinessInput) {
     check(
       `${locale}.building_stone_page`,
       pages.some((page) => page.slug === "building-stone"),
+    );
+    check(
+      `${locale}.stoneworks_page`,
+      pages.some((page) => buildStoneworksPageModel(page) !== null),
     );
     check(
       `${locale}.privacy_page`,

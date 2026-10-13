@@ -22,6 +22,7 @@ import { buildPortfolioModel } from "@/lib/portfolio";
 import { findPortfolioReference, normalizePortfolioReference } from "@/lib/portfolio-reference";
 import { buildProductDetailModel } from "@/lib/product-detail";
 import { getRequestTermsDocument } from "@/lib/request-terms";
+import { buildStoneworksPageModel } from "@/lib/service-pages";
 import { STONEWORKS_META_DESCRIPTION, STONEWORKS_META_TITLE } from "@/lib/stoneworks";
 import { normalizeStoneworkCategory } from "@/lib/stonework-category";
 import type { StoneworkCategoryId } from "@/lib/stonework-category";
@@ -61,22 +62,24 @@ export function homeRouteOptions(locale: Locale) {
 
 /**
  * One shared factory for `/stoneworks` and `/en/stoneworks`.
- * The page is a pure catalogue of production categories: no adapter data,
- * no media and no amount.
+ * Reviewed public service text and categories come through the existing Page
+ * adapter. It remains a request flow, with no inventory or fixed amount.
  */
 export function stoneworksRouteOptions(locale: Locale) {
   return {
-    head: () =>
+    loader: async () =>
+      buildStoneworksPageModel(contentForLocale(await getPage("stoneworks", locale), locale)),
+    head: (ctx: { loaderData?: ReturnType<typeof buildStoneworksPageModel> } = {}) =>
       localizedHead({
         locale,
         basePath: "/stoneworks",
         title: STONEWORKS_META_TITLE,
         description: STONEWORKS_META_DESCRIPTION,
+        rawTitle: ctx.loaderData?.metaTitle ?? null,
+        rawDescription: ctx.loaderData?.metaDescription ?? null,
+        robots: ctx.loaderData ? ctx.loaderData.robots : "noindex",
       }),
-    component: lazyRouteComponent(
-      () => import("@/components/stoneworks/stoneworks-page"),
-      "StoneworksPage",
-    ),
+    component: lazyRouteComponent(() => import("./views/stoneworks"), "StoneworksRoute"),
   };
 }
 
@@ -212,7 +215,7 @@ export function portfolioRouteOptions(locale: Locale) {
         locale,
         basePath: "/portfolio",
         title: "نمونه‌کارها",
-        description: "نمونه‌کارهای اجراشدهٔ سنگ مزار",
+        description: "نمونه‌کارهای سنگ مزار، سنگ ساختمانی و ساخت سفارشی",
       }),
     loader: async () => buildPortfolioModel(await getPortfolioItems({ locale })),
     pendingComponent: lazyRouteComponent(
@@ -232,18 +235,26 @@ export function portfolioRouteOptions(locale: Locale) {
 export function buildingStoneRouteOptions(locale: Locale) {
   return {
     loader: async () => {
-      const [site, termsDocument] = await Promise.all([
+      const [page, site, termsDocument] = await Promise.all([
+        getPage("building-stone", locale),
         getSite(locale),
         getRequestTermsDocument(locale),
       ]);
-      return { site: siteForLocale(site, locale), termsDocument };
+      return {
+        page: buildStaticPageModel(contentForLocale(page, locale), "building-stone"),
+        site: siteForLocale(site, locale),
+        termsDocument,
+      };
     },
-    head: () =>
+    head: (ctx: { loaderData?: { page: StaticPageModel | null } } = {}) =>
       localizedHead({
         locale,
         basePath: "/building-stone",
         title: "سنگ ساختمانی",
         description: "ثبت درخواست بررسی سنگ ساختمانی",
+        rawTitle: ctx.loaderData?.page?.metaTitle ?? null,
+        rawDescription: ctx.loaderData?.page?.metaDescription ?? null,
+        robots: ctx.loaderData?.page ? ctx.loaderData.page.robots : "noindex",
       }),
     component: lazyRouteComponent(() => import("./views/building-stone"), "BuildingStoneRoute"),
   };

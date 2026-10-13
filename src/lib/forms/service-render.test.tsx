@@ -31,6 +31,9 @@ import { buildGraveStoneListModel } from "@/lib/grave-stone-list";
 import type { GraveStoneListModel } from "@/lib/grave-stone-list";
 import type { ProductDetailModel } from "@/lib/product-detail";
 import { STONEWORK_CATEGORIES } from "@/lib/stoneworks";
+import { buildStoneworksPageModel } from "@/lib/service-pages";
+import { buildStaticPageModel } from "@/lib/static-pages";
+import { parseGitPage } from "../../../scripts/git-pages.mjs";
 import { stoneworkNoteLimit } from "@/lib/stonework-request";
 import { quoteRouteOptions } from "@/lib/route-defs/pages";
 
@@ -228,7 +231,15 @@ test("English product selection and the memorial custom entry stay localized wit
 
 test("each of the five bespoke cards carries its own safe category to the correct-language quote route", () => {
   for (const locale of ["fa", "en"] as const) {
-    const html = renderUi(locale, <StoneworksPage />);
+    const page = buildStoneworksPageModel({
+      locale,
+      slug: "stoneworks",
+      title: "Synthetic test service",
+      body: "Synthetic test introduction.",
+      seo: null,
+      stoneworkCategories: STONEWORK_CATEGORIES.map((category) => category.id),
+    });
+    const html = renderUi(locale, <StoneworksPage page={page} />);
     assert.equal((html.match(/<article\b/g) ?? []).length, 5);
     assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
     for (const category of STONEWORK_CATEGORIES)
@@ -242,6 +253,62 @@ test("each of the five bespoke cards carries its own safe category to the correc
         ),
       );
     if (locale === "en") assert.equal(ARABIC.test(html), false);
+  }
+});
+
+test("a missing reviewed service does not publish five unconfirmed offerings or empty editorial frames", () => {
+  for (const locale of ["fa", "en"] as const) {
+    const html = renderUi(locale, <StoneworksPage page={null} />);
+    assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
+    assert.equal((html.match(/<article\b/g) ?? []).length, 0);
+    assert.equal(html.includes('id="stoneworks-categories"'), false);
+    assert.equal(html.includes("category="), false);
+    assert.equal(html.includes("<img"), false);
+    assert.ok(html.includes('href="' + localizeRawPath("/quote", locale) + '"'));
+    if (locale === "en") assert.doesNotMatch(html, ARABIC);
+  }
+});
+
+test("approved service Markdown renders its own language safely with one H1 and only selected stable category links", () => {
+  for (const locale of ["fa", "en"] as const) {
+    for (const slug of ["building-stone", "stoneworks"] as const) {
+      const raw = [
+        "---",
+        `slug: "${slug}"`,
+        `locale: "${locale}"`,
+        'status: "published"',
+        "reviewed: true",
+        'title: "Synthetic service title"',
+        ...(slug === "stoneworks" ? ['stoneworkCategories: ["water_landscape"]'] : []),
+        "---",
+        "## Synthetic detail",
+        "<script>synthetic-only</script>",
+        "[Unsafe](javascript:alert(1))",
+      ].join("\n");
+      const source = parseGitPage(raw, slug, locale)!;
+      const html = renderUi(
+        locale,
+        slug === "stoneworks" ? (
+          <StoneworksPage page={buildStoneworksPageModel(source)} />
+        ) : (
+          <BuildingStonePage
+            page={buildStaticPageModel(source, slug)}
+            site={null}
+            termsDocument={null}
+          />
+        ),
+      );
+      assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
+      assert.ok(html.includes("Synthetic service title"));
+      assert.ok(html.includes("Synthetic detail"));
+      assert.doesNotMatch(html, /<script|href="javascript:/);
+      if (slug === "stoneworks") {
+        assert.equal((html.match(/<article\b/g) ?? []).length, 1);
+        assert.ok(html.includes("category=water_landscape"));
+        assert.equal(html.includes("category=sculpture_art"), false);
+      }
+      if (locale === "en") assert.doesNotMatch(html, ARABIC);
+    }
   }
 });
 
