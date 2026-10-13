@@ -14,6 +14,8 @@ import {
 import { buildGraveStoneListModel } from "@/lib/grave-stone-list";
 import { buildGuideDetailModel, buildGuideListModel } from "@/lib/guides";
 import { guideStructuredData } from "@/lib/guide-structured-data";
+import { validateProductLookup } from "@/lib/content/catalog-queries";
+import { validateGuideLookup } from "@/lib/content/guide-lookup";
 import type { GuideDetailModel } from "@/lib/guides";
 import { loadHomeViewModel } from "@/lib/home-editorial";
 import { HOME_EDITORIAL_REFERENCES } from "@/lib/home-editorial-config";
@@ -178,6 +180,11 @@ const PRODUCT_DESCRIPTION = "جزئیات مدل سنگ مزار و ثبت در�
 export function productDetailRouteOptions(locale: Locale) {
   return {
     loader: async ({ params }: { params: { slug: string } }) => {
+      try {
+        validateProductLookup({ slug: params.slug, locale });
+      } catch {
+        throw notFound();
+      }
       const [product, catalogVersion, site, termsDocument] = await Promise.all([
         getProduct(params.slug, locale),
         getCatalogVersion(),
@@ -427,6 +434,11 @@ export function guideDetailRouteOptions(locale: Locale) {
       };
     },
     loader: async ({ params }: { params: { slug: string } }) => {
+      try {
+        validateGuideLookup({ slug: params.slug, locale });
+      } catch {
+        throw notFound();
+      }
       const guide = buildGuideDetailModel(
         contentForLocale(await getGuide(params.slug, locale), locale),
         locale,

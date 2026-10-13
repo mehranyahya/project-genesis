@@ -20,8 +20,8 @@ import { attachRouterServerSsrUtils } from "@tanstack/router-core/ssr/server";
 import { defaultRenderHandler } from "@tanstack/react-start-server";
 const nonce = "0123456789abcdef0123456789abcdef";
 const title = "Synthetic </script><script>synthetic</script> & heading";
-function product(locale) {
-  return { locale, slug: "shared-stone", id: "test-product", code: "TEST-1", type: "simple",
+function product(locale, slug = "shared-stone") {
+  return { locale, slug, id: "test-product", code: "TEST-1", type: "simple",
     title: "Synthetic product", summary: null, description: null, isActive: true, isFeatured: false,
     media: [], updatedAt: "2026-10-13T01:02:03Z", seo: null,
     variants: [{ id: "test-variant", stoneCode: "granite", sizeCode: "120x60", priceType: "review",
@@ -32,7 +32,8 @@ function guide(locale, slug = "shared-care", robots = "index,follow") {
     updatedAt: "2026-10-13", seo: { title: locale + " Search title", description: null, robots, canonicalPath: null } };
 }
 mock.module("../src/lib/content/generated-structured-content.ts", () => ({
-  GENERATED_PRODUCTS: [product("fa"),product("en")], GENERATED_PORTFOLIO_ITEMS: [],
+  GENERATED_PRODUCTS: [product("fa"),product("en"), product("fa","ambiguous-stone"),
+    product("fa","ambiguous-stone"), product("en","ambiguous-stone"), product("en","ambiguous-stone")], GENERATED_PORTFOLIO_ITEMS: [],
   GENERATED_BUILDING_MEDIA: { fa: [], en: [] }, GENERATED_SITE: null, GENERATED_SITES: { fa: null, en: null },
   GENERATED_CATALOG_VERSION: null, STRUCTURED_CONTENT_GENERATED: true, STRUCTURED_TRANSLATIONS_SUPPORTED: true,
 }));
@@ -81,12 +82,18 @@ async function http(path) {
 }
 for (const locale of ["fa", "en"]) {
   const prefix = locale === "en" ? "/en" : "";
-  for (const path of ["/grave-stones/missing", "/guides/missing", "/unknown", "/guides/../missing"]) {
+  for (const path of ["/grave-stones/missing", "/guides/missing", "/unknown", "/guides/../missing",
+    "/grave-stones/INVALID", "/guides/INVALID", "/grave-stones/a--b", "/guides/a--b",
+    "/guides/" + "a".repeat(81)]) {
     const {response,html} = await http(prefix + path + "?phone=PrivateSynthetic#PrivateSynthetic");
     assert.equal(response.status, 404, path);
     assert.ok(html.includes('name="robots" content="noindex,follow"'), html);
     assert.doesNotMatch(html, /rel="canonical"|rel="alternate"|application\\/ld\\+json|property="og:url"|PrivateSynthetic/);
   }
+  const upstream = await http(prefix + "/grave-stones/ambiguous-stone");
+  assert.equal(upstream.response.status,500);
+  assert.ok(upstream.html.includes('content="noindex,follow"'));
+  assert.doesNotMatch(upstream.html,/rel="canonical"|application\\/ld\\+json|property="og:url"/);
   const path = prefix + "/guides/shared-care";
   const {response,html} = await http(path);
   assert.equal(response.status,200);
