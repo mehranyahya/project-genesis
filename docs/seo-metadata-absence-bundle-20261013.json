@@ -1,0 +1,295 @@
+{
+  "baselineCommit": "1abe308b410abeeafc8dd0c17b49a9ce48412a46",
+  "scope": "Fresh independent Nitro builds with owned candidate output/cache cleared after changes. Identical approved empty content and pinned dependencies. Python gzip level 9 mtime=0. All public JS/CSS/WOFF2; static initial graph parsed by Bun.Transpiler.scan. Volume is not latency or CWV.",
+  "baseline": {
+    "files": {
+      "assets/building-stone-BoeXqVgV.js": {
+        "bytes": 5174,
+        "gzipBytes": 1941,
+        "sha256": "2b95183a60b565a78310eb23239843cb65c9b52bb49d38c7fb1f9d9eb39cfe8f"
+      },
+      "assets/contact-BVmwawxq.js": {
+        "bytes": 261,
+        "gzipBytes": 210,
+        "sha256": "33a3be35686a4b35a5f8faf773b2fd7e052acff8627871aec3e0edc5e4ed07b5"
+      },
+      "assets/custom-funnel-DqQ2jXV8.js": {
+        "bytes": 12608,
+        "gzipBytes": 3965,
+        "sha256": "0134f02f3c46f27de79faae609f6ba99e20800be7faa3ef1eca90ef03ccde906"
+      },
+      "assets/custom-funnel-states-BkcqUUpX.js": {
+        "bytes": 2432,
+        "gzipBytes": 933,
+        "sha256": "4f63d3bd5389229f720f7a4a1903f339318bc938eaef6766cfb9b47cf9145751"
+      },
+      "assets/grave-stone-list-states-DvYqU0Ti.js": {
+        "bytes": 2959,
+        "gzipBytes": 1109,
+        "sha256": "ae0b2f73e38ba73e614471963a90f73f56272878973a7cd2af3960a68ac217d8"
+      },
+      "assets/grave-stones-CFRRZ072.js": {
+        "bytes": 7374,
+        "gzipBytes": 2156,
+        "sha256": "8f423279cefde674ae2738be55341f9cf4e33ea0160a5cf7363f9e9a050b7a89"
+      },
+      "assets/guide-detail-izdTpZsb.js": {
+        "bytes": 188,
+        "gzipBytes": 172,
+        "sha256": "e945b82327f9882fa5cacbeb16c4b3fe1fa3184373b907789ef8718cd0e0fddc"
+      },
+      "assets/guide-list-DuJqzd2e.js": {
+        "bytes": 185,
+        "gzipBytes": 166,
+        "sha256": "606f36a01793b77b81b98e5fa8919357c071d340789c64b8c017ebb48dc8bd23"
+      },
+      "assets/index-O_vcZxVe.js": {
+        "bytes": 387889,
+        "gzipBytes": 118068,
+        "sha256": "96dac2ed6bd773e2ead932e391c6a542a39350bad8e065caaa090a485b2db219"
+      },
+      "assets/portfolio-DRN0PbaX.js": {
+        "bytes": 2898,
+        "gzipBytes": 1231,
+        "sha256": "6394054dcd9e15e21f89442a7bfc2f4094216b7a4ee05dff33357faea62da97c"
+      },
+      "assets/portfolio-states-2qD3yUz6.js": {
+        "bytes": 2115,
+        "gzipBytes": 936,
+        "sha256": "3fa2b7b91b5bffcffe4b33d66f06affb6bbe7de61b73a04e19de5e9bc9e7dc6b"
+      },
+      "assets/product-CKOdId8A.js": {
+        "bytes": 310,
+        "gzipBytes": 216,
+        "sha256": "156594b2d7bb3c351ed7f2024dae24bc6d74def52906c4c549a7dccb7f29eb2b"
+      },
+      "assets/product-detail-page-Dv9XFfnw.js": {
+        "bytes": 15368,
+        "gzipBytes": 4477,
+        "sha256": "f5360fdb6070ff083dbdfb1a7907f5a4151657daddb0ea8a41e5bc0ac174b50f"
+      },
+      "assets/product-detail-states-CVH4QVDS.js": {
+        "bytes": 1840,
+        "gzipBytes": 795,
+        "sha256": "c92d4a92a48401a5c5ff21d0de1bd26e6d02808c34eba2d5ba307c5ea63a23ee"
+      },
+      "assets/quote-CSLLL4Mz.js": {
+        "bytes": 2287,
+        "gzipBytes": 1008,
+        "sha256": "d4c78b133be8fcf7a697073b91ff36e1ab80f24c26b3b5d7195461cd82dbc588"
+      },
+      "assets/react-D2syIbUz.js": {
+        "bytes": 64598,
+        "gzipBytes": 21611,
+        "sha256": "d069b48680428e4569f8226f9310447e9bf1f0f721b19213e5fd3e3cce2a6679"
+      },
+      "assets/request-form-CA0ZRo4M.js": {
+        "bytes": 25972,
+        "gzipBytes": 8574,
+        "sha256": "6aec8f597b176d24751b3bc94f4dc09fbd4d5436dae6dc5ac371fca3f373c02a"
+      },
+      "assets/service-media-BShiw0Zq.js": {
+        "bytes": 962,
+        "gzipBytes": 587,
+        "sha256": "b719e9dcc8fe94ee26f20aa4e059c707fa561b08199a9b8d3af4ce1c744dd4d0"
+      },
+      "assets/static-CRJBnnO9.js": {
+        "bytes": 210,
+        "gzipBytes": 184,
+        "sha256": "e35ddadb20efb82df43d70eb0e1763c72ff002d62b6c3f72171afadd9ea25208"
+      },
+      "assets/stoneworks-CSMdDdke.js": {
+        "bytes": 3020,
+        "gzipBytes": 1079,
+        "sha256": "502798b1970286c188751246bee7a58d6d035eee3d9236e33ef64a00a39cb2b8"
+      },
+      "assets/styles-CM3LgvSD.css": {
+        "bytes": 26276,
+        "gzipBytes": 6248,
+        "sha256": "c1b2b738354749872047b314dcf54891d0c10fe00dc1d0e49b848e3eb6f20638"
+      },
+      "fonts/beiruti-500.woff2": {
+        "bytes": 54368,
+        "gzipBytes": 54403,
+        "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+      },
+      "fonts/estedad-400-500.woff2": {
+        "bytes": 76604,
+        "gzipBytes": 76647,
+        "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+      }
+    },
+    "totals": {
+      ".js": {
+        "files": 20,
+        "bytes": 538650,
+        "gzipBytes": 169418
+      },
+      ".css": {
+        "files": 1,
+        "bytes": 26276,
+        "gzipBytes": 6248
+      },
+      ".woff2": {
+        "files": 2,
+        "bytes": 130972,
+        "gzipBytes": 131050
+      }
+    },
+    "initialJavaScript": {
+      "files": ["assets/index-O_vcZxVe.js", "assets/react-D2syIbUz.js"],
+      "bytes": 452487,
+      "gzipBytes": 139679
+    }
+  },
+  "candidate": {
+    "files": {
+      "assets/building-stone-Dft9Bur-.js": {
+        "bytes": 5174,
+        "gzipBytes": 1937,
+        "sha256": "c601ba711a027d3896585ae236c32e3476c3f74570e0a4513d134e3ecf387e27"
+      },
+      "assets/contact-DvEHYNgy.js": {
+        "bytes": 261,
+        "gzipBytes": 209,
+        "sha256": "a46854abd2f84b200dddc08d03655fe661f99aad6003a7bf0820981b1cfd7596"
+      },
+      "assets/custom-funnel-Dw1YVUQn.js": {
+        "bytes": 12608,
+        "gzipBytes": 3969,
+        "sha256": "3ad92d78d17c70d7bb293433a17fa6d777524b97a54a129359b2d03f4e09884b"
+      },
+      "assets/custom-funnel-states-BkcqUUpX.js": {
+        "bytes": 2432,
+        "gzipBytes": 933,
+        "sha256": "4f63d3bd5389229f720f7a4a1903f339318bc938eaef6766cfb9b47cf9145751"
+      },
+      "assets/grave-stone-list-states-DvYqU0Ti.js": {
+        "bytes": 2959,
+        "gzipBytes": 1109,
+        "sha256": "ae0b2f73e38ba73e614471963a90f73f56272878973a7cd2af3960a68ac217d8"
+      },
+      "assets/grave-stones-lgrAGwI2.js": {
+        "bytes": 7374,
+        "gzipBytes": 2158,
+        "sha256": "229f1b9744e8d62cde146a7d3c1a3ebf4d0b68a3df9dfdb10a850baea686a1e8"
+      },
+      "assets/guide-detail-ZkhTgE9Z.js": {
+        "bytes": 188,
+        "gzipBytes": 172,
+        "sha256": "312b1e399b6d065abc99a053d3052ae3485ab4e584a2cd5ee3c17e75e13cf4bc"
+      },
+      "assets/guide-list-B98aQvL5.js": {
+        "bytes": 185,
+        "gzipBytes": 167,
+        "sha256": "b4cb2f4764e57e70e0ceb0d1219b8812348431786695dc9e9b3fa0072d5922d4"
+      },
+      "assets/index-BC9dSkoO.js": {
+        "bytes": 389697,
+        "gzipBytes": 118734,
+        "sha256": "d907dfbbb991ed3b07ed4fd6bc73ad6079bd97a7f65835c929d8c18a5bbb481b"
+      },
+      "assets/portfolio-BEZrNhjn.js": {
+        "bytes": 2898,
+        "gzipBytes": 1232,
+        "sha256": "0743449709f3a6d4da3af6929363143a61ba7e2a8a544fcd4c1ad650fad48416"
+      },
+      "assets/portfolio-states-2qD3yUz6.js": {
+        "bytes": 2115,
+        "gzipBytes": 936,
+        "sha256": "3fa2b7b91b5bffcffe4b33d66f06affb6bbe7de61b73a04e19de5e9bc9e7dc6b"
+      },
+      "assets/product-detail-page-9SAMqbeM.js": {
+        "bytes": 15368,
+        "gzipBytes": 4476,
+        "sha256": "3648fa20c33b20f51a8c0a373f7981bbf17b5cdd6164a36b131024676ac799d6"
+      },
+      "assets/product-detail-states-CVH4QVDS.js": {
+        "bytes": 1840,
+        "gzipBytes": 795,
+        "sha256": "c92d4a92a48401a5c5ff21d0de1bd26e6d02808c34eba2d5ba307c5ea63a23ee"
+      },
+      "assets/product-st0sSZzR.js": {
+        "bytes": 310,
+        "gzipBytes": 218,
+        "sha256": "2e2a87620fb113db301352282b36390b1ca2612cc45afba7f3990c7ead5ceacd"
+      },
+      "assets/quote-BFneWtAF.js": {
+        "bytes": 2287,
+        "gzipBytes": 1010,
+        "sha256": "ced70a5dfb6c833724d6c6565119911413ba128f86140e1f9244bfa13cbd324d"
+      },
+      "assets/react-D2syIbUz.js": {
+        "bytes": 64598,
+        "gzipBytes": 21611,
+        "sha256": "d069b48680428e4569f8226f9310447e9bf1f0f721b19213e5fd3e3cce2a6679"
+      },
+      "assets/request-form-GHYY-XMn.js": {
+        "bytes": 25970,
+        "gzipBytes": 8577,
+        "sha256": "0f006d9d7958ba32f536b770d43042b4e9dabbadf6b94ac3efb2f17892e4246a"
+      },
+      "assets/service-media-ydmoYXMH.js": {
+        "bytes": 962,
+        "gzipBytes": 586,
+        "sha256": "141c78bf1339ce8460c4ad316238e9058f9e91817049786a0be2a5720341927f"
+      },
+      "assets/static-w4N--d4q.js": {
+        "bytes": 210,
+        "gzipBytes": 184,
+        "sha256": "14a0ba370e71a67fd98cfc46028e8c693f390dea769eaa7615d9d218bdf82bce"
+      },
+      "assets/stoneworks-BCS59frc.js": {
+        "bytes": 3020,
+        "gzipBytes": 1082,
+        "sha256": "4337e31454b524fe9e6b1ef0acb7aed20a44acb1065fcfa9c5bc3bd82ce5e015"
+      },
+      "assets/styles-CM3LgvSD.css": {
+        "bytes": 26276,
+        "gzipBytes": 6248,
+        "sha256": "c1b2b738354749872047b314dcf54891d0c10fe00dc1d0e49b848e3eb6f20638"
+      },
+      "fonts/beiruti-500.woff2": {
+        "bytes": 54368,
+        "gzipBytes": 54403,
+        "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+      },
+      "fonts/estedad-400-500.woff2": {
+        "bytes": 76604,
+        "gzipBytes": 76647,
+        "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+      }
+    },
+    "totals": {
+      ".js": {
+        "files": 20,
+        "bytes": 540456,
+        "gzipBytes": 170095
+      },
+      ".css": {
+        "files": 1,
+        "bytes": 26276,
+        "gzipBytes": 6248
+      },
+      ".woff2": {
+        "files": 2,
+        "bytes": 130972,
+        "gzipBytes": 131050
+      }
+    },
+    "initialJavaScript": {
+      "files": ["assets/index-BC9dSkoO.js", "assets/react-D2syIbUz.js"],
+      "bytes": 454295,
+      "gzipBytes": 140345
+    }
+  },
+  "delta": {
+    "allJavaScriptRaw": 1806,
+    "allJavaScriptGzip": 677,
+    "initialJavaScriptRaw": 1808,
+    "initialJavaScriptGzip": 666,
+    "cssRaw": 0,
+    "cssGzip": 0,
+    "fontRaw": 0
+  }
+}

@@ -66,6 +66,7 @@ export interface LocalizedHeadInput {
   readonly rawTitle?: string | null;
   readonly rawDescription?: string | null;
   readonly translationLocales?: readonly Locale[];
+  readonly ogType?: "website" | "article";
 }
 
 export function localizedHead({
@@ -77,22 +78,42 @@ export function localizedHead({
   rawTitle,
   rawDescription,
   translationLocales,
+  ogType = "website",
 }: LocalizedHeadInput) {
   const resolvedTitle = rawTitle ?? translate(locale, title);
   const resolvedDescription =
     rawDescription ?? (description ? translate(locale, description) : null);
+  const links = localizedLinks(basePath, locale, allowsIndexing(robots) ? translationLocales : []);
+  const canonical = links[0]!.href;
   return {
     meta: [
       { title: resolvedTitle },
       ...(resolvedDescription ? [{ name: "description", content: resolvedDescription }] : []),
       { property: "og:title", content: resolvedTitle },
+      { property: "og:type", content: ogType },
+      { property: "og:locale", content: locale === "fa" ? "fa_IR" : "en_US" },
+      ...(canonical.startsWith("https:") ? [{ property: "og:url", content: canonical }] : []),
       ...(resolvedDescription
         ? [{ property: "og:description", content: resolvedDescription }]
         : []),
       ...(robots ? [{ name: "robots", content: robots }] : []),
     ],
-    links: localizedLinks(basePath, locale, allowsIndexing(robots) ? translationLocales : []),
+    links,
   };
+}
+
+export interface HeadMatchState {
+  readonly status?: string;
+  readonly globalNotFound?: boolean;
+}
+export function isUnavailableHeadMatch(match: HeadMatchState | undefined): boolean {
+  return (
+    match?.globalNotFound === true || match?.status === "notFound" || match?.status === "error"
+  );
+}
+/** A failed lookup is not a second canonical publication of its catalogue. */
+export function unavailableHead() {
+  return { meta: [{ name: "robots", content: "noindex,follow" }], links: [], scripts: [] };
 }
 
 export interface AvailabilityHeadContext {
