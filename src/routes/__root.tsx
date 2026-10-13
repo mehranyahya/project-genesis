@@ -17,6 +17,7 @@ import { AppShell } from "../components/layout/app-shell";
 import { NotFoundView } from "../components/static-pages/static-pages";
 import { getPage, getSite } from "../lib/content/adapters";
 import type { Page, Site } from "../lib/content/types";
+import type { PublicRouteAvailability } from "../lib/i18n/route-availability";
 import { buildContentSecurityPolicy } from "../lib/csp";
 import { buildNotFoundModel } from "../lib/static-pages";
 import { LocaleProvider } from "../lib/i18n/react";
@@ -25,7 +26,11 @@ import { htmlDir, htmlLang, localeFromPathname, localizeRawPath } from "../lib/i
 import { translatorFor } from "../lib/i18n/messages";
 
 const CSP_MISSING_NONCE_POLICY = "default-src 'none'; frame-ancestors 'none'";
-type RootLoaderData = { site: Site | null; notFoundPage: Page | null };
+type RootLoaderData = {
+  site: Site | null;
+  notFoundPage: Page | null;
+  routeAvailability: PublicRouteAvailability;
+};
 
 function NotFoundComponent() {
   const data = Route.useLoaderData() as
@@ -114,8 +119,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   }),
   loader: async ({ location }: { location: { pathname: string } }): Promise<RootLoaderData> => {
     const locale = localeFromPathname(location.pathname);
-    const [site, notFoundPage] = await Promise.all([getSite(locale), getPage("not-found", locale)]);
-    return { site, notFoundPage };
+    const [content, notFoundPage] = await Promise.all([
+      getSite(locale, { includeRouteAvailability: true }),
+      getPage("not-found", locale),
+    ]);
+    return { ...content, notFoundPage };
   },
 
   shellComponent: RootShell,

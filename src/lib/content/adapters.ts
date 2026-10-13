@@ -18,6 +18,7 @@ import type {
   Product,
   ProductQuery,
   Site,
+  SiteRouteContent,
 } from "./types";
 import {
   getPageFromGitServer,
@@ -59,8 +60,25 @@ export async function getGuide(
   return getGuideFromGitServer({ data: { slug, locale } });
 }
 
-export async function getSite(locale: Locale = DEFAULT_LOCALE): Promise<Site | null> {
-  return getSiteFromServer({ data: { locale } });
+export function getSite(
+  locale: Locale,
+  options: { includeRouteAvailability: true },
+): Promise<SiteRouteContent>;
+export function getSite(locale?: Locale): Promise<Site | null>;
+export async function getSite(
+  locale: Locale = DEFAULT_LOCALE,
+  options?: { includeRouteAvailability: true },
+): Promise<Site | SiteRouteContent | null> {
+  const result = await getSiteFromServer({
+    data: {
+      locale,
+      ...(options?.includeRouteAvailability ? { includeRouteAvailability: true } : {}),
+    },
+  });
+  const wrapped = result !== null && "site" in result;
+  if (!!options?.includeRouteAvailability !== wrapped)
+    throw new Error("Invalid site content response");
+  return result;
 }
 
 export async function getPage(

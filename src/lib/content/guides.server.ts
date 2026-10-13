@@ -2,7 +2,7 @@ import { GIT_GUIDES } from "./generated-guides";
 import type { Guide, GuideSummary, GuideQuery } from "./types";
 import { DEFAULT_LOCALE, isLocale, LOCALES, type Locale } from "../i18n/locale";
 import { isGuideSlug, MAX_GUIDES_PER_LOCALE } from "../../../scripts/guide-policy.mjs";
-import { isIndexableGuide } from "./indexability";
+import { isIndexableGuide, isReadableGuide } from "./indexability";
 
 /** Only generated public DTOs; no filesystem, network or source frontmatter. */
 export async function loadGitGuides(query: GuideQuery = {}): Promise<GuideSummary[]> {
@@ -40,6 +40,12 @@ export async function loadGitGuide(
         (item) => item.slug === slug && item.locale === language,
       );
       return counterparts.length === 1 && isIndexableGuide(counterparts[0]!, language);
+    }),
+    readableLocales: LOCALES.filter((language) => {
+      const counterparts = GIT_GUIDES[language].filter(
+        (item) => item.slug === slug && item.locale === language,
+      );
+      return counterparts.length === 1 && isReadableGuide(counterparts[0]!, language);
     }),
   };
 }

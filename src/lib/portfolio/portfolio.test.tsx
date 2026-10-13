@@ -39,7 +39,7 @@ const SURFACE_CODE = FILES.map((rel) =>
 test("1-4 route consumes only getPortfolioItems() and keeps the existing route id", () => {
   const route = routeSource();
   assert.ok(route.includes('from "@/lib/content/adapters"'));
-  assert.ok(route.includes("await getPortfolioItems({ locale })"));
+  assert.ok(route.includes("getPortfolioItems({ locale })"));
   assert.equal(routeBody().includes("getPortfolioItems()"), false);
   assert.ok(route.includes('createFileRoute("/portfolio")'));
   for (const name of [

@@ -45,7 +45,7 @@ for (const locale of ["fa", "en"]) {
   assert.equal(detail.model.title, locale === "en" ? "Test title" : "عنوان آزمون");
   assert.equal(detail.model.id, "p-1");
   const work = await routes.portfolioRouteOptions(locale).loader();
-  assert.equal(work[0].media.alt, locale);
+  assert.equal(work.cards[0].media.alt, locale);
   const quote = await routes.quoteRouteOptions(locale).loader({ deps: { reference: "pf-1001", category: null } });
   assert.equal(quote.portfolioReferenceId, "pf-1001");
 }

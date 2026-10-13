@@ -3,7 +3,8 @@ import { useRouterState } from "@tanstack/react-router";
 import { canonicalHref } from "@/lib/canonical";
 import { LOCALES, localizeRawPath, type Locale } from "@/lib/i18n/locale";
 import { translate } from "@/lib/i18n/messages";
-import { allowsIndexing } from "@/lib/seo-indexing";
+import { allowsIndexing, restrictRobots } from "@/lib/seo-indexing";
+import { staticRouteAvailability, type LoaderMatch } from "@/lib/i18n/route-availability";
 
 /**
  * Loader data of the currently matched leaf route.
@@ -92,4 +93,36 @@ export function localizedHead({
     ],
     links: localizedLinks(basePath, locale, allowsIndexing(robots) ? translationLocales : []),
   };
+}
+
+export interface AvailabilityHeadContext {
+  readonly matches?: readonly LoaderMatch[];
+  readonly loaderData?: unknown;
+}
+export interface AvailabilityLoaderContext {
+  readonly parentMatchPromise?: Promise<LoaderMatch>;
+}
+/** TanStack's head.matches may still carry pre-load snapshots on first SSR. */
+export async function loadStaticIndexableLocales(
+  ctx: AvailabilityLoaderContext,
+  path: string,
+): Promise<readonly Locale[]> {
+  const parent = await ctx.parentMatchPromise;
+  return staticRouteAvailability(parent ? [parent] : undefined, path).indexableLocales;
+}
+/** Root carries the same small static-route policy that the sitemap consumes. */
+export function availableStaticHead(input: LocalizedHeadInput, ctx: AvailabilityHeadContext) {
+  const data = ctx.loaderData;
+  const locales =
+    data !== null && typeof data === "object" && "indexableLocales" in data
+      ? data.indexableLocales
+      : undefined;
+  const available = Array.isArray(locales)
+    ? LOCALES.filter((locale) => locales.includes(locale))
+    : staticRouteAvailability(ctx.matches, input.basePath).indexableLocales;
+  return localizedHead({
+    ...input,
+    robots: restrictRobots(input.robots, available.includes(input.locale)),
+    translationLocales: available,
+  });
 }

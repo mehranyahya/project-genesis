@@ -3,6 +3,6 @@ import type { GuideListItem } from "@/lib/guides";
 import { useRouteData } from "../shared";
 
 export function GuideListRoute() {
-  const items = useRouteData<GuideListItem[]>();
+  const { items } = useRouteData<{ items: GuideListItem[] }>();
   return <GuidesListPage items={items} />;
 }
