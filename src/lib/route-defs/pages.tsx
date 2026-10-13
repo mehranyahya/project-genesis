@@ -327,7 +327,8 @@ export function guideListRouteOptions(locale: Locale) {
         robots: hasContent ? null : "noindex",
       });
     },
-    loader: async () => buildGuideListModel(contentListForLocale(await getGuides(), locale)),
+    loader: async () =>
+      buildGuideListModel(contentListForLocale(await getGuides({ locale }), locale), locale),
     pendingComponent: lazyRouteComponent(
       () => import("@/components/guides/guides"),
       "GuidesLoading",
@@ -354,12 +355,22 @@ export function guideDetailRouteOptions(locale: Locale) {
           title: "راهنماها",
           rawTitle: guide.metaTitle,
           rawDescription: guide.metaDescription ?? null,
+          robots: guide.robots,
         }),
-        links: localizedLinks(guide.path, locale),
+        links: localizedLinks(guide.path, locale).filter(
+          (link) =>
+            link.rel !== "alternate" ||
+            (link.hrefLang === "x-default"
+              ? guide.translationLocales.includes("fa")
+              : guide.translationLocales.includes(link.hrefLang as Locale)),
+        ),
       };
     },
     loader: async ({ params }: { params: { slug: string } }) => {
-      const guide = buildGuideDetailModel(contentForLocale(await getGuide(params.slug), locale));
+      const guide = buildGuideDetailModel(
+        contentForLocale(await getGuide(params.slug, locale), locale),
+        locale,
+      );
       if (!guide) throw notFound();
       return guide;
     },

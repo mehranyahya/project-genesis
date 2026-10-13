@@ -3,12 +3,13 @@
  * Operational structured content is loaded through TanStack server functions;
  * routes/components never import Supabase or server credentials directly.
  * Long-form pages are read from Git through a separate server-only boundary.
- * Guides remain intentionally blocked until their Git repository is wired.
+ * Guides use reviewed Git artifacts through that same server-only boundary.
  */
 
 import type {
   CatalogVersion,
   Guide,
+  GuideSummary,
   GuideQuery,
   Page,
   PageSlug,
@@ -18,7 +19,11 @@ import type {
   ProductQuery,
   Site,
 } from "./types";
-import { getPageFromGitServer } from "./git.functions";
+import {
+  getPageFromGitServer,
+  getGuideFromGitServer,
+  getGuidesFromGitServer,
+} from "./git.functions";
 import {
   getCatalogVersionFromServer,
   getPortfolioItemsFromServer,
@@ -43,14 +48,15 @@ export async function getPortfolioItems(query?: PortfolioQuery): Promise<Portfol
   return getPortfolioItemsFromServer({ data: query ?? {} });
 }
 
-export async function getGuides(query?: GuideQuery): Promise<Guide[]> {
-  void query;
-  return [];
+export async function getGuides(query?: GuideQuery): Promise<GuideSummary[]> {
+  return getGuidesFromGitServer({ data: query ?? {} });
 }
 
-export async function getGuide(slug: string): Promise<Guide | null> {
-  void slug;
-  return null;
+export async function getGuide(
+  slug: string,
+  locale: Locale = DEFAULT_LOCALE,
+): Promise<Guide | null> {
+  return getGuideFromGitServer({ data: { slug, locale } });
 }
 
 export async function getSite(locale: Locale = DEFAULT_LOCALE): Promise<Site | null> {

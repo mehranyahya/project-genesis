@@ -2,7 +2,7 @@
  * Pure home view-model. Editorial media must be explicitly selected from
  * approved adapter DTOs; a memorial product never becomes the brand hero.
  */
-import type { Guide, Media, PortfolioItem } from "./content/types";
+import type { GuideSummary, Media, PortfolioItem } from "./content/types";
 import { normalizePortfolioReference } from "./portfolio-reference";
 
 export const HOME_SERVICE_KEYS = ["memorial", "architectural", "bespoke"] as const;
@@ -41,7 +41,7 @@ export interface HomeViewModel {
 
 export interface HomeAdapterResult {
   readonly portfolioItems: readonly PortfolioItem[];
-  readonly guides: readonly Guide[];
+  readonly guides: readonly GuideSummary[];
 }
 
 function cleanText(value: string | null | undefined): string | null {

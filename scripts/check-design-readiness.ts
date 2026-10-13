@@ -12,14 +12,16 @@ import {
   loadSite,
 } from "../src/lib/content/supabase.server";
 import { loadGitPage } from "../src/lib/content/git.server";
+import { loadGitGuides } from "../src/lib/content/guides.server";
+import { GUIDE_SOURCES_SUPPORTED } from "../src/lib/content/generated-guides";
 import { PAGE_SLUGS } from "../src/lib/content/types";
 import { CURRENT_TERMS_RELEASES } from "../supabase/functions/_shared/terms-registry.generated";
 import { LOCALES } from "../src/lib/i18n/locale";
 
 // Local sanitized artifacts only; this command has no database or network client.
-// Guides remain blocked. Implemented translation support does not create real content.
+// Implemented sources/translation support does not create real content.
 try {
-  const [catalogVersion, products, portfolioItems, site, pages] = await Promise.all([
+  const [catalogVersion, products, portfolioItems, site, pages, guides] = await Promise.all([
     loadCatalogVersion(),
     Promise.all(LOCALES.map((locale) => loadProducts({ locale }))).then((lists) => lists.flat()),
     Promise.all(LOCALES.map((locale) => loadPortfolioItems({ locale }))).then((lists) =>
@@ -27,6 +29,7 @@ try {
     ),
     loadSite(),
     Promise.all(LOCALES.flatMap((locale) => PAGE_SLUGS.map((slug) => loadGitPage(slug, locale)))),
+    Promise.all(LOCALES.map((locale) => loadGitGuides({ locale }))).then((lists) => lists.flat()),
   ]);
   const report = assessDesignReadiness({
     generated: STRUCTURED_CONTENT_GENERATED,
@@ -35,10 +38,13 @@ try {
     portfolioItems,
     site,
     pages: pages.filter((page) => page !== null),
-    guides: [],
+    guides,
     editorial: HOME_EDITORIAL_REFERENCES,
     termsReleases: CURRENT_TERMS_RELEASES,
-    capabilities: { englishSources: STRUCTURED_TRANSLATIONS_SUPPORTED, guides: false },
+    capabilities: {
+      englishSources: STRUCTURED_TRANSLATIONS_SUPPORTED,
+      guides: GUIDE_SOURCES_SUPPORTED,
+    },
   });
   console.log(JSON.stringify(report, null, 2));
   process.exitCode = report.automaticChecksPass ? 0 : 1;

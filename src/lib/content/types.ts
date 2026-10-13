@@ -119,7 +119,12 @@ export interface Guide {
   body: string;
   seo: SeoMeta | null;
   updatedAt: string;
+  /** Derived from published counterparts, never assumed from route parity. */
+  translationLocales?: Locale[];
 }
+
+/** Listing/home requests never transfer article bodies or unused SEO fields. */
+export type GuideSummary = Pick<Guide, "locale" | "slug" | "title" | "summary" | "updatedAt">;
 
 export interface SiteLinks {
   instagram: string | null;
@@ -184,5 +189,6 @@ export interface PortfolioQuery {
 }
 
 export interface GuideQuery {
+  locale?: Locale;
   limit?: number;
 }

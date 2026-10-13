@@ -195,7 +195,7 @@ export function GuideDetailPage({ guide }: { guide: GuideDetailModel }) {
   const t = useT();
   return (
     <section className={SECTION}>
-      <article className={`${FULL} flex flex-col gap-6`}>
+      <article className={`${FULL} flex w-full max-w-[70ch] min-w-0 flex-col gap-6 break-words`}>
         <header className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold text-text-primary">{guide.title}</h1>
           {guide.updatedAt === null || guide.updatedLabel === null ? null : (
@@ -212,7 +212,7 @@ export function GuideDetailPage({ guide }: { guide: GuideDetailModel }) {
 
         <div className="flex flex-col items-start gap-4 border-t border-border-subtle pt-6">
           <LocaleLink to={PRIMARY_CTA.to} className={ACTION}>
-            {PRIMARY_CTA.label}
+            {t(PRIMARY_CTA.label)}
           </LocaleLink>
           <LocaleLink to="/guides" className={QUIET_LINK}>
             {t(GUIDES_BACK_LABEL)}
