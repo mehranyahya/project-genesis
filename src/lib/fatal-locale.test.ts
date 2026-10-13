@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { test } from "node:test";
@@ -20,14 +19,16 @@ test("fatal pages are static, accessible, language-correct and require no client
   }
 });
 test("actual Worker thrown and normalized H3 failures choose the URL language without echoing error or query values", async () => {
-  const root = await mkdtemp(join(tmpdir(), "genesis-fatal-worker-"));
   const repo = fileURLToPath(new URL("../../", import.meta.url));
+  // Use the same package resolution root as the Worker, including on CI.
+  const root = await mkdtemp(join(repo, ".fatal-worker-test-"));
   try {
     const script = `
 import assert from "node:assert/strict";
 import { mock } from "bun:test";
-let mode = "throw";
+let mode = "throw", calls = 0;
 mock.module("@tanstack/react-start/server-entry", () => ({ default: { fetch: async () => {
+  calls++;
   if (mode === "throw") throw new Error("synthetic-private-error");
   if (mode === "json") return Response.json({ unhandled: true, message: "HTTPError" }, { status: 500 });
   return new Response("synthetic-preserved-html", { status: 503, headers: { "content-type": "text/html" } });
@@ -37,6 +38,7 @@ for (const path of ["/en", "/en/quote", "/enough", "/quote"]) {
   const english = path === "/en" || path.startsWith("/en/");
   for (mode of ["throw", "json"]) {
     const response = await worker.fetch(new Request("https://fixtures.invalid" + path + "?private=synthetic-private-query"), {}, {});
+    assert.ok(calls > 0, "The requested Framework fixture must be active");
     assert.equal(response.status, 500);
     assert.equal(response.headers.get("cache-control"), "no-store, max-age=0");
     assert.equal(response.headers.get("x-robots-tag"), "noindex, nofollow, noarchive");
