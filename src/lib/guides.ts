@@ -6,9 +6,16 @@
  * inert text; raw HTML is never parsed, injected or executed.
  */
 
-import type { Guide } from "./content/types";
+import type { Guide, GuideSummary } from "./content/types";
+import { DEFAULT_LOCALE, LOCALES, type Locale } from "./i18n/locale";
+import { isGuideSlug } from "../../scripts/guide-policy.mjs";
+import { isSafeGuideHref } from "../../scripts/guide-links.mjs";
+export { isSafeGuideHref } from "../../scripts/guide-links.mjs";
 
-const dateFormatter = new Intl.DateTimeFormat("fa-IR", { dateStyle: "long", timeZone: "UTC" });
+const dateFormatters = {
+  fa: new Intl.DateTimeFormat("fa-IR", { dateStyle: "long", timeZone: "UTC" }),
+  en: new Intl.DateTimeFormat("en-GB", { dateStyle: "long", timeZone: "UTC" }),
+};
 
 /** Trims a possible string; empty or non-string becomes null. */
 function cleanText(value: unknown): string | null {
@@ -22,12 +29,12 @@ export function guidePath(slug: string): string {
   return `/guides/${slug}`;
 }
 
-function formatUpdatedAt(value: unknown): string | null {
+function formatUpdatedAt(value: unknown, locale: Locale): string | null {
   const raw = cleanText(value);
   if (raw === null) return null;
   const parsed = new Date(raw);
   if (Number.isNaN(parsed.getTime())) return null;
-  return dateFormatter.format(parsed);
+  return dateFormatters[locale].format(parsed);
 }
 
 /* ------------------------------------------------------------------ *
@@ -43,17 +50,6 @@ export type GuideBlock =
   | { kind: "list"; ordered: boolean; items: GuideInline[][] };
 
 const LINK_PATTERN = /\[([^\]\n]*)\]\(([^)\s]*)\)/g;
-
-/** Only same-origin absolute paths and explicit https URLs may become links. */
-export function isSafeGuideHref(value: unknown): boolean {
-  if (typeof value !== "string") return false;
-  const href = value.trim();
-  if (href === "" || href !== value.trim() || /[\s<>"']/.test(href)) return false;
-  for (const char of href) if (char.charCodeAt(0) < 0x20) return false;
-  if (href.startsWith("//")) return false;
-  if (href.startsWith("/")) return true;
-  return /^https:\/\/[^/\s]+/i.test(href);
-}
 
 /** Splits one line of text into inert text and safe links. Raw HTML stays text. */
 function parseInline(line: string): GuideInline[] {
@@ -180,10 +176,15 @@ export interface GuideDetailModel {
   blocks: GuideBlock[];
   metaTitle: string;
   metaDescription: string | null;
+  robots: string | null;
+  translationLocales: Locale[];
 }
 
 /** Ordered list model. Entries without a real slug and title are dropped. */
-export function buildGuideListModel(guides: readonly Guide[] | null | undefined): GuideListItem[] {
+export function buildGuideListModel(
+  guides: readonly GuideSummary[] | null | undefined,
+  locale: Locale = DEFAULT_LOCALE,
+): GuideListItem[] {
   const items: GuideListItem[] = [];
   const seen = new Set<string>();
 
@@ -191,7 +192,7 @@ export function buildGuideListModel(guides: readonly Guide[] | null | undefined)
     if (!guide) continue;
     const slug = cleanText(guide.slug);
     const title = cleanText(guide.title);
-    if (slug === null || title === null) continue;
+    if (!isGuideSlug(slug) || title === null) continue;
     if (seen.has(slug)) continue;
     seen.add(slug);
 
@@ -202,7 +203,7 @@ export function buildGuideListModel(guides: readonly Guide[] | null | undefined)
       title,
       summary: cleanText(guide.summary),
       updatedAt,
-      updatedLabel: formatUpdatedAt(updatedAt),
+      updatedLabel: formatUpdatedAt(updatedAt, locale),
     });
   }
 
@@ -210,11 +211,14 @@ export function buildGuideListModel(guides: readonly Guide[] | null | undefined)
 }
 
 /** Detail model. Returns null when the adapter has no usable guide. */
-export function buildGuideDetailModel(guide: Guide | null | undefined): GuideDetailModel | null {
+export function buildGuideDetailModel(
+  guide: Guide | null | undefined,
+  locale: Locale = DEFAULT_LOCALE,
+): GuideDetailModel | null {
   if (!guide) return null;
   const slug = cleanText(guide.slug);
   const title = cleanText(guide.title);
-  if (slug === null || title === null) return null;
+  if (!isGuideSlug(slug) || title === null) return null;
 
   const updatedAt = cleanText(guide.updatedAt);
   const summary = cleanText(guide.summary);
@@ -225,9 +229,13 @@ export function buildGuideDetailModel(guide: Guide | null | undefined): GuideDet
     title,
     summary,
     updatedAt,
-    updatedLabel: formatUpdatedAt(updatedAt),
+    updatedLabel: formatUpdatedAt(updatedAt, locale),
     blocks: parseGuideMarkdown(guide.body),
     metaTitle: cleanText(guide.seo?.title) ?? title,
     metaDescription: cleanText(guide.seo?.description) ?? summary,
+    robots: cleanText(guide.seo?.robots),
+    translationLocales: LOCALES.filter(
+      (language) => language === locale || guide.translationLocales?.includes(language),
+    ),
   };
 }

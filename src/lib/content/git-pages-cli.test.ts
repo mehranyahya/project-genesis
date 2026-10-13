@@ -31,7 +31,13 @@ async function fixture() {
     "supabase/functions/_shared",
   ])
     await mkdir(join(root, directory), { recursive: true });
-  for (const file of ["generate-content-pages.mjs", "git-pages.mjs"])
+  for (const file of [
+    "generate-content-pages.mjs",
+    "git-pages.mjs",
+    "git-guides.mjs",
+    "guide-links.mjs",
+    "guide-policy.mjs",
+  ])
     await copyFile(
       new URL(`../../../scripts/${file}`, import.meta.url),
       join(root, "scripts", file),

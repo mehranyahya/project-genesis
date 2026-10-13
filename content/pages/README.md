@@ -129,6 +129,11 @@ are blocked by the form/Edge comparison; they do not silently accept older terms
 `CURRENT_TERMS_RELEASE` is a Persian compatibility alias; active validation uses
 `CURRENT_TERMS_RELEASES` and accepts only each language's current approved hash.
 
+The same command also validates optional [guide sources](../guides/README.md) and
+generates/checks `generated-guides.ts`. An invalid guide stops generation before
+any prior page, Terms or guide artifact is overwritten. Missing articles are
+optional and do not remove the required bilingual legal/structured release gate.
+
 ## Deterministic Terms hash
 
 Build normalizes CRLF/CR to LF and trims outer whitespace. Let `base` be

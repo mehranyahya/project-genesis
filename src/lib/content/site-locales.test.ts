@@ -49,7 +49,8 @@ mock.module(${JSON.stringify(join(repo, "src/lib/content/supabase.functions.ts")
   getProductsFromServer: async ({ data }) => repository.loadProducts(data),
   getPortfolioItemsFromServer: async () => [], getCatalogVersionFromServer: async () => null,
 }));
-mock.module(${JSON.stringify(join(repo, "src/lib/content/git.functions.ts"))}, () => ({ getPageFromGitServer: async () => null }));
+mock.module(${JSON.stringify(join(repo, "src/lib/content/git.functions.ts"))}, () => ({ getPageFromGitServer: async () => null,
+  getGuideFromGitServer: async () => null, getGuidesFromGitServer: async () => [] }));
 globalThis.fetch = async () => { throw new Error("No network in site fixture"); };
 const adapters = await import(${JSON.stringify(join(repo, "src/lib/content/adapters.ts"))});
 const routes = await import(${JSON.stringify(join(repo, "src/lib/route-defs/pages.tsx"))});

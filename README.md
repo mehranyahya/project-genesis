@@ -45,7 +45,9 @@ It is intentionally **not** a payment-first storefront. Visitors explore materia
 
 ## Content architecture
 
-Git-managed pages live under `content/pages/` and are generated with:
+Git-managed pages live under `content/pages/`. Optional reviewed bilingual articles
+live under [`content/guides/`](content/guides/README.md); lists/home fetch summaries
+only, and details fetch full articles. Both sources are generated with:
 
 ```sh
 bun run content:generate

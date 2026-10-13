@@ -42,7 +42,8 @@ for (const locale of ["fa", "en"]) for (const slug of ["about", "privacy", "term
 mock.module(${JSON.stringify(join(repository, "src/lib/content/generated-pages.ts"))}, () => ({ GIT_PAGES: pages }));
 const { loadGitPage } = await import(${JSON.stringify(join(repository, "src/lib/content/git.server.ts"))});
 const { loadPortfolioItems } = await import(${JSON.stringify(join(repository, "src/lib/content/supabase.server.ts"))});
-mock.module(${JSON.stringify(join(repository, "src/lib/content/git.functions.ts"))}, () => ({ getPageFromGitServer: async (input) => {
+mock.module(${JSON.stringify(join(repository, "src/lib/content/git.functions.ts"))}, () => ({
+  getGuideFromGitServer: async () => null, getGuidesFromGitServer: async () => [], getPageFromGitServer: async (input) => {
   const lookup = validatePageLookup(input.data);
   assert.ok(input.data.locale === "fa" || input.data.locale === "en");
   calls.push(lookup);

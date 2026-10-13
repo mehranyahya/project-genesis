@@ -185,3 +185,46 @@ test("13 detail meta uses only real seo or real guide data", () => {
   assert.equal(withSeo?.metaTitle, "عنوان سئو");
   assert.equal(withSeo?.metaDescription, "توضیح سئو");
 });
+
+test("guide dates use the active language in UTC, including metadata robots and real counterparts", () => {
+  const input = guide({
+    locale: "en",
+    translationLocales: ["fa", "en"],
+    seo: {
+      title: "Real title",
+      description: "Real description",
+      canonicalPath: "/en/guides/stone-care",
+      robots: "noindex,follow",
+    },
+  });
+  assert.equal(buildGuideListModel([input], "en")[0]?.updatedLabel, "5 January 2026");
+  const detail = buildGuideDetailModel(input, "en")!;
+  assert.equal(detail.updatedLabel, "5 January 2026");
+  assert.equal(detail.robots, "noindex,follow");
+  assert.deepEqual(detail.translationLocales, ["fa", "en"]);
+  assert.deepEqual(buildGuideDetailModel(guide(), "en")?.translationLocales, ["en"]);
+});
+test("unsafe slash variants, backslashes, malformed HTTPS and URL credentials remain inert", () => {
+  for (const href of [
+    "/\\evil.example",
+    "/%2fevil.example",
+    "/%5cevil.example",
+    "/%00x",
+    "/bad%zz",
+    "https://",
+    "https://user:password@example.com",
+    "https://example.com/\\x",
+    " https://example.com",
+  ])
+    assert.equal(isSafeGuideHref(href), false, href);
+  assert.equal(
+    links(
+      parseGuideMarkdown("[Test](/%2fevil.example) and [Test](https://user:password@example.com)"),
+    ).length,
+    0,
+  );
+});
+test("unusable slugs never become model paths", () => {
+  assert.deepEqual(buildGuideListModel([guide({ slug: "../bad" }), guide({ slug: "a--b" })]), []);
+  assert.equal(buildGuideDetailModel(guide({ slug: "../bad" })), null);
+});

@@ -1,6 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import * as adapters from "./adapters";
 import { CATALOG_VERSION_PATTERN, PAGE_SLUGS, isCatalogVersion } from "./types";
@@ -158,10 +162,45 @@ test("all eight content adapters exist", () => {
   }
 });
 
-test("guide adapters remain content-blocked until their Git repository is wired", async () => {
-  assert.deepEqual(await adapters.getGuides(), []);
-  assert.deepEqual(await adapters.getGuides({ limit: 3 }), []);
-  assert.equal(await adapters.getGuide("any"), null);
+test("wired guide adapters preserve empty output when no reviewed articles are committed", async () => {
+  // Source server functions require the Start transform/request context. Keep
+  // the real adapters + validators + repository, isolate only their transport.
+  const repository = fileURLToPath(new URL("../../../", import.meta.url));
+  const root = await mkdtemp(join(repository, ".git-guides-empty-"));
+  try {
+    const script = `
+import assert from "node:assert/strict";
+import { mock } from "bun:test";
+import { loadGitGuide, loadGitGuides } from ${JSON.stringify(join(repository, "src/lib/content/guides.server.ts"))};
+import { validateGuideLookup, validateGuideQuery } from ${JSON.stringify(join(repository, "src/lib/content/guide-lookup.ts"))};
+mock.module(${JSON.stringify(join(repository, "src/lib/content/git.functions.ts"))}, () => ({
+  getPageFromGitServer: async () => null,
+  getGuidesFromGitServer: async ({ data }) => loadGitGuides(validateGuideQuery(data)),
+  getGuideFromGitServer: async ({ data }) => { const lookup = validateGuideLookup(data); return loadGitGuide(lookup.slug, lookup.locale); },
+}));
+globalThis.fetch = async () => { throw new Error("No network in empty guide fixture"); };
+const adapters = await import(${JSON.stringify(join(repository, "src/lib/content/adapters.ts"))});
+assert.deepEqual(await adapters.getGuides(), []);
+assert.deepEqual(await adapters.getGuides({ limit: 3 }), []);
+assert.equal(await adapters.getGuide("any"), null);
+assert.deepEqual(await adapters.getGuides({ locale: "en", limit: 1 }), []);
+assert.equal(await adapters.getGuide("any", "en"), null);
+console.log("empty-guide-adapters-passed");
+`;
+    const file = join(root, "empty-fixture.ts");
+    await writeFile(file, script);
+    const result = spawnSync(process.execPath, [file], {
+      cwd: repository,
+      encoding: "utf8",
+      timeout: 15_000,
+      env: { PATH: process.env["PATH"] ?? "" },
+    });
+    assert.equal(result.error, undefined);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), "empty-guide-adapters-passed");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("structured runtime reads only the sanitized generated artifact", () => {
@@ -192,6 +231,8 @@ test("content adapters cross only approved TanStack server-function boundaries",
   assert.match(source, /getSiteFromServer/);
   assert.match(source, /getCatalogVersionFromServer/);
   assert.match(source, /getPageFromGitServer/);
+  assert.match(source, /getGuidesFromGitServer/);
+  assert.match(source, /getGuideFromGitServer/);
   assert.equal(
     /supabase\.server|git\.server|@supabase|\.from\(|\/rest\/v1|service.role|service_role|node:fs|content\//i.test(
       source,

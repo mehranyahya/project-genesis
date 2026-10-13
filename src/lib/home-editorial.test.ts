@@ -43,7 +43,10 @@ test("both unconfigured homes skip the work adapter while retaining locale-filte
   for (const locale of ["fa", "en"] as const) {
     let calls = 0;
     const model = await loadHomeViewModel(locale, HOME_EDITORIAL_REFERENCES[locale], {
-      getGuides: async () => [guide("fa"), guide("en")],
+      getGuides: async (query) => {
+        assert.deepEqual(query, { locale, limit: 1 });
+        return [guide("fa"), guide("en")];
+      },
       getPortfolioItems: async () => {
         calls++;
         return [work("pf-1001")];

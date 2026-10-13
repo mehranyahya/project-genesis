@@ -1,4 +1,4 @@
-import type { Guide, Page, PortfolioItem, Product, Site } from "./content/types";
+import type { GuideSummary, Page, PortfolioItem, Product, Site } from "./content/types";
 import { isCatalogVersion } from "./content/types";
 import { buildHomeViewModel, HOME_SERVICE_KEYS } from "./home";
 import type { HomeEditorialReferences } from "./home-editorial";
@@ -14,7 +14,7 @@ export interface DesignReadinessInput {
   readonly portfolioItems: readonly PortfolioItem[];
   readonly site: Site | null;
   readonly pages: readonly Page[];
-  readonly guides: readonly Guide[];
+  readonly guides: readonly GuideSummary[];
   readonly editorial: Readonly<Record<Locale, HomeEditorialReferences>>;
   readonly termsReleases: Readonly<
     Record<Locale, { readonly version: string; readonly currentContentHash: string } | null>
