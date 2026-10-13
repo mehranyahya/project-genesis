@@ -14,6 +14,8 @@ async function runOfflineGenerator(fetchSource: string, image?: Buffer) {
     await mkdir(join(root, "src/lib/content"), { recursive: true });
     for (const name of [
       "generate-structured-content.mjs",
+      "structured-translations.mjs",
+      "install-structured-build.mjs",
       "media-geometry.mjs",
       "bounded-response.mjs",
       "data-api-pagination.mjs",
@@ -72,6 +74,8 @@ test("structured generator still runs directly with isolated offline build data"
     await mkdir(join(root, "src/lib/content"), { recursive: true });
     for (const name of [
       "generate-structured-content.mjs",
+      "structured-translations.mjs",
+      "install-structured-build.mjs",
       "media-geometry.mjs",
       "bounded-response.mjs",
       "data-api-pagination.mjs",
@@ -306,6 +310,8 @@ test("offline CLI rejects an unsafe operational link without printing its privat
     await mkdir(join(root, "src/lib/content"), { recursive: true });
     for (const name of [
       "generate-structured-content.mjs",
+      "structured-translations.mjs",
+      "install-structured-build.mjs",
       "media-geometry.mjs",
       "bounded-response.mjs",
       "data-api-pagination.mjs",

@@ -110,7 +110,7 @@ export function customFunnelRouteOptions(locale: Locale) {
       const [products, catalogVersion, site, termsDocument] = await Promise.all([
         getProducts({ type: "simple", locale }),
         getCatalogVersion(),
-        getSite(),
+        getSite(locale),
         getRequestTermsDocument(locale),
       ]);
       return {
@@ -147,7 +147,7 @@ export function productDetailRouteOptions(locale: Locale) {
       const [product, catalogVersion, site, termsDocument] = await Promise.all([
         getProduct(params.slug, locale),
         getCatalogVersion(),
-        getSite(),
+        getSite(locale),
         getRequestTermsDocument(locale),
       ]);
 
@@ -232,7 +232,10 @@ export function portfolioRouteOptions(locale: Locale) {
 export function buildingStoneRouteOptions(locale: Locale) {
   return {
     loader: async () => {
-      const [site, termsDocument] = await Promise.all([getSite(), getRequestTermsDocument(locale)]);
+      const [site, termsDocument] = await Promise.all([
+        getSite(locale),
+        getRequestTermsDocument(locale),
+      ]);
       return { site: siteForLocale(site, locale), termsDocument };
     },
     head: () =>
@@ -276,7 +279,7 @@ export function quoteRouteOptions(locale: Locale) {
     }) => {
       const [portfolioItems, site, termsDocument] = await Promise.all([
         deps.reference ? getPortfolioItems({ locale }) : Promise.resolve([]),
-        getSite(),
+        getSite(locale),
         getRequestTermsDocument(locale),
       ]);
       return {
@@ -431,7 +434,7 @@ export function contactRouteOptions(locale: Locale) {
     head: (ctx: { loaderData?: ContactPageModel }) =>
       staticPageHead(locale, "/contact", ctx.loaderData?.page ?? null, "تماس"),
     loader: async (): Promise<ContactPageModel> => {
-      const [page, site] = await Promise.all([getPage("contact", locale), getSite()]);
+      const [page, site] = await Promise.all([getPage("contact", locale), getSite(locale)]);
       return buildContactPageModel(contentForLocale(page, locale), siteForLocale(site, locale));
     },
     component: lazyRouteComponent(() => import("./views/contact"), "ContactRoute"),

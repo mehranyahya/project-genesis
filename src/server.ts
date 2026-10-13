@@ -4,6 +4,7 @@ import { isIP } from "node:net";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { localeFromPathname } from "./lib/i18n/locale";
 import { handleSignedSubmitGateway } from "./lib/gateway-submit.server";
 import { handleSitemapRequest } from "./lib/sitemap.server";
 import { runSignedTelegramRecovery } from "./lib/telegram-recovery-gateway.server";
@@ -42,7 +43,10 @@ async function getServerEntry(): Promise<ServerEntry> {
 
 // h3 swallows in-handler throws into a normal 500 Response with body
 // {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
-async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
+async function normalizeCatastrophicSsrResponse(
+  response: Response,
+  request: Request,
+): Promise<Response> {
   if (response.status < 500) return response;
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) return response;
@@ -51,7 +55,7 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   if (!isH3SwallowedErrorBody(body)) return response;
 
   console.error(consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`));
-  return new Response(renderErrorPage(), {
+  return new Response(renderErrorPage(localeFromPathname(new URL(request.url).pathname)), {
     status: 500,
     headers: FATAL_HTML_HEADERS,
   });
@@ -218,12 +222,12 @@ export default {
 
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      const normalized = await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response, request);
       return applyDeploymentIndexingHeaders(normalized, env);
     } catch (error) {
       console.error(error);
       return applyDeploymentIndexingHeaders(
-        new Response(renderErrorPage(), {
+        new Response(renderErrorPage(localeFromPathname(new URL(request.url).pathname)), {
           status: 500,
           headers: FATAL_HTML_HEADERS,
         }),

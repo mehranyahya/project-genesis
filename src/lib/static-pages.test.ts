@@ -281,7 +281,7 @@ test('contact route reads getPage("contact") and getSite()', () => {
   const factory = read("src/lib/route-defs/pages.tsx");
   const contactSection = factory.slice(factory.indexOf("export function contactRouteOptions("));
   assert.match(contactSection, /getPage\("contact", locale\)/);
-  assert.match(contactSection, /getSite\(\)/);
+  assert.match(contactSection, /getSite\(locale\)/);
   for (const rel of ["src/routes/contact.tsx", "src/routes/en/contact.tsx"]) {
     assert.match(read(rel), /contactRouteOptions\("(fa|en)"\)/, rel);
   }
@@ -289,7 +289,7 @@ test('contact route reads getPage("contact") and getSite()', () => {
 
 test('root reads getSite() and getPage("not-found") and hard-codes no 404 copy', () => {
   const root = read("src/routes/__root.tsx");
-  assert.match(root, /getSite\(\)/);
+  assert.match(root, /getSite\(locale\)/);
   assert.match(root, /getPage\("not-found", locale\)/);
   assert.equal(root.includes("صفحه پیدا نشد"), false);
   assert.equal(root.includes("Page not found"), false);

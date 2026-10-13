@@ -1,0 +1,377 @@
+{
+  "baselineCommit": "fad80aaa2b6716d7f841a1997f3da4ac3ed0af34",
+  "proposedBranch": "content/structured-translations-phase6c-20261013",
+  "date": "2026-10-13",
+  "scope": "All emitted public JS/CSS/WOFF2; not first-load network transfer or browser performance",
+  "method": "Fresh public builds, identical frozen dependencies and empty approved content. Python gzip level9, mtime0.",
+  "builds": {
+    "baseline": {
+      "files": [
+        {
+          "path": "assets/building-stone-Xk2ax7gy.js",
+          "kind": "js",
+          "bytes": 4949,
+          "gzipBytes": 1846,
+          "sha256": "664dda0d396261565cc3cad165b47644a3f17905810e8a1fed44e6e69422083b"
+        },
+        {
+          "path": "assets/contact-lCf_eGMf.js",
+          "kind": "js",
+          "bytes": 260,
+          "gzipBytes": 211,
+          "sha256": "7b2927c9c7ebfba676173049209000eebd060e5451c3bbecf18715f314c67dcb"
+        },
+        {
+          "path": "assets/custom-funnel-C6VqmU4R.js",
+          "kind": "js",
+          "bytes": 12603,
+          "gzipBytes": 3973,
+          "sha256": "dba7e2ae8fee9a0aedf4857f869f98d429163729380b992dfaae32ae437db5f4"
+        },
+        {
+          "path": "assets/custom-funnel-states-MwaloVLM.js",
+          "kind": "js",
+          "bytes": 2432,
+          "gzipBytes": 932,
+          "sha256": "417a82a7f373270ac1ff8f7af1e29ab9a5428a6c23210c539737d71c56670bd3"
+        },
+        {
+          "path": "assets/grave-stone-list-states-C3cLvz95.js",
+          "kind": "js",
+          "bytes": 2959,
+          "gzipBytes": 1108,
+          "sha256": "92a41813109dc8fc8f5534abc0c7176f3287fb4e29850beb4342e446b5382209"
+        },
+        {
+          "path": "assets/grave-stones-Cas2hT0l.js",
+          "kind": "js",
+          "bytes": 7369,
+          "gzipBytes": 2152,
+          "sha256": "e75d25a972eac610e828662346427427e449ba8bb1d12aebfc83ddd74a73e7e7"
+        },
+        {
+          "path": "assets/guide-detail-CXHwRmE-.js",
+          "kind": "js",
+          "bytes": 183,
+          "gzipBytes": 168,
+          "sha256": "efed8195ffe5a4d5bf819c2b90f60ea411436231e697c7915dc8eeb5ae747f29"
+        },
+        {
+          "path": "assets/guide-list-iGKYHNpc.js",
+          "kind": "js",
+          "bytes": 170,
+          "gzipBytes": 160,
+          "sha256": "ff7c29db822d19a5fd36a7b9e20cc380c3b61d64ecc9fa894500635268453dc4"
+        },
+        {
+          "path": "assets/index-zSgL0j1W.js",
+          "kind": "js",
+          "bytes": 383647,
+          "gzipBytes": 116813,
+          "sha256": "1d3811791628656bcc9289c8f63ee6ea21729bf74cc4ccb081469c8700e9753b"
+        },
+        {
+          "path": "assets/portfolio-5VnLZaYL.js",
+          "kind": "js",
+          "bytes": 2883,
+          "gzipBytes": 1229,
+          "sha256": "618ba36297cd71392fdf0b401aaf57ca6f4618de7b543a308f1a41b010fe31e2"
+        },
+        {
+          "path": "assets/portfolio-states-Dxw2r1LQ.js",
+          "kind": "js",
+          "bytes": 2115,
+          "gzipBytes": 936,
+          "sha256": "b0ea24ba5e491642f0b0a2599e12a25f3af101b165d4ab97343a2fdb250be9a8"
+        },
+        {
+          "path": "assets/product-DhAVwAZE.js",
+          "kind": "js",
+          "bytes": 310,
+          "gzipBytes": 219,
+          "sha256": "c4c9cc468895b682c659f4f483affa0902a64e08c71873ae1ee988e87c59145c"
+        },
+        {
+          "path": "assets/product-detail-page-D5XHZPhC.js",
+          "kind": "js",
+          "bytes": 15368,
+          "gzipBytes": 4480,
+          "sha256": "7adf0be3e0d3791e0c8dc49cc1c821ce7a70310a67d2aabfc4207a1ddf6a3926"
+        },
+        {
+          "path": "assets/product-detail-states-Baaoy5Af.js",
+          "kind": "js",
+          "bytes": 1840,
+          "gzipBytes": 796,
+          "sha256": "3f8df554032e4dd1baf7dc034a660a07beeb92a32c3517526928c97f799b306f"
+        },
+        {
+          "path": "assets/quote-Bo3x6o1T.js",
+          "kind": "js",
+          "bytes": 2287,
+          "gzipBytes": 1008,
+          "sha256": "1e63161c17053f6a2eeaa85b20904a153fcdb8ec89f241943d00e54bf6374a47"
+        },
+        {
+          "path": "assets/react-Dug6p2AF.js",
+          "kind": "js",
+          "bytes": 63743,
+          "gzipBytes": 21374,
+          "sha256": "d37e6bb383c65aa5cd926ec80134927da7176846e59c49d51c8a516d4a158788"
+        },
+        {
+          "path": "assets/request-form-Bhp_0EsR.js",
+          "kind": "js",
+          "bytes": 25972,
+          "gzipBytes": 8575,
+          "sha256": "f85779dfef7e980b1fdab9112249413005042b88b4e5c30a1b7f499e1d31da48"
+        },
+        {
+          "path": "assets/static-Cnrd1wJ8.js",
+          "kind": "js",
+          "bytes": 209,
+          "gzipBytes": 183,
+          "sha256": "239d39ac5f4105c1433128d3ca2c2f6889cb33b3125370bc882d75379cf15a95"
+        },
+        {
+          "path": "assets/stoneworks-page-BdBOzdMS.js",
+          "kind": "js",
+          "bytes": 2567,
+          "gzipBytes": 853,
+          "sha256": "c93d6f319b6218fd3b43511e19955c86e59213184ea45463b4e4928691c11a21"
+        },
+        {
+          "path": "assets/styles-CM3LgvSD.css",
+          "kind": "css",
+          "bytes": 26276,
+          "gzipBytes": 6248,
+          "sha256": "c1b2b738354749872047b314dcf54891d0c10fe00dc1d0e49b848e3eb6f20638"
+        },
+        {
+          "path": "fonts/beiruti-500.woff2",
+          "kind": "woff2",
+          "bytes": 54368,
+          "gzipBytes": 54403,
+          "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+        },
+        {
+          "path": "fonts/estedad-400-500.woff2",
+          "kind": "woff2",
+          "bytes": 76604,
+          "gzipBytes": 76647,
+          "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+        }
+      ],
+      "totals": {
+        "js": {
+          "files": 19,
+          "bytes": 531866,
+          "gzipBytes": 167016
+        },
+        "css": {
+          "files": 1,
+          "bytes": 26276,
+          "gzipBytes": 6248
+        },
+        "woff2": {
+          "files": 2,
+          "bytes": 130972,
+          "gzipBytes": 131050
+        }
+      }
+    },
+    "proposed": {
+      "files": [
+        {
+          "path": "assets/building-stone-SL1Pu66C.js",
+          "kind": "js",
+          "bytes": 4949,
+          "gzipBytes": 1844,
+          "sha256": "06229ee231af9bc1b074770b6a32409ae206c47a4dc04052011fab3605cce4da"
+        },
+        {
+          "path": "assets/contact-CLM03CXw.js",
+          "kind": "js",
+          "bytes": 260,
+          "gzipBytes": 209,
+          "sha256": "939978199d732455081d9b1e197874344e2759a06fce4c1f8e475e6a52bee771"
+        },
+        {
+          "path": "assets/custom-funnel-CLldAi_e.js",
+          "kind": "js",
+          "bytes": 12603,
+          "gzipBytes": 3973,
+          "sha256": "3689b7234273df3840307f90cecead4993e2bd797edcc67ea2ad8f38a7fa729d"
+        },
+        {
+          "path": "assets/custom-funnel-states-MwaloVLM.js",
+          "kind": "js",
+          "bytes": 2432,
+          "gzipBytes": 932,
+          "sha256": "417a82a7f373270ac1ff8f7af1e29ab9a5428a6c23210c539737d71c56670bd3"
+        },
+        {
+          "path": "assets/grave-stone-list-states-C3cLvz95.js",
+          "kind": "js",
+          "bytes": 2959,
+          "gzipBytes": 1108,
+          "sha256": "92a41813109dc8fc8f5534abc0c7176f3287fb4e29850beb4342e446b5382209"
+        },
+        {
+          "path": "assets/grave-stones-BI2SLR15.js",
+          "kind": "js",
+          "bytes": 7369,
+          "gzipBytes": 2151,
+          "sha256": "ca53b3b9ecd962b214399072f419b93c26fa050081549d6889ab55a45d2f7e30"
+        },
+        {
+          "path": "assets/guide-detail-BKsFYP6G.js",
+          "kind": "js",
+          "bytes": 183,
+          "gzipBytes": 167,
+          "sha256": "0de66429dbe3ebe62e2e307a366fc302551cc9f0fbf36e831ae284a2ebdd15c2"
+        },
+        {
+          "path": "assets/guide-list-HgvRIOku.js",
+          "kind": "js",
+          "bytes": 170,
+          "gzipBytes": 159,
+          "sha256": "d169f11fd19a805fc49501013b34688d2a7554c516402feef3c23170e47f09a3"
+        },
+        {
+          "path": "assets/index-BojYM-bF.js",
+          "kind": "js",
+          "bytes": 383676,
+          "gzipBytes": 116816,
+          "sha256": "ebe41799a941f22fbc4f4ff8081d0ab37f313129e1a64e6bb54a951e1da78bc8"
+        },
+        {
+          "path": "assets/portfolio-pzZnhBL5.js",
+          "kind": "js",
+          "bytes": 2883,
+          "gzipBytes": 1227,
+          "sha256": "47609480aa03a809751a76f6fb9237ae57a21a64e4c1bab89ab3dab290ab25c4"
+        },
+        {
+          "path": "assets/portfolio-states-Dxw2r1LQ.js",
+          "kind": "js",
+          "bytes": 2115,
+          "gzipBytes": 936,
+          "sha256": "b0ea24ba5e491642f0b0a2599e12a25f3af101b165d4ab97343a2fdb250be9a8"
+        },
+        {
+          "path": "assets/product-CzYk8AHC.js",
+          "kind": "js",
+          "bytes": 310,
+          "gzipBytes": 213,
+          "sha256": "28928a0a189fbce96158588b4818747ac25362f32d8f62947b917e118ea4a718"
+        },
+        {
+          "path": "assets/product-detail-page-DDb6osGM.js",
+          "kind": "js",
+          "bytes": 15368,
+          "gzipBytes": 4478,
+          "sha256": "7785798b2f542eb2a0f4e39182be6ec3760bcaca2f925a3bcf3d643541dd0fd1"
+        },
+        {
+          "path": "assets/product-detail-states-Baaoy5Af.js",
+          "kind": "js",
+          "bytes": 1840,
+          "gzipBytes": 796,
+          "sha256": "3f8df554032e4dd1baf7dc034a660a07beeb92a32c3517526928c97f799b306f"
+        },
+        {
+          "path": "assets/quote-quD-XqOy.js",
+          "kind": "js",
+          "bytes": 2287,
+          "gzipBytes": 1008,
+          "sha256": "d9025f751fdb98fb5924dfdb286d8ec9de2eb543a5b4660b4ed355b694a5096b"
+        },
+        {
+          "path": "assets/react-Dug6p2AF.js",
+          "kind": "js",
+          "bytes": 63743,
+          "gzipBytes": 21374,
+          "sha256": "d37e6bb383c65aa5cd926ec80134927da7176846e59c49d51c8a516d4a158788"
+        },
+        {
+          "path": "assets/request-form-DVJ9O-la.js",
+          "kind": "js",
+          "bytes": 25972,
+          "gzipBytes": 8572,
+          "sha256": "cfd4415e2d5c9be3c6cdbeafa7a39435483e44f0c31ae128f3e41d0d852c02fe"
+        },
+        {
+          "path": "assets/static-PsSpNMQr.js",
+          "kind": "js",
+          "bytes": 209,
+          "gzipBytes": 182,
+          "sha256": "0431e7f7d4afb83001827db64196fd2a7adcc2cef03cb7cf8fee9aa9151c2c28"
+        },
+        {
+          "path": "assets/stoneworks-page-Do8iJXou.js",
+          "kind": "js",
+          "bytes": 2567,
+          "gzipBytes": 851,
+          "sha256": "cdd9a304157e36448e7ff0777b795408dcf37ad01181c9fe29ba2c9386d1f595"
+        },
+        {
+          "path": "assets/styles-CM3LgvSD.css",
+          "kind": "css",
+          "bytes": 26276,
+          "gzipBytes": 6248,
+          "sha256": "c1b2b738354749872047b314dcf54891d0c10fe00dc1d0e49b848e3eb6f20638"
+        },
+        {
+          "path": "fonts/beiruti-500.woff2",
+          "kind": "woff2",
+          "bytes": 54368,
+          "gzipBytes": 54403,
+          "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+        },
+        {
+          "path": "fonts/estedad-400-500.woff2",
+          "kind": "woff2",
+          "bytes": 76604,
+          "gzipBytes": 76647,
+          "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+        }
+      ],
+      "totals": {
+        "js": {
+          "files": 19,
+          "bytes": 531895,
+          "gzipBytes": 166996
+        },
+        "css": {
+          "files": 1,
+          "bytes": 26276,
+          "gzipBytes": 6248
+        },
+        "woff2": {
+          "files": 2,
+          "bytes": 130972,
+          "gzipBytes": 131050
+        }
+      }
+    }
+  },
+  "delta": {
+    "js": {
+      "files": 0,
+      "bytes": 29,
+      "gzipBytes": -20
+    },
+    "css": {
+      "files": 0,
+      "bytes": 0,
+      "gzipBytes": 0
+    },
+    "woff2": {
+      "files": 0,
+      "bytes": 0,
+      "gzipBytes": 0
+    }
+  },
+  "unchangedCssAndFonts": true
+}

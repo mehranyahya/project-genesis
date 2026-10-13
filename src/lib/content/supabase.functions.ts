@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { validateLocaleQuery } from "./locale-query";
 
 import {
   validatePortfolioQuery,
@@ -25,7 +26,9 @@ export const getPortfolioItemsFromServer = createServerFn({ method: "GET" })
   .validator(validatePortfolioQuery)
   .handler(({ data }) => loadPortfolioItems(data));
 
-export const getSiteFromServer = createServerFn({ method: "GET" }).handler(() => loadSite());
+export const getSiteFromServer = createServerFn({ method: "GET" })
+  .validator(validateLocaleQuery)
+  .handler(({ data }) => loadSite(data.locale));
 
 export const getCatalogVersionFromServer = createServerFn({ method: "GET" }).handler(() =>
   loadCatalogVersion(),

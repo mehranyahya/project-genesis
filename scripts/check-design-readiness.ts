@@ -1,7 +1,10 @@
 import process from "node:process";
 import { assessDesignReadiness } from "../src/lib/design-readiness";
 import { HOME_EDITORIAL_REFERENCES } from "../src/lib/home-editorial-config";
-import { STRUCTURED_CONTENT_GENERATED } from "../src/lib/content/generated-structured-content";
+import {
+  STRUCTURED_CONTENT_GENERATED,
+  STRUCTURED_TRANSLATIONS_SUPPORTED,
+} from "../src/lib/content/generated-structured-content";
 import {
   loadCatalogVersion,
   loadPortfolioItems,
@@ -14,7 +17,7 @@ import { CURRENT_TERMS_RELEASES } from "../supabase/functions/_shared/terms-regi
 import { LOCALES } from "../src/lib/i18n/locale";
 
 // Local sanitized artifacts only; this command has no database or network client.
-// Guides and translated source ingestion remain blocked in the current adapters.
+// Guides remain blocked. Implemented translation support does not create real content.
 try {
   const [catalogVersion, products, portfolioItems, site, pages] = await Promise.all([
     loadCatalogVersion(),
@@ -35,7 +38,7 @@ try {
     guides: [],
     editorial: HOME_EDITORIAL_REFERENCES,
     termsReleases: CURRENT_TERMS_RELEASES,
-    capabilities: { englishSources: false, guides: false },
+    capabilities: { englishSources: STRUCTURED_TRANSLATIONS_SUPPORTED, guides: false },
   });
   console.log(JSON.stringify(report, null, 2));
   process.exitCode = report.automaticChecksPass ? 0 : 1;
