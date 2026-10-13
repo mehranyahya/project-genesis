@@ -3,6 +3,7 @@ import { useRouterState } from "@tanstack/react-router";
 import { canonicalHref } from "@/lib/canonical";
 import { LOCALES, localizeRawPath, type Locale } from "@/lib/i18n/locale";
 import { translate } from "@/lib/i18n/messages";
+import { allowsIndexing } from "@/lib/seo-indexing";
 
 /**
  * Loader data of the currently matched leaf route.
@@ -26,18 +27,30 @@ export interface HeadLink {
 }
 
 /** Canonical plus reciprocal hreflang alternates for one shared base path. */
-export function localizedLinks(basePath: string, locale: Locale): HeadLink[] {
+export function localizedLinks(
+  basePath: string,
+  locale: Locale,
+  translationLocales: readonly Locale[] = LOCALES,
+): HeadLink[] {
   const links: HeadLink[] = [
     { rel: "canonical", href: canonicalHref(localizeRawPath(basePath, locale)) },
   ];
+  if (!translationLocales.includes(locale)) return links;
   for (const alternate of LOCALES) {
+    if (!translationLocales.includes(alternate)) continue;
     links.push({
       rel: "alternate",
       hrefLang: alternate,
       href: canonicalHref(localizeRawPath(basePath, alternate)),
     });
   }
-  links.push({ rel: "alternate", hrefLang: "x-default", href: canonicalHref(basePath) });
+  if (translationLocales.includes("fa")) {
+    links.push({
+      rel: "alternate",
+      hrefLang: "x-default",
+      href: canonicalHref(localizeRawPath(basePath, "fa")),
+    });
+  }
   return links;
 }
 
@@ -51,6 +64,7 @@ export interface LocalizedHeadInput {
   /** Already-localized title, used for adapter-provided content. */
   readonly rawTitle?: string | null;
   readonly rawDescription?: string | null;
+  readonly translationLocales?: readonly Locale[];
 }
 
 export function localizedHead({
@@ -61,6 +75,7 @@ export function localizedHead({
   robots,
   rawTitle,
   rawDescription,
+  translationLocales,
 }: LocalizedHeadInput) {
   const resolvedTitle = rawTitle ?? translate(locale, title);
   const resolvedDescription =
@@ -75,6 +90,6 @@ export function localizedHead({
         : []),
       ...(robots ? [{ name: "robots", content: robots }] : []),
     ],
-    links: localizedLinks(basePath, locale),
+    links: localizedLinks(basePath, locale, allowsIndexing(robots) ? translationLocales : []),
   };
 }

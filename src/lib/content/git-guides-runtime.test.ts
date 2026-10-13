@@ -122,7 +122,7 @@ for (const locale of ["fa", "en"]) {
   assert.ok(list.every((item) => item.locale === locale));
   const detail = await adapters.getGuide("stone-care", locale);
   assert.equal(detail.locale, locale);
-  assert.deepEqual(detail.translationLocales, ["fa", "en"]);
+  assert.deepEqual(detail.translationLocales, []);
   assert.equal(Object.hasOwn(detail, "version"), false);
   const listOptions = routes.guideListRouteOptions(locale), detailOptions = routes.guideDetailRouteOptions(locale);
   const items = await listOptions.loader();
@@ -135,7 +135,7 @@ for (const locale of ["fa", "en"]) {
   assert.ok(head.meta.some((item) => item.name === "description" && item.content === locale + " Real description"));
   assert.ok(head.meta.some((item) => item.name === "robots" && item.content === "noindex,follow"));
   assert.ok(head.links.some((item) => item.rel === "canonical" && item.href.endsWith(prefix + "/guides/stone-care")));
-  assert.deepEqual(head.links.filter((item) => item.rel === "alternate").map((item) => item.hrefLang), ["fa", "en", "x-default"]);
+  assert.deepEqual(head.links.filter((item) => item.rel === "alternate"), []);
   const listHtml = await render(locale, prefix + "/guides", listOptions);
   assert.ok(listHtml.includes('href="' + prefix + '/guides/stone-care"'));
   assert.equal(listHtml.includes("Synthetic complete article body."), false);
@@ -159,13 +159,13 @@ for (const locale of ["fa", "en"]) {
 assert.equal((await adapters.getGuide("stone-care")).locale, "fa");
 const detailCopy = await adapters.getGuide("stone-care", "en"); detailCopy.seo.title = "Changed"; detailCopy.translationLocales.pop();
 assert.equal((await adapters.getGuide("stone-care", "en")).seo.title, "en Real article SEO");
-assert.deepEqual((await adapters.getGuide("stone-care", "en")).translationLocales, ["fa", "en"]);
+assert.deepEqual((await adapters.getGuide("stone-care", "en")).translationLocales, []);
 const listCopy = await adapters.getGuides({ locale: "en" }); listCopy[0].summary = "Changed";
 assert.equal((await adapters.getGuides({ locale: "en" }))[0].summary, "en Synthetic summary");
 const faOnlyOptions = routes.guideDetailRouteOptions("fa"), faOnly = await faOnlyOptions.loader({ params: { slug: "fa-only" } });
 assert.equal(faOnlyOptions.head({ loaderData: faOnly }).links.some((item) => item.hrefLang === "en"), false);
 const enOnlyOptions = routes.guideDetailRouteOptions("en"), enOnly = await enOnlyOptions.loader({ params: { slug: "en-only" } });
-assert.deepEqual(enOnlyOptions.head({ loaderData: enOnly }).links.filter((item) => item.rel === "alternate").map((item) => item.hrefLang), ["en"]);
+assert.deepEqual(enOnlyOptions.head({ loaderData: enOnly }).links.filter((item) => item.rel === "alternate"), []);
 guides.en.length = 0;
 assert.deepEqual(await adapters.getGuides({ locale: "en" }), []);
 assert.equal(await adapters.getGuide("stone-care", "en"), null);

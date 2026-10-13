@@ -6,7 +6,8 @@ import {
 import { resolveServiceMedia } from "../service-media";
 import type { Page, PageSlug } from "./types";
 import { PAGE_SLUGS } from "./types";
-import { DEFAULT_LOCALE, isLocale, type Locale } from "../i18n/locale";
+import { DEFAULT_LOCALE, isLocale, LOCALES, type Locale } from "../i18n/locale";
+import { isIndexablePage } from "./indexability";
 
 const PAGE_SLUG_SET = new Set<PageSlug>(PAGE_SLUGS);
 
@@ -22,6 +23,10 @@ export async function loadGitPage(
   return {
     ...publicPage,
     seo: page.seo ? { ...page.seo } : null,
+    translationLocales: LOCALES.filter((language) => {
+      const counterpart = GIT_PAGES[language][slug];
+      return !!counterpart && counterpart.slug === slug && isIndexablePage(counterpart, language);
+    }),
     ...(page.stoneworkCategories ? { stoneworkCategories: [...page.stoneworkCategories] } : {}),
     ...(mediaReferences !== undefined
       ? {

@@ -17,6 +17,8 @@ import type { GuideDetailModel, GuideListItem } from "@/lib/guides";
 import { loadHomeViewModel } from "@/lib/home-editorial";
 import { HOME_EDITORIAL_REFERENCES } from "@/lib/home-editorial-config";
 import type { Locale } from "@/lib/i18n/locale";
+import type { SeoMeta } from "@/lib/content/types";
+import { restrictRobots } from "@/lib/seo-indexing";
 import { contentForLocale, contentListForLocale, siteForLocale } from "@/lib/i18n/content-gate";
 import { buildPortfolioModel } from "@/lib/portfolio";
 import { findPortfolioReference, normalizePortfolioReference } from "@/lib/portfolio-reference";
@@ -78,6 +80,7 @@ export function stoneworksRouteOptions(locale: Locale) {
         rawTitle: ctx.loaderData?.metaTitle ?? null,
         rawDescription: ctx.loaderData?.metaDescription ?? null,
         robots: ctx.loaderData ? ctx.loaderData.robots : "noindex",
+        translationLocales: ctx.loaderData?.translationLocales ?? [],
       }),
     component: lazyRouteComponent(() => import("./views/stoneworks"), "StoneworksRoute"),
   };
@@ -129,6 +132,7 @@ export function customFunnelRouteOptions(locale: Locale) {
         basePath: "/grave-stones/custom",
         title: "سفارش سفارشی سنگ مزار",
         description: "مسیر ثبت سفارش سفارشی سنگ مزار",
+        robots: "noindex,follow",
       }),
     pendingComponent: lazyRouteComponent(
       () => import("@/components/custom-funnel/custom-funnel-states"),
@@ -154,11 +158,14 @@ export function productDetailRouteOptions(locale: Locale) {
         getRequestTermsDocument(locale),
       ]);
 
-      const model = buildProductDetailModel(contentForLocale(product, locale), params.slug);
+      const localizedProduct = contentForLocale(product, locale);
+      const model = buildProductDetailModel(localizedProduct, params.slug);
       if (model === null) throw notFound();
 
       return {
         model,
+        seo: localizedProduct?.seo ?? null,
+        translationLocales: localizedProduct?.translationLocales ?? [],
         catalogVersion: catalogVersion ?? null,
         site: siteForLocale(site, locale),
         termsDocument,
@@ -175,17 +182,16 @@ export function productDetailRouteOptions(locale: Locale) {
           robots: "noindex",
         });
       }
-      return {
-        ...localizedHead({
-          locale,
-          basePath: "/grave-stones",
-          title: "جزئیات سنگ مزار",
-          rawTitle: data.model.title,
-          rawDescription: data.model.summary ?? null,
-          description: PRODUCT_DESCRIPTION,
-        }),
-        links: localizedLinks(`/grave-stones/${data.model.slug}`, locale),
-      };
+      return localizedHead({
+        locale,
+        basePath: `/grave-stones/${data.model.slug}`,
+        title: "جزئیات سنگ مزار",
+        rawTitle: data.seo?.title ?? data.model.title,
+        rawDescription: data.seo?.description ?? data.model.summary ?? null,
+        description: PRODUCT_DESCRIPTION,
+        robots: restrictRobots(data.seo?.robots, data.translationLocales.includes(locale)),
+        translationLocales: data.translationLocales,
+      });
     },
     pendingComponent: lazyRouteComponent(
       () => import("@/components/product/product-detail-states"),
@@ -201,6 +207,8 @@ export function productDetailRouteOptions(locale: Locale) {
 
 export interface ProductDetailData {
   model: NonNullable<ReturnType<typeof buildProductDetailModel>>;
+  seo: SeoMeta | null;
+  translationLocales: Locale[];
   catalogVersion: Awaited<ReturnType<typeof getCatalogVersion>> | null;
   site: Awaited<ReturnType<typeof getSite>> | null;
   termsDocument: Awaited<ReturnType<typeof getRequestTermsDocument>>;
@@ -255,6 +263,7 @@ export function buildingStoneRouteOptions(locale: Locale) {
         rawTitle: ctx.loaderData?.page?.metaTitle ?? null,
         rawDescription: ctx.loaderData?.page?.metaDescription ?? null,
         robots: ctx.loaderData?.page ? ctx.loaderData.page.robots : "noindex",
+        translationLocales: ctx.loaderData?.page?.translationLocales ?? [],
       }),
     component: lazyRouteComponent(() => import("./views/building-stone"), "BuildingStoneRoute"),
   };
@@ -309,6 +318,7 @@ export function quoteRouteOptions(locale: Locale) {
         basePath: "/quote",
         title: "ثبت درخواست بررسی",
         description: "ثبت درخواست بررسی سفارش سنگ",
+        robots: "noindex,follow",
       }),
     component: lazyRouteComponent(() => import("./views/quote"), "QuoteRoute"),
   };
@@ -345,26 +355,18 @@ export function guideDetailRouteOptions(locale: Locale) {
       if (!guide) {
         return {
           meta: [{ name: "robots", content: "noindex" }],
-          links: localizedLinks("/guides", locale),
+          links: localizedLinks("/guides", locale, []),
         };
       }
-      return {
-        ...localizedHead({
-          locale,
-          basePath: "/guides",
-          title: "راهنماها",
-          rawTitle: guide.metaTitle,
-          rawDescription: guide.metaDescription ?? null,
-          robots: guide.robots,
-        }),
-        links: localizedLinks(guide.path, locale).filter(
-          (link) =>
-            link.rel !== "alternate" ||
-            (link.hrefLang === "x-default"
-              ? guide.translationLocales.includes("fa")
-              : guide.translationLocales.includes(link.hrefLang as Locale)),
-        ),
-      };
+      return localizedHead({
+        locale,
+        basePath: guide.path,
+        title: "راهنماها",
+        rawTitle: guide.metaTitle,
+        rawDescription: guide.metaDescription ?? null,
+        robots: guide.robots,
+        translationLocales: guide.translationLocales,
+      });
     },
     loader: async ({ params }: { params: { slug: string } }) => {
       const guide = buildGuideDetailModel(
@@ -392,17 +394,15 @@ function staticPageHead(
   fallbackTitle: string,
 ) {
   if (!page) return { meta: contentBlockedMeta() };
-  return {
-    ...localizedHead({
-      locale,
-      basePath,
-      title: fallbackTitle,
-      rawTitle: page.metaTitle,
-      rawDescription: page.metaDescription ?? null,
-      robots: page.robots,
-    }),
-    links: localizedLinks(page.canonicalPath ?? basePath, locale),
-  };
+  return localizedHead({
+    locale,
+    basePath,
+    title: fallbackTitle,
+    rawTitle: page.metaTitle,
+    rawDescription: page.metaDescription ?? null,
+    robots: page.robots,
+    translationLocales: page.translationLocales,
+  });
 }
 
 function staticPageOptions(

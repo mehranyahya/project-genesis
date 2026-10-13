@@ -237,6 +237,7 @@ test("terms model exposes no terms_version or terms_content_hash", () => {
     "robots",
     "slug",
     "title",
+    "translationLocales",
   ]);
 });
 

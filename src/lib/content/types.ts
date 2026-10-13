@@ -100,6 +100,8 @@ export interface Product {
   variants: ProductVariant[];
   seo: SeoMeta | null;
   updatedAt: string;
+  /** Derived by the repository from renderable, indexable same-slug counterparts. */
+  translationLocales?: Locale[];
 }
 
 export interface PortfolioItem {
@@ -119,7 +121,7 @@ export interface Guide {
   body: string;
   seo: SeoMeta | null;
   updatedAt: string;
-  /** Derived from published counterparts, never assumed from route parity. */
+  /** Derived from indexable published counterparts, never assumed from route parity. */
   translationLocales?: Locale[];
 }
 
@@ -150,6 +152,8 @@ export interface Page {
   title: string;
   body: string;
   seo: SeoMeta | null;
+  /** Derived from usable, indexable published pages of the same slug. */
+  translationLocales?: Locale[];
   /** Owner-reviewed service categories; emitted only for the Stoneworks page. */
   stoneworkCategories?: StoneworkCategoryId[];
   /** Resolved public media only; source selectors never cross the adapter. */

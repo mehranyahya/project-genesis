@@ -13,8 +13,9 @@ import type {
   Site,
 } from "./types";
 import { selectPortfolioItems, selectProduct, selectProducts } from "./catalog-queries";
-import { DEFAULT_LOCALE, isLocale, type Locale } from "../i18n/locale";
+import { DEFAULT_LOCALE, isLocale, LOCALES, type Locale } from "../i18n/locale";
 import { siteForLocale } from "../i18n/content-gate";
+import { isIndexableProduct } from "./indexability";
 
 /**
  * Runtime structured content repository.
@@ -31,7 +32,24 @@ export async function loadProduct(
   slug: string,
   locale: Locale = DEFAULT_LOCALE,
 ): Promise<Product | null> {
-  return selectProduct(GENERATED_PRODUCTS, slug, locale);
+  const product = selectProduct(GENERATED_PRODUCTS, slug, locale);
+  if (!product) return null;
+  return {
+    ...product,
+    seo: product.seo
+      ? {
+          ...product.seo,
+          title: product.seo.title.trim() || product.title.trim(),
+          description: product.seo.description?.trim() || null,
+        }
+      : null,
+    translationLocales: LOCALES.filter((language) => {
+      const counterparts = selectProducts(GENERATED_PRODUCTS, { locale: language }).filter(
+        (item) => item.slug === slug,
+      );
+      return counterparts.length === 1 && isIndexableProduct(counterparts[0]!, language);
+    }),
+  };
 }
 
 export async function loadPortfolioItems(query: PortfolioQuery = {}): Promise<PortfolioItem[]> {
