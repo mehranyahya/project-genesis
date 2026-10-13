@@ -10,6 +10,7 @@ import type { Guide, GuideSummary } from "./content/types";
 import { DEFAULT_LOCALE, LOCALES, type Locale } from "./i18n/locale";
 import { isGuideSlug } from "../../scripts/guide-policy.mjs";
 import { isSafeGuideHref } from "../../scripts/guide-links.mjs";
+import { restrictRobots } from "./seo-indexing";
 export { isSafeGuideHref } from "../../scripts/guide-links.mjs";
 
 const dateFormatters = {
@@ -233,9 +234,12 @@ export function buildGuideDetailModel(
     blocks: parseGuideMarkdown(guide.body),
     metaTitle: cleanText(guide.seo?.title) ?? title,
     metaDescription: cleanText(guide.seo?.description) ?? summary,
-    robots: cleanText(guide.seo?.robots),
+    robots: restrictRobots(
+      cleanText(guide.seo?.robots),
+      guide.translationLocales === undefined || guide.translationLocales.includes(locale),
+    ),
     translationLocales: LOCALES.filter(
-      (language) => language === locale || guide.translationLocales?.includes(language),
+      (language) => guide.translationLocales?.includes(language) ?? language === locale,
     ),
   };
 }

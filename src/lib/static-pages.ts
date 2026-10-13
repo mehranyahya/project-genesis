@@ -10,6 +10,8 @@
 import { parseGuideMarkdown } from "./guides";
 import type { GuideBlock } from "./guides";
 import type { Page, PageSlug, ServiceMediaItem, Site } from "./content/types";
+import { DEFAULT_LOCALE, isLocale, LOCALES, type Locale } from "./i18n/locale";
+import { restrictRobots } from "./seo-indexing";
 
 /** Trims a possible string; empty or non-string becomes null. */
 function cleanText(value: unknown): string | null {
@@ -38,6 +40,7 @@ export interface StaticPageModel {
   metaDescription: string | null;
   canonicalPath: string | null;
   robots: string | null;
+  translationLocales: Locale[];
   serviceMedia?: ServiceMediaItem[];
 }
 
@@ -57,6 +60,7 @@ export function buildStaticPageModel(
   if (title === null) return null;
 
   const seo = page.seo ?? null;
+  const locale = isLocale(page.locale) ? page.locale : DEFAULT_LOCALE;
 
   return {
     slug: expectedSlug,
@@ -67,7 +71,13 @@ export function buildStaticPageModel(
     canonicalPath: isSafeCanonicalPath(seo?.canonicalPath)
       ? (cleanText(seo?.canonicalPath) as string)
       : null,
-    robots: cleanText(seo?.robots),
+    robots: restrictRobots(
+      cleanText(seo?.robots),
+      page.translationLocales === undefined || page.translationLocales.includes(locale),
+    ),
+    translationLocales: LOCALES.filter(
+      (language) => page.translationLocales?.includes(language) ?? language === locale,
+    ),
     ...(page.serviceMedia?.length ? { serviceMedia: page.serviceMedia } : {}),
   };
 }
