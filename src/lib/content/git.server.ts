@@ -13,5 +13,9 @@ export async function loadGitPage(
   if (!PAGE_SLUG_SET.has(slug) || !isLocale(locale)) return null;
   const page = GIT_PAGES[locale][slug];
   if (!page || page.slug !== slug || page.locale !== locale) return null;
-  return { ...page, seo: page.seo ? { ...page.seo } : null };
+  return {
+    ...page,
+    seo: page.seo ? { ...page.seo } : null,
+    ...(page.stoneworkCategories ? { stoneworkCategories: [...page.stoneworkCategories] } : {}),
+  };
 }

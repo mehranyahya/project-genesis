@@ -4,12 +4,14 @@ import { test } from "node:test";
 
 import {
   computeTermsContentHash,
+  ALLOWED_PAGE_SLUGS,
   MAX_FILE_BYTES,
   parseGitPage,
   termsReleases,
 } from "../../../scripts/git-pages.mjs";
 import { validatePageLookup } from "./page-lookup";
-import type { Page, PageSlug } from "./types";
+import { PAGE_SLUGS, type Page, type PageSlug } from "./types";
+import { STONEWORK_CATEGORY_IDS } from "../stonework-category";
 import type { Locale } from "../i18n/locale";
 
 const BODY = "Synthetic approved test text.";
@@ -199,5 +201,69 @@ test("a published home canonical uses the language root without a duplicated pre
     assert.equal(page?.slug, "home");
     assert.equal(page?.version, undefined);
     assert.equal(page?.contentHash, undefined);
+  }
+});
+
+test("the build and runtime allowlists include the same reviewed service page slugs", () => {
+  assert.deepEqual([...ALLOWED_PAGE_SLUGS].sort(), [...PAGE_SLUGS].sort());
+  for (const locale of ["fa", "en"] as const)
+    assert.deepEqual(validatePageLookup({ slug: "stoneworks", locale }), {
+      slug: "stoneworks",
+      locale,
+    });
+});
+
+test("published Stoneworks requires explicit unique known categories and exposes no approval metadata", () => {
+  const page = parseGitPage(
+    source({ slug: "stoneworks", stoneworkCategories: [...STONEWORK_CATEGORY_IDS] }),
+    "stoneworks",
+  )!;
+  assert.deepEqual(page.stoneworkCategories, [...STONEWORK_CATEGORY_IDS]);
+  assert.equal(Object.hasOwn(page, "reviewed"), false);
+  assert.deepEqual(
+    parseGitPage(source({ slug: "stoneworks", stoneworkCategories: [] }), "stoneworks")
+      ?.stoneworkCategories,
+    [],
+  );
+  for (const ids of [
+    undefined,
+    null,
+    "sculpture_art",
+    ["unknown"],
+    ["sculpture_art", "sculpture_art"],
+    [1],
+    ["../water_landscape"],
+  ]) {
+    const input =
+      ids === undefined ? { slug: "stoneworks" } : { slug: "stoneworks", stoneworkCategories: ids };
+    assert.throws(() => parseGitPage(source(input), "stoneworks"), /explicit approved/);
+  }
+});
+
+test("category metadata cannot attach to legal or other service pages, and draft approvals publish nothing", () => {
+  assert.throws(
+    () => parseGitPage(source({ stoneworkCategories: [] }), "terms"),
+    /require the Stoneworks/,
+  );
+  assert.equal(
+    parseGitPage(source({ slug: "stoneworks", status: "draft", reviewed: false }), "stoneworks"),
+    null,
+  );
+});
+
+test("published English pages reject untranslated body, title and SEO without echoing the source", () => {
+  for (const [metadata, body] of [
+    [{ title: "متن خصوصی آزمایشی" }, BODY],
+    [{ seoTitle: "متن خصوصی آزمایشی" }, BODY],
+    [{ seoTitle: "Test", seoDescription: "متن خصوصی آزمایشی" }, BODY],
+    [{}, "متن خصوصی آزمایشی"],
+  ] as [Record<string, unknown>, string][]) {
+    assert.throws(
+      () => parseGitPage(source({ locale: "en", ...metadata }, body), "terms", "en"),
+      (error: unknown) =>
+        error instanceof Error &&
+        error.message.includes("untranslated") &&
+        !error.message.includes("خصوصی"),
+    );
   }
 });

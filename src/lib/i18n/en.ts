@@ -96,7 +96,10 @@ export const EN_MESSAGES = {
     "Memorial stone model details and submitting a request for review.",
   "سفارش سفارشی سنگ مزار": "Custom memorial stone order",
   "مسیر ثبت سفارش سفارشی سنگ مزار": "The guided path for a custom memorial stone request",
-  "نمونه‌کارهای اجراشدهٔ سنگ مزار": "Completed memorial stone projects",
+  "بررسی ایده، ابعاد و جزئیات سفارش ساخت محصولات سنگی.":
+    "Request a review of your stonework concept, dimensions and construction details.",
+  "برای بررسی سفارش ساخت، ایده، ابعاد و شرایط محل را شرح دهید. نوع سنگ، جزئیات ساخت، حمل و نصب در بررسی درخواست مشخص می‌شود.":
+    "Describe your concept, dimensions and site conditions for a bespoke request. Stone, construction, transport and installation details are assessed during review.",
   "ثبت درخواست بررسی سنگ ساختمانی": "Submit a building stone request for review",
   "ثبت سفارش": "Submit a request",
   "ثبت درخواست بررسی سفارش سنگ": "Submit a stone order request for review",

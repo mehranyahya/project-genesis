@@ -177,3 +177,41 @@ test("the actual CLI rejects linked, oversized, malformed and unallowlisted sour
     }
   }
 });
+
+test("the real CLI compiles service text and preserves identical category IDs across languages", async () => {
+  const root = await fixture();
+  try {
+    for (const locale of ["fa", "en"] as const) {
+      await writeFile(
+        join(root, `content/pages/${locale}/building-stone.md`),
+        page(locale, "building-stone"),
+      );
+      await writeFile(
+        join(root, `content/pages/${locale}/stoneworks.md`),
+        page(locale, "stoneworks").replace(
+          'version: "test-v1"',
+          'stoneworkCategories: ["water_landscape", "sculpture_art"]',
+        ),
+      );
+    }
+    assert.equal(run(root).status, 0);
+    const before = await readFile(join(root, PAGES), "utf8");
+    assert.ok(before.includes('slug: "building-stone"'));
+    assert.ok(before.includes('slug: "stoneworks"'));
+    assert.ok(before.includes('stoneworkCategories: ["water_landscape", "sculpture_art"]'));
+    assert.equal(run(root, "--check").status, 0);
+    const registry = await readFile(join(root, REGISTRY), "utf8");
+    await writeFile(
+      join(root, "content/pages/en/stoneworks.md"),
+      page("en", "stoneworks").replace(
+        'version: "test-v1"',
+        'stoneworkCategories: ["sculpture_art", "water_landscape"]',
+      ),
+    );
+    assert.ok(run(root).stderr.includes("share category IDs and order"));
+    assert.equal(await readFile(join(root, PAGES), "utf8"), before);
+    assert.equal(await readFile(join(root, REGISTRY), "utf8"), registry);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

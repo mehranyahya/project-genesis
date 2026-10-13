@@ -3,6 +3,7 @@
  */
 
 import type { Locale } from "../i18n/locale";
+import type { StoneworkCategoryId } from "../stonework-category";
 
 export type PriceType = "fixed" | "estimate" | "review";
 
@@ -21,6 +22,7 @@ export type BuildingStoneApplication =
 export const PAGE_SLUGS = [
   "home",
   "building-stone",
+  "stoneworks",
   "about",
   "contact",
   "privacy",
@@ -143,6 +145,8 @@ export interface Page {
   title: string;
   body: string;
   seo: SeoMeta | null;
+  /** Owner-reviewed service categories; emitted only for the Stoneworks page. */
+  stoneworkCategories?: StoneworkCategoryId[];
   /** Present only when the source page is explicitly versioned. */
   version?: string;
   /** SHA-256 acceptance hash; currently emitted only for the Terms page. */

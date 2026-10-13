@@ -74,16 +74,18 @@ test("anchors are derived only from the stable id", () => {
 
 /* ------------------------------------------------------------------ page UI */
 
-test("the page renders exactly one H1, five category articles and one CTA per card", () => {
+test("the page has one H1 and an approved-category template with one contextual CTA per card", () => {
   assert.equal(PAGE.split("<h1").length - 1, 1);
   assert.ok(PAGE.includes("t(STONEWORKS_HEADING)"));
   assert.ok(PAGE.includes("t(STONEWORKS_INTRO)"));
-  assert.ok(PAGE.includes("STONEWORK_CATEGORIES.map"));
+  assert.ok(PAGE.includes("categories.map"));
+  assert.ok(PAGE.includes("page?.categories ?? []"));
+  assert.ok(PAGE.includes("categories.length > 0"));
   assert.ok(PAGE.includes("<article"));
   assert.ok(PAGE.includes("id={stoneworkAnchorId(category.id)}"));
   assert.ok(PAGE.includes("aria-labelledby={stoneworkHeadingId(category.id)}"));
   assert.ok(PAGE.includes("t(STONEWORKS_PRICE_STATE_LABEL)"));
-  assert.equal(PAGE.split('localizeRawPath("/quote", locale)').length - 1, 1);
+  assert.equal(PAGE.split('localizeRawPath("/quote", locale)').length - 1, 2);
   assert.ok(PAGE.includes('"?source=stoneworks&category=" + category.id'));
   assert.ok(PAGE.includes("t(STONEWORKS_CTA_LABEL)"));
   assert.ok(PAGE.includes("STONEWORKS_CTA_TEMPLATE"));
@@ -121,7 +123,8 @@ test("both locale wrappers delegate to the one shared factory", () => {
   const unit = routeUnitBody("routes/stoneworks.tsx", "stoneworksRouteOptions");
   assert.ok(unit.includes('basePath: "/stoneworks"'));
   assert.ok(unit.includes("localizedHead"));
-  // Pure catalogue page: no adapter call, no detail route in this gate.
+  assert.ok(unit.includes('getPage("stoneworks", locale)'));
+  // Service text comes through Page; this is still not a product/detail route.
   for (const banned of ["getProducts", "getPortfolioItems", "getSite", "$slug", "notFound("]) {
     assert.equal(unit.includes(banned), false, `stoneworks route must not use ${banned}`);
   }

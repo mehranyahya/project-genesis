@@ -52,12 +52,13 @@ function populated(): DesignReadinessInput {
     })),
   );
   const pages: Page[] = locales.flatMap((locale) =>
-    (["about", "building-stone", "privacy", "terms"] as const).map((slug) => ({
+    (["about", "building-stone", "stoneworks", "privacy", "terms"] as const).map((slug) => ({
       locale,
       slug,
       title: "unpublished page title",
       body: "unpublished legal text",
       seo: null,
+      ...(slug === "stoneworks" ? { stoneworkCategories: [] } : {}),
       version: "1",
       contentHash: locale === "fa" ? hash : "b".repeat(64),
     })),
@@ -206,4 +207,37 @@ test("the report contains fixed labels and counts without source text or contact
   const output = JSON.stringify(assessDesignReadiness(populated()));
   assert.equal(/unpublished|private-looking|\/media\//i.test(output), false);
   assert.equal(output.includes("pf-1001"), false);
+});
+
+test("both languages require reviewed bespoke service text and an explicit valid offering list", () => {
+  const input = populated();
+  for (const stoneworkCategories of [
+    undefined,
+    ["not-a-category"],
+    ["sculpture_art", "sculpture_art"],
+  ]) {
+    const report = assessDesignReadiness({
+      ...input,
+      pages: input.pages.map((page) =>
+        page.slug === "stoneworks" ? ({ ...page, stoneworkCategories } as Page) : page,
+      ),
+    });
+    assert.equal(
+      report.checks.find((check) => check.key === "fa.stoneworks_page")?.status,
+      "blocked",
+    );
+    assert.equal(
+      report.checks.find((check) => check.key === "en.stoneworks_page")?.status,
+      "blocked",
+    );
+  }
+  const report = assessDesignReadiness({
+    ...input,
+    pages: input.pages.filter((page) => page.slug !== "stoneworks" || page.locale === "fa"),
+  });
+  assert.equal(report.checks.find((check) => check.key === "fa.stoneworks_page")?.status, "pass");
+  assert.equal(
+    report.checks.find((check) => check.key === "en.stoneworks_page")?.status,
+    "blocked",
+  );
 });

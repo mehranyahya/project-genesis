@@ -33,3 +33,4 @@ dist-ssr
 
 # Retained build recovery checkpoints are private local artifacts.
 .structured-build-*/
+.git-pages-runtime-*/

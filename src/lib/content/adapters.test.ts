@@ -209,6 +209,7 @@ test("page slug allowlist is exactly the contract", () => {
     "home",
     "not-found",
     "privacy",
+    "stoneworks",
     "terms",
   ]);
 });

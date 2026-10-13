@@ -3,6 +3,7 @@ import { useState } from "react";
 import { BuildingStoneFields } from "./building-stone-fields";
 import { BuildingStoneSummary } from "./building-stone-summary";
 import { RequestForm } from "@/components/request-form/request-form";
+import { GuideBody } from "@/components/guides/guides";
 import type { BuildingStoneFormBinding } from "@/components/request-form/request-form";
 import type { BuildingStoneValues } from "@/lib/building-stone";
 import {
@@ -12,6 +13,7 @@ import {
 } from "@/lib/building-stone";
 import type { Site } from "@/lib/content/types";
 import type { RequestTermsDocument } from "@/lib/request-form";
+import type { StaticPageModel } from "@/lib/static-pages";
 import { useT } from "@/lib/i18n/react";
 
 export const BUILDING_STONE_HEADING = "درخواست بررسی سنگ ساختمانی";
@@ -20,9 +22,11 @@ export const BUILDING_STONE_INTRO =
 export const BUILDING_STONE_SECTION_HEADING = "مشخصات درخواست";
 
 export function BuildingStonePage({
+  page = null,
   site,
   termsDocument,
 }: {
+  page?: StaticPageModel | null;
   site: Site | null;
   termsDocument: RequestTermsDocument | null;
 }) {
@@ -51,7 +55,14 @@ export function BuildingStonePage({
   return (
     <section className="site-container section-space grid grid-cols-4 gap-x-6 gap-y-8 md:grid-cols-8 lg:grid-cols-12">
       <div className="col-span-4 md:col-span-8 lg:col-span-12">
-        <h1 className="page-heading font-medium text-text-primary">{t(BUILDING_STONE_HEADING)}</h1>
+        <h1 className="page-heading font-medium text-text-primary">
+          {page?.title ?? t(BUILDING_STONE_HEADING)}
+        </h1>
+        {page ? (
+          <div className="max-w-[70ch] pt-4">
+            <GuideBody blocks={page.blocks} />
+          </div>
+        ) : null}
         <p className="max-w-[70ch] pt-4 text-base text-text-secondary">{t(BUILDING_STONE_INTRO)}</p>
       </div>
 

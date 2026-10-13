@@ -4,6 +4,7 @@ export const PAGE_LOCALES = ["fa", "en"];
 export const ALLOWED_PAGE_SLUGS = new Set([
   "home",
   "building-stone",
+  "stoneworks",
   "about",
   "contact",
   "privacy",
@@ -22,6 +23,15 @@ const META_KEYS = new Set([
   "seoDescription",
   "canonicalPath",
   "robots",
+  "stoneworkCategories",
+]);
+// Kept in parity with the stable request IDs; a contract test checks both sets.
+const STONEWORK_CATEGORY_IDS = new Set([
+  "sculpture_art",
+  "water_landscape",
+  "architectural_elements",
+  "furniture_interiors",
+  "monuments_bespoke",
 ]);
 
 export function computeTermsContentHash(version, body, locale = "fa") {
@@ -106,8 +116,27 @@ export function parseGitPage(raw, expectedSlug, expectedLocale = "fa") {
     throw new Error("Git page metadata does not match its publication contract");
   if (meta.status === "draft") return null;
   if (meta.reviewed !== true) throw new Error("Published Git page must be reviewed");
+  if (expectedSlug !== "stoneworks" && meta.stoneworkCategories !== undefined)
+    throw new Error("Stonework categories require the Stoneworks page");
+  if (expectedSlug === "stoneworks") {
+    const ids = meta.stoneworkCategories;
+    if (
+      !Array.isArray(ids) ||
+      ids.length > STONEWORK_CATEGORY_IDS.size ||
+      new Set(ids).size !== ids.length ||
+      ids.some((id) => !STONEWORK_CATEGORY_IDS.has(id))
+    )
+      throw new Error("Published Stoneworks requires explicit approved category IDs");
+  }
   const body = normalized.slice(close + 5).trim();
   if (!body) throw new Error("Published Git page has no body");
+  if (
+    expectedLocale === "en" &&
+    [meta.title, meta.seoTitle, meta.seoDescription, body].some(
+      (value) => typeof value === "string" && /[\u0600-\u06FF]/u.test(value),
+    )
+  )
+    throw new Error("Published English Git page contains untranslated text");
   const page = {
     locale: expectedLocale,
     slug: expectedSlug,
@@ -115,6 +144,7 @@ export function parseGitPage(raw, expectedSlug, expectedLocale = "fa") {
     body,
     seo: seo(meta, expectedSlug, expectedLocale),
   };
+  if (expectedSlug === "stoneworks") page.stoneworkCategories = [...meta.stoneworkCategories];
   if (expectedSlug === "terms") {
     if (typeof meta.version !== "string" || !meta.version.trim() || meta.version.trim().length > 80)
       throw new Error("Published Terms require a reviewed version");
