@@ -101,6 +101,7 @@ export function translationSourceHash(kind, source) {
       address: source.address,
       workingHours: source.workingHours,
     };
+  else if (kind === "buildingMedia") editorial = { assetId: assetId(source), alt: source.alt };
   else fail();
   return createHash("sha256")
     .update(`structured-translation-v1\n${kind}\n${JSON.stringify(stable(editorial))}`)
@@ -187,7 +188,8 @@ function translateProduct(entry, source) {
 /** English prose is reviewed independently; operational values remain authoritative. */
 export function applyStructuredTranslations(base, translation) {
   const sites = { fa: base.site, en: null };
-  const result = { ...base, sites };
+  const buildingMediaByLocale = { fa: base.buildingMedia ?? [], en: [] };
+  const result = { ...base, sites, buildingMediaByLocale };
   if (translation === null) return result;
   record(translation, [
     "schemaVersion",
@@ -198,6 +200,7 @@ export function applyStructuredTranslations(base, translation) {
     "products",
     "portfolio",
     "site",
+    "buildingMedia",
   ]);
   if (
     translation.schemaVersion !== 1 ||
@@ -209,6 +212,15 @@ export function applyStructuredTranslations(base, translation) {
   if (translation.status === "draft") return result;
   if (translation.reviewed !== true) fail();
   text(translation.revision, 80);
+  const buildingEntries = keyed(translation.buildingMedia ?? {});
+  buildingMediaByLocale.en = Object.entries(buildingEntries).map(([id, value]) => {
+    const matches = buildingMediaByLocale.fa.filter((image) => assetId(image) === id);
+    if (matches.length !== 1) fail();
+    const image = matches[0],
+      entry = record(value, ["sourceHash", "alt"]);
+    matchesSource(entry, "buildingMedia", image);
+    return { ...image, alt: text(entry.alt, 500) };
+  });
   const productEntries = keyed(translation.products),
     portfolioEntries = keyed(translation.portfolio);
   const englishProducts = Object.entries(productEntries).map(([id, entry]) => {
@@ -326,6 +338,15 @@ export function translationAuthoringSource(base) {
     revision: null,
     status: "draft",
     reviewed: false,
+    buildingMedia: Object.fromEntries(
+      (base.buildingMedia ?? []).map((image) => [
+        assetId(image),
+        {
+          sourceHash: translationSourceHash("buildingMedia", image),
+          alt: image.alt,
+        },
+      ]),
+    ),
     products: Object.fromEntries(
       base.products.map((product) => [
         product.id,

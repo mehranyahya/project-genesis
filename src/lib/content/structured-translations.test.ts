@@ -165,6 +165,58 @@ test("reviewed translations change only editorial fields while preserving operat
   assert.equal(JSON.stringify(english).includes("reviewed"), false);
   assert.equal(/[\u0600-\u06ff]/.test(JSON.stringify(english)), false);
 });
+
+test("building alt translations are individually source-bound and cannot override encoded media", () => {
+  const image = product.media[0]!;
+  const input = { ...base, buildingMedia: [image] };
+  const value = {
+    ...translation(),
+    buildingMedia: {
+      [asset]: {
+        sourceHash: translationSourceHash("buildingMedia", image),
+        alt: "Synthetic building stone",
+      },
+    },
+  };
+  const result = applyStructuredTranslations(input, value);
+  assert.deepEqual(result.buildingMediaByLocale.en, [
+    { ...image, alt: "Synthetic building stone" },
+  ]);
+  assert.deepEqual(result.buildingMediaByLocale.fa, [image]);
+  assert.equal(Object.hasOwn(result.buildingMediaByLocale.en[0]!, "sourceHash"), false);
+  const draft = translationAuthoringSource(input) as typeof value;
+  assert.equal(draft.buildingMedia[asset]!.sourceHash, value.buildingMedia[asset]!.sourceHash);
+  for (const next of [
+    { ...image, alt: "متن تازه" },
+    { ...image, src: image.src.replace(asset, "d".repeat(24)) },
+  ])
+    assert.throws(
+      () => applyStructuredTranslations({ ...input, buildingMedia: [next] }, value),
+      /Invalid or stale/,
+    );
+  for (const entry of [
+    { ...value.buildingMedia[asset], alt: "عکس فارسی" },
+    { ...value.buildingMedia[asset], src: "https://fixtures.invalid/private" },
+  ])
+    assert.throws(
+      () => applyStructuredTranslations(input, { ...value, buildingMedia: { [asset]: entry } }),
+      /Invalid or stale/,
+    );
+});
+
+test("missing or draft building translation has no English fallback and unknown assets fail", () => {
+  const input = { ...base, buildingMedia: product.media };
+  for (const value of [null, { ...translation(), status: "draft", reviewed: false }, translation()])
+    assert.deepEqual(applyStructuredTranslations(input, value).buildingMediaByLocale.en, []);
+  assert.throws(
+    () =>
+      applyStructuredTranslations(input, {
+        ...translation(),
+        buildingMedia: { unknown: { sourceHash: "a".repeat(64), alt: "Test" } },
+      }),
+    /Invalid or stale/,
+  );
+});
 test("missing or draft English source publishes no translated record or draft prose", () => {
   for (const value of [
     null,

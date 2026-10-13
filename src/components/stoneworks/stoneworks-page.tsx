@@ -1,6 +1,7 @@
 import { useLocale, useT } from "@/lib/i18n/react";
 import { localizeRawPath } from "@/lib/i18n/locale";
 import { GuideBody } from "@/components/guides/guides";
+import { ServiceMedia } from "@/components/services/service-media";
 import type { StoneworksPageModel } from "@/lib/service-pages";
 import {
   STONEWORKS_CATEGORIES_HEADING,
@@ -43,6 +44,7 @@ export function StoneworksPage({ page = null }: { page?: StoneworksPageModel | n
               <GuideBody blocks={page.blocks} />
             </div>
           ) : null}
+          <ServiceMedia items={page?.serviceMedia ?? []} />
           <p className="max-w-[70ch] pt-4 text-base text-text-secondary">{t(STONEWORKS_INTRO)}</p>
           {categories.length === 0 ? (
             <a href={localizeRawPath("/quote", locale)} className="ui-action mt-6">

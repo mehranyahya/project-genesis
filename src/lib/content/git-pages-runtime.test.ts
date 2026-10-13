@@ -20,16 +20,28 @@ import { LocaleProvider } from ${JSON.stringify(join(repository, "src/lib/i18n/r
 import { parseGitPage } from ${JSON.stringify(join(repository, "scripts/git-pages.mjs"))};
 import { validatePageLookup } from ${JSON.stringify(join(repository, "src/lib/content/page-lookup.ts"))};
 const pages = { fa: {}, en: {} }, calls = [];
+const asset = "a".repeat(24), hash = "b".repeat(16);
+const image = { src: "/media/" + asset + "/" + hash + "-1280w.webp",
+  srcSet: [320, 640, 1280].map((w) => "/media/" + asset + "/" + hash + "-" + w + "w.webp " + w + "w").join(", "),
+  width: 1280, height: 853, alt: "Synthetic reviewed image" };
+const building = { fa: [image], en: [image] }, portfolio = ["fa", "en"].map((locale) => ({ locale, publicReferenceId: "pf-1001", media: [image] }));
+mock.module(${JSON.stringify(join(repository, "src/lib/content/generated-structured-content.ts"))}, () => ({
+  GENERATED_BUILDING_MEDIA: building, GENERATED_PORTFOLIO_ITEMS: portfolio,
+  GENERATED_PRODUCTS: [], GENERATED_SITE: null, GENERATED_SITES: { fa: null, en: null }, GENERATED_CATALOG_VERSION: null,
+}));
 for (const locale of ["fa", "en"]) for (const slug of ["about", "privacy", "terms", "contact", "not-found", "building-stone", "stoneworks"]) {
   const raw = ["---", 'slug: "' + slug + '"', 'locale: "' + locale + '"', 'status: "published"', "reviewed: true",
     'title: "' + locale + ' test title"', 'version: "test-v1"', 'seoTitle: "Test title"',
     'canonicalPath: "' + (locale === "en" ? "/en" : "") + "/" + slug + '"',
     ...(slug === "stoneworks" ? ['stoneworkCategories: ["water_landscape", "sculpture_art"]'] : []),
+    ...(slug === "building-stone" ? ['mediaReferences: [{"source":"building","assetId":"' + asset + '"}]'] : []),
+    ...(slug === "stoneworks" ? ['mediaReferences: [{"source":"portfolio","publicReferenceId":"pf-1001","assetId":"' + asset + '"}]'] : []),
     "---", locale + " synthetic test body"].join("\\n");
   pages[locale][slug] = parseGitPage(raw, slug, locale);
 }
 mock.module(${JSON.stringify(join(repository, "src/lib/content/generated-pages.ts"))}, () => ({ GIT_PAGES: pages }));
 const { loadGitPage } = await import(${JSON.stringify(join(repository, "src/lib/content/git.server.ts"))});
+const { loadPortfolioItems } = await import(${JSON.stringify(join(repository, "src/lib/content/supabase.server.ts"))});
 mock.module(${JSON.stringify(join(repository, "src/lib/content/git.functions.ts"))}, () => ({ getPageFromGitServer: async (input) => {
   const lookup = validatePageLookup(input.data);
   assert.ok(input.data.locale === "fa" || input.data.locale === "en");
@@ -42,7 +54,7 @@ const product = { id: "p-1", code: "TEST-1", slug: "test-product", title: "Test 
     priceUpdatedAt: null, includes: [], excludes: [], options: [], isAvailable: true }], seo: null, updatedAt: "2026-10-12" };
 mock.module(${JSON.stringify(join(repository, "src/lib/content/supabase.functions.ts"))}, () => ({
   getSiteFromServer: async () => null, getCatalogVersionFromServer: async () => null,
-  getProductsFromServer: async () => [], getPortfolioItemsFromServer: async () => [],
+  getProductsFromServer: async () => [], getPortfolioItemsFromServer: async ({ data }) => loadPortfolioItems(data),
   getProductFromServer: async ({ data }) => ({ ...product, locale: data.locale }),
 }));
 globalThis.fetch = async () => { throw new Error("No network in page fixture"); };
@@ -67,6 +79,8 @@ for (const locale of ["fa", "en"]) {
     const options = factory(locale), loaded = await options.loader();
     const model = slug === "stoneworks" ? loaded : loaded.page;
     assert.equal(model.title, locale + " test title");
+    assert.equal(model.serviceMedia.length, 1);
+    assert.equal(Object.hasOwn(await adapters.getPage(slug, locale), "mediaReferences"), false);
     const meta = options.head({ loaderData: loaded }).meta;
     assert.ok(meta.some((item) => item.title === "Test title"));
     assert.equal(meta.some((item) => item.name === "robots" && item.content === "noindex"), false);
@@ -79,6 +93,15 @@ for (const locale of ["fa", "en"]) {
     assert.equal(router.state.matches.at(-1).status, "success");
     const html = renderToString(createElement(RouterProvider, { router }));
     assert.ok(html.includes(locale + " synthetic test body"));
+    assert.equal((html.match(/<img\\b/g) ?? []).length, 1);
+    assert.ok(html.includes('loading="lazy"'));
+    assert.ok(html.includes('fetchPriority="auto"') || html.includes('fetchpriority="auto"'));
+    assert.ok(html.includes('width="1280"') && html.includes('height="853"'));
+    assert.ok(html.includes("object-contain"));
+    if (slug === "stoneworks") {
+      assert.ok(html.includes('href="' + (locale === "en" ? "/en" : "") + '/quote?source=portfolio&amp;reference=pf-1001"'));
+      assert.equal((await routes.quoteRouteOptions(locale).loader({ deps: { reference: "pf-1001", category: null } })).portfolioReferenceId, "pf-1001");
+    }
     assert.equal((html.match(/<h1\\b/g) ?? []).length, 1);
     if (slug === "stoneworks") assert.ok(html.includes("category=water_landscape"));
     if (locale === "en") assert.doesNotMatch(html, /[\\u0600-\\u06FF]/);
@@ -90,6 +113,14 @@ assert.equal((await loadGitPage("terms", "en")).seo.title, "Test title");
 const categoryCopy = await loadGitPage("stoneworks", "en");
 categoryCopy.stoneworkCategories.reverse();
 assert.deepEqual((await loadGitPage("stoneworks", "en")).stoneworkCategories, ["water_landscape", "sculpture_art"]);
+const mediaCopy = await loadGitPage("building-stone", "en"); mediaCopy.serviceMedia[0].media.alt = "Changed output";
+assert.equal((await loadGitPage("building-stone", "en")).serviceMedia[0].media.alt, image.alt);
+building.en = [];
+assert.deepEqual((await loadGitPage("building-stone", "en")).serviceMedia, []);
+assert.equal((await loadGitPage("building-stone", "fa")).serviceMedia.length, 1);
+portfolio.splice(1, 1);
+assert.deepEqual((await loadGitPage("stoneworks", "en")).serviceMedia, []);
+assert.equal((await routes.quoteRouteOptions("en").loader({ deps: { reference: "pf-1001", category: null } })).portfolioReferenceId, null);
 assert.equal((await adapters.getPage("terms")).locale, "fa");
 assert.notEqual(pages.fa.terms.contentHash, pages.en.terms.contentHash);
 delete pages.en.terms;

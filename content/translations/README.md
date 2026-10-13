@@ -96,3 +96,22 @@ and `GENERATED_SITES`; the English source/parser/source hashes stay build-only.
 `getSite(locale)` uses the existing eighth-adapter contract and explicit locale
 selection. Release readiness, real media/privacy approvals, Preview acceptance,
 backup/restore gates and explicit deployment authorization remain required.
+
+## Building sample alt translations (stage 7B)
+
+The existing schema version 1 optionally accepts `buildingMedia`, keyed by the
+encoded public asset ID. Each selected entry contains only `sourceHash` and
+English `alt`. The authoring-reference command emits draft entries with the
+source hash and current source alt; translate and review the alt before publishing.
+Older sources without this optional map publish no English building samples.
+
+Hashes bind the exact public asset and its source alt. Replacing the source image,
+changing alt, using an unknown/ambiguous ID, adding a media URL or leaving Persian
+text in an English alt fails the reviewed build. Partial reviewed maps translate
+only those images; omitted assets have no English fallback. The generator emits
+`GENERATED_BUILDING_MEDIA` by locale with only the five public Media fields.
+Source hashes, private Storage paths, row IDs and consent references are excluded.
+Building media must be privacy-cleared with a nonempty private consent reference.
+This uses the existing private media table and does not grant upload or deployment
+permission. Reviewed service pages select images using `mediaReferences`; only
+those selected images cross `getPage` to the browser.

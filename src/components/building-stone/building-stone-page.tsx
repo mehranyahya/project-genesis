@@ -4,6 +4,7 @@ import { BuildingStoneFields } from "./building-stone-fields";
 import { BuildingStoneSummary } from "./building-stone-summary";
 import { RequestForm } from "@/components/request-form/request-form";
 import { GuideBody } from "@/components/guides/guides";
+import { ServiceMedia } from "@/components/services/service-media";
 import type { BuildingStoneFormBinding } from "@/components/request-form/request-form";
 import type { BuildingStoneValues } from "@/lib/building-stone";
 import {
@@ -63,6 +64,7 @@ export function BuildingStonePage({
             <GuideBody blocks={page.blocks} />
           </div>
         ) : null}
+        <ServiceMedia items={page?.serviceMedia ?? []} />
         <p className="max-w-[70ch] pt-4 text-base text-text-secondary">{t(BUILDING_STONE_INTRO)}</p>
       </div>
 
