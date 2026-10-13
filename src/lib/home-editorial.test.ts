@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Guide, Media, PortfolioItem } from "./content/types";
-import { HOME_EDITORIAL_REFERENCES } from "./home-editorial-config";
 import { homeNeedsPortfolio, loadHomeViewModel } from "./home-editorial";
 import type { HomeEditorialReferences } from "./home-editorial";
 
@@ -42,16 +41,20 @@ const refs: HomeEditorialReferences = {
 test("both unconfigured homes skip the work adapter while retaining locale-filtered guides", async () => {
   for (const locale of ["fa", "en"] as const) {
     let calls = 0;
-    const model = await loadHomeViewModel(locale, HOME_EDITORIAL_REFERENCES[locale], {
-      getGuides: async (query) => {
-        assert.deepEqual(query, { locale, limit: 1 });
-        return [guide("fa"), guide("en")];
+    const model = await loadHomeViewModel(
+      locale,
+      {},
+      {
+        getGuides: async (query) => {
+          assert.deepEqual(query, { locale, limit: 1 });
+          return [guide("fa"), guide("en")];
+        },
+        getPortfolioItems: async () => {
+          calls++;
+          return [work("pf-1001")];
+        },
       },
-      getPortfolioItems: async () => {
-        calls++;
-        return [work("pf-1001")];
-      },
-    });
+    );
     assert.equal(calls, 0);
     assert.equal(model.heroMedia, null);
     assert.equal(model.showPortfolio, false);

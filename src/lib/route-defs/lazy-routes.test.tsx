@@ -60,8 +60,10 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { createRootRoute, createRoute, createRouter, createMemoryHistory, Outlet, RouterProvider } from "@tanstack/react-router";
 import { LocaleProvider } from ${JSON.stringify(join(repository, "src/lib/i18n/react.tsx"))};
-import { loadGitGuide, loadGitGuides } from ${JSON.stringify(join(repository, "src/lib/content/guides.server.ts"))};
 import { validateGuideLookup, validateGuideQuery } from ${JSON.stringify(join(repository, "src/lib/content/guide-lookup.ts"))};
+mock.module(${JSON.stringify(join(repository, "src/lib/content/generated-guides.ts"))}, () => ({ GIT_GUIDES: { fa: [], en: [] }, GUIDE_SOURCES_SUPPORTED: true }));
+mock.module(${JSON.stringify(join(repository, "src/lib/home-editorial-config.ts"))}, () => ({ HOME_EDITORIAL_REFERENCES: { fa: {}, en: {} } }));
+const { loadGitGuide, loadGitGuides } = await import(${JSON.stringify(join(repository, "src/lib/content/guides.server.ts"))});
 mock.module(${JSON.stringify(join(repository, "src/lib/content/git.functions.ts"))}, () => ({
   getPageFromGitServer: async () => null,
   getGuidesFromGitServer: async ({ data }) => loadGitGuides(validateGuideQuery(data)),

@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "captured_date": "2026-10-13",
+  "scope": "read-only-live-metadata-and-isolated-offline-build-verification",
+  "source_head": "604e28ecd5cb8345b786e6db4e75b27fcc83d105",
+  "candidate_branch": "ops/preview-readiness-phase9a-20261013",
+  "main": {
+    "sha": "73868949c34e581af636e8ef2d4fc36fb3c42321",
+    "runtime_design_changes_merged": false
+  },
+  "supabase": {
+    "observed_project_count": 1,
+    "observed_project_name": "Project Genesis",
+    "observed_branches": [
+      {
+        "name": "main",
+        "is_default": true
+      }
+    ],
+    "preview_isolation": "UNVERIFIED",
+    "summary": {
+      "counts": {
+        "auth_users": 0,
+        "site_primary": 0,
+        "products_active": 0,
+        "storage_buckets": 1,
+        "storage_objects": 0,
+        "portfolio_active": 0,
+        "building_items_active": 0,
+        "public_storage_buckets": 0
+      },
+      "observed_at": "2026-10-13T12:34:21Z",
+      "server_version": "17.6",
+      "public_rls_tables": 12,
+      "rate_limit_enabled": [false],
+      "public_forced_rls_tables": 12
+    },
+    "migration_versions": [
+      "20260807132437",
+      "20260807160605",
+      "20260807164329",
+      "20260807164742",
+      "20260807173000",
+      "20260807173100",
+      "20260807173200",
+      "20260807190349",
+      "20260807201233",
+      "20260807201245",
+      "20260807203909",
+      "20260824190653",
+      "20260824190800",
+      "20260824190853"
+    ],
+    "local_live_migration_versions_match": true,
+    "initial_query_error": "relation public.rate_limit_policy absent; corrected from migration source to public.request_rate_limit_policy; READ ONLY only",
+    "sql_file_sha256": "635c221efd60fe605c6858cca96be058dcb0ac770f9b1a2bf9e9d35fa8e4c03b"
+  },
+  "cloudflare": {
+    "available_plugin_search_results": 0,
+    "account_worker_bindings_access": "UNVERIFIED"
+  },
+  "github": {
+    "configuration_values_and_secret_scope": "UNVERIFIED; current connector does not expose sensitive/administration endpoint families",
+    "required_variable_names_from_source": [
+      "PREVIEW_ALLOWED_ORIGINS",
+      "PREVIEW_SITE_URL",
+      "PREVIEW_SUPABASE_PROJECT_REF",
+      "PREVIEW_WORKER_NAME",
+      "PRODUCTION_ALLOWED_ORIGINS",
+      "PRODUCTION_SITE_URL",
+      "PRODUCTION_SUPABASE_PROJECT_REF",
+      "PRODUCTION_WORKER_NAME"
+    ],
+    "required_secret_names_from_source": [
+      "PREVIEW_BUILD_SUPABASE_SERVICE_ROLE_KEY",
+      "PREVIEW_BUILD_SUPABASE_URL",
+      "PREVIEW_CLOUDFLARE_ACCOUNT_ID",
+      "PREVIEW_CLOUDFLARE_API_TOKEN",
+      "PREVIEW_EDGE_GATEWAY_KEYS_JSON",
+      "PREVIEW_EDGE_GATEWAY_PRIMARY_KEY_ID",
+      "PREVIEW_IP_HASH_SECRET",
+      "PREVIEW_SUPABASE_FUNCTION_BASE_URL",
+      "PREVIEW_VITE_TURNSTILE_SITE_KEY",
+      "PRODUCTION_BUILD_SUPABASE_SERVICE_ROLE_KEY",
+      "PRODUCTION_EDGE_GATEWAY_KEYS_JSON",
+      "PRODUCTION_IP_HASH_SECRET",
+      "PRODUCTION_VITE_TURNSTILE_SITE_KEY",
+      "SUPABASE_ACCESS_TOKEN"
+    ],
+    "recent_workflow_runs_checked": 100,
+    "last_observed_preview_audit": {
+      "run_id": 32768112975,
+      "date": "2026-08-24",
+      "conclusion": "failure",
+      "failed_step": "Validate GitHub Preview configuration",
+      "edge_names_step": "skipped",
+      "current_configuration_inferred": false
+    },
+    "latest_backup": {
+      "run_id": 38375942308,
+      "job_id": 115224206207,
+      "date": "2026-10-13",
+      "conclusion": "success",
+      "durable_r2_copy": "skipped",
+      "monitor": "skipped",
+      "independent_real_receiver_decrypt_restore_accepted": false
+    }
+  },
+  "verification": {
+    "before": {
+      "focused_pass": 6,
+      "focused_fail": 3,
+      "files": 2
+    },
+    "after": {
+      "focused_pass": 18,
+      "focused_fail": 0,
+      "files": 5,
+      "regenerated_child_pass": 17,
+      "regenerated_child_fail": 0,
+      "baseline_full_pass": 951,
+      "baseline_full_fail": 0,
+      "regenerated_full_pass": 951,
+      "regenerated_full_fail": 0,
+      "full_files": 89
+    },
+    "native_image_processor": {
+      "sharp": "0.35.5",
+      "vips": "8.18.7",
+      "destination_storage_encode": "UNVERIFIED"
+    },
+    "public_runtime_files_exact": true,
+    "public_runtime_files": 23,
+    "js_raw_delta": 0,
+    "js_gzip_delta": 0,
+    "real_articles_photos_or_contact_data_added": false,
+    "browser_http_preview": "NOT_RUN"
+  },
+  "readiness": {
+    "phase9_accepted": false,
+    "ready_for_publication": false,
+    "required_blocked": 24,
+    "deferred": 2,
+    "pass": 2,
+    "main_phases_remaining": [9, 10, 11, 12, 13]
+  },
+  "mutations": {
+    "database": false,
+    "migration": false,
+    "create_project_or_branch": false,
+    "secret_or_policy": false,
+    "workflow": false,
+    "message": false,
+    "merge": false,
+    "deploy": false
+  }
+}

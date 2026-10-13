@@ -88,6 +88,7 @@ const artifact = await import(${JSON.stringify(join(root, "src/lib/content/gener
 const guides = JSON.parse(JSON.stringify(artifact.GIT_GUIDES));
 assert.equal(artifact.GUIDE_SOURCES_SUPPORTED, true);
 mock.module(${JSON.stringify(join(repository, "src/lib/content/generated-guides.ts"))}, () => ({ GIT_GUIDES: guides, GUIDE_SOURCES_SUPPORTED: true }));
+mock.module(${JSON.stringify(join(repository, "src/lib/home-editorial-config.ts"))}, () => ({ HOME_EDITORIAL_REFERENCES: { fa: {}, en: {} } }));
 const repo = await import(${JSON.stringify(join(repository, "src/lib/content/guides.server.ts"))});
 const calls = [];
 mock.module(${JSON.stringify(join(repository, "src/lib/content/git.functions.ts"))}, () => ({

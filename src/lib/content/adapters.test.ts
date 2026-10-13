@@ -171,8 +171,9 @@ test("wired guide adapters preserve empty output when no reviewed articles are c
     const script = `
 import assert from "node:assert/strict";
 import { mock } from "bun:test";
-import { loadGitGuide, loadGitGuides } from ${JSON.stringify(join(repository, "src/lib/content/guides.server.ts"))};
 import { validateGuideLookup, validateGuideQuery } from ${JSON.stringify(join(repository, "src/lib/content/guide-lookup.ts"))};
+mock.module(${JSON.stringify(join(repository, "src/lib/content/generated-guides.ts"))}, () => ({ GIT_GUIDES: { fa: [], en: [] }, GUIDE_SOURCES_SUPPORTED: true }));
+const { loadGitGuide, loadGitGuides } = await import(${JSON.stringify(join(repository, "src/lib/content/guides.server.ts"))});
 mock.module(${JSON.stringify(join(repository, "src/lib/content/git.functions.ts"))}, () => ({
   getPageFromGitServer: async () => null,
   getGuidesFromGitServer: async ({ data }) => loadGitGuides(validateGuideQuery(data)),
@@ -214,7 +215,11 @@ test("structured runtime reads only the sanitized generated artifact", () => {
     source,
     /SUPABASE_SERVICE_ROLE_KEY|BUILD_SUPABASE_SERVICE_ROLE_KEY|SUPABASE_URL|process\.env|fetch\(|\/rest\/v1|\/storage\/v1/i,
   );
-  assert.match(generated, /STRUCTURED_CONTENT_GENERATED = false/);
+  // Deploy regenerates this artifact before verification. Both the empty
+  // baseline and generated content must retain the explicit boolean contract.
+  // Missing-article coverage above uses an isolated empty artifact, not the
+  // editorial contents of whichever release is currently under verification.
+  assert.match(generated, /^export const STRUCTURED_CONTENT_GENERATED = (?:true|false);$/m);
   assert.doesNotMatch(
     generated,
     /mediaKey|privacyCleared|consentReference|service.role|supabase\.co/i,
