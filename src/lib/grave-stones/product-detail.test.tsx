@@ -41,7 +41,7 @@ test("1 the route consumes only getProduct(), getCatalogVersion() and getSite()"
   assert.ok(route.includes("getProduct(params.slug, locale)"));
   assert.equal(routeBody().includes("getProduct(params.slug)"), false);
   assert.ok(route.includes("getCatalogVersion()"));
-  assert.ok(route.includes("getSite()"));
+  assert.ok(route.includes("getSite(locale)"));
   assert.ok(route.includes("Promise.all"));
   for (const name of ["getProducts(", "getPortfolioItems", "getGuides", "getPage("]) {
     assert.ok(!routeBody().includes(name), `route must not call ${name}`);

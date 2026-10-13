@@ -114,7 +114,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   }),
   loader: async ({ location }: { location: { pathname: string } }): Promise<RootLoaderData> => {
     const locale = localeFromPathname(location.pathname);
-    const [site, notFoundPage] = await Promise.all([getSite(), getPage("not-found", locale)]);
+    const [site, notFoundPage] = await Promise.all([getSite(locale), getPage("not-found", locale)]);
     return { site, notFoundPage };
   },
 

@@ -71,7 +71,7 @@ const filled = (over: Partial<RequestFormValues> = {}): RequestFormValues => ({
 test("1 the route is the real business route and reads only getSite()", () => {
   const route = routeSource();
   assert.ok(route.includes('createFileRoute("/building-stone")'));
-  assert.ok(route.includes("getSite()"));
+  assert.ok(route.includes("getSite(locale)"));
   for (const name of ["getProducts", "getProduct(", "getGuides", "getGuide(", "getPage"]) {
     assert.ok(!routeBody().includes(name), `route must not call ${name}`);
   }

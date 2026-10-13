@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import { renderErrorPage } from "./error-page";
 
 const edgeSubmit = readFileSync(
   new URL("../../supabase/functions/submit-request/index.ts", import.meta.url),
@@ -76,11 +77,15 @@ test("tracking prefix is brand-neutral, configurable and exact across Edge and s
   assert.match(storageMigration, /'request_id', v_request_id/);
 });
 
-test("catastrophic HTML is Persian, static and security-headered", () => {
-  const page = readFileSync(new URL("error-page.ts", import.meta.url), "utf8");
+test("catastrophic HTML is correctly localized, static and security-headered", () => {
+  const page = renderErrorPage();
+  const english = renderErrorPage("en");
   const server = readFileSync(new URL("../server.ts", import.meta.url), "utf8");
   assert.match(page, /<html lang="fa" dir="rtl">/);
   assert.match(page, /بارگذاری این صفحه انجام نشد/);
+  assert.match(english, /<html lang="en" dir="ltr">/);
+  assert.equal(/[\u0600-\u06ff]/.test(english), false);
+  assert.match(english, /href="\/en"/);
   assert.doesNotMatch(page, /onclick=|<script/i);
   const headers = readFileSync(new URL("security-headers.ts", import.meta.url), "utf8");
   assert.match(server, /headers: FATAL_HTML_HEADERS/);

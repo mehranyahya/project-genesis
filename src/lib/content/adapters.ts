@@ -53,8 +53,8 @@ export async function getGuide(slug: string): Promise<Guide | null> {
   return null;
 }
 
-export async function getSite(): Promise<Site | null> {
-  return getSiteFromServer();
+export async function getSite(locale: Locale = DEFAULT_LOCALE): Promise<Site | null> {
+  return getSiteFromServer({ data: { locale } });
 }
 
 export async function getPage(

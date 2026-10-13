@@ -211,7 +211,7 @@ test("18 the quote route verifies portfolio references through the locale-gated 
   const route = routeUnit(QUOTE_ROUTE, "quoteRouteOptions");
   assert.ok(route.includes("findPortfolioReference"));
   assert.ok(route.includes("getPortfolioItems"));
-  assert.ok(route.includes("getSite()"));
+  assert.ok(route.includes("getSite(locale)"));
   assert.ok(!route.includes("caption"));
 });
 

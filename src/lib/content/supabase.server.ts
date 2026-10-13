@@ -2,7 +2,7 @@ import {
   GENERATED_CATALOG_VERSION,
   GENERATED_PORTFOLIO_ITEMS,
   GENERATED_PRODUCTS,
-  GENERATED_SITE,
+  GENERATED_SITES,
 } from "./generated-structured-content";
 import type {
   CatalogVersion,
@@ -13,7 +13,8 @@ import type {
   Site,
 } from "./types";
 import { selectPortfolioItems, selectProduct, selectProducts } from "./catalog-queries";
-import { DEFAULT_LOCALE, type Locale } from "../i18n/locale";
+import { DEFAULT_LOCALE, isLocale, type Locale } from "../i18n/locale";
+import { siteForLocale } from "../i18n/content-gate";
 
 /**
  * Runtime structured content repository.
@@ -37,8 +38,17 @@ export async function loadPortfolioItems(query: PortfolioQuery = {}): Promise<Po
   return selectPortfolioItems(GENERATED_PORTFOLIO_ITEMS, query);
 }
 
-export async function loadSite(): Promise<Site | null> {
-  return GENERATED_SITE;
+export async function loadSite(locale: Locale = DEFAULT_LOCALE): Promise<Site | null> {
+  if (!isLocale(locale)) return null;
+  const selected = GENERATED_SITES[locale];
+  if (selected && (selected.locale ?? DEFAULT_LOCALE) === locale)
+    return { ...selected, links: { ...selected.links } };
+  if (locale === DEFAULT_LOCALE) return null;
+  // Preserve only the existing neutral contact/Latin-name projection when prose is absent.
+  const base = GENERATED_SITES.fa;
+  const neutral =
+    base && (base.locale ?? DEFAULT_LOCALE) === DEFAULT_LOCALE ? siteForLocale(base, locale) : null;
+  return neutral ? { ...neutral, links: { ...neutral.links } } : null;
 }
 
 export async function loadCatalogVersion(): Promise<CatalogVersion | null> {
