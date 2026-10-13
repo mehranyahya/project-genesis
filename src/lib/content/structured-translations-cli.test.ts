@@ -71,7 +71,9 @@ globalThis.fetch = async (input) => {
     product_options: [{ id: "o-1", variant_id: "v-1", title: "گزینه آزمون", price_type: "fixed", amount_toman: 3000,
       price_updated_at: "2026-10-13T00:00:00Z", is_available: false, compatible_size_codes: ["120x60"], sort_order: 0 }],
     product_media: [{ product_id: "p-1", media_key: "products/p-1/source.png", alt: "عکس آزمون", privacy_cleared: true, consent_reference: "synthetic-private-consent", sort_order: 0 }],
-    portfolio_items: [], building_stone_items: [],
+    portfolio_items: [], building_stone_items: [{ id: "b-1", sort_order: 0 }],
+    building_stone_media: [{ item_id: "b-1", media_key: "building-stone/b-1/source.png", alt: existsSync("changed-building.txt") ? "متن تازه ساختمان" : "عکس آزمون ساختمان",
+      privacy_cleared: !existsSync("uncleared-building.txt"), consent_reference: existsSync("missing-consent.txt") ? null : "synthetic-private-consent", sort_order: 0 }],
     site_settings: [{ id: "primary", display_name: "برند آزمون", latin_name: "Test brand", phone: "+989120000000", whatsapp_url: null, telegram: null,
       address: "نشانی آزمون", working_hours: "ساعت آزمون", instagram_url: null, website_url: null, map_url: null }],
   };
@@ -119,6 +121,9 @@ globalThis.fetch = async (input) => {
       translated.summary = null;
       translated.description = "Test description";
       for (const id of Object.keys(translated.media)) translated.media[id] = "Test stone photo";
+      const buildingIds = Object.keys(draft.buildingMedia);
+      assert.equal(buildingIds.length, 1);
+      for (const id of buildingIds) draft.buildingMedia[id].alt = "Synthetic building photo";
       translated.variants["v-1"].includes = ["Test included item"];
       translated.variants["v-1"].excludes = ["Test excluded item"];
       translated.variants["v-1"].options["o-1"].title = "Test option";
@@ -142,18 +147,49 @@ globalThis.fetch = async (input) => {
       assert.equal(products[1].variants[0].options[0].isAvailable, false);
       assert.equal(products[1].media[0].src, products[0].media[0].src);
       assert.equal(/[\u0600-\u06ff]/.test(JSON.stringify(products[1])), false);
+      const buildingMatch = /GENERATED_BUILDING_MEDIA:[^=]*= ([\s\S]*?);\n/.exec(artifact);
+      assert.ok(buildingMatch);
+      const building = JSON.parse(buildingMatch[1]!);
+      assert.equal(building.fa.length, 1);
+      assert.equal(building.en.length, 1);
+      assert.equal(building.fa[0].src, building.en[0].src);
+      assert.equal(building.en[0].alt, "Synthetic building photo");
+      assert.deepEqual(Object.keys(building.en[0]).sort(), [
+        "alt",
+        "height",
+        "src",
+        "srcSet",
+        "width",
+      ]);
+      assert.ok(building.en[0].src.includes(buildingIds[0]));
       for (const value of [
         "synthetic-test-key",
         "synthetic-private-consent",
         "media_key",
         "privacy_cleared",
         "products/p-1/source.png",
+        "building-stone/b-1/source.png",
         "sourceHash",
         "reviewed",
       ])
         assert.equal(artifact.includes(value), false);
       const files = (await readdir(join(root, "public/media"), { recursive: true })).sort();
       assert.equal(files.includes("old.webp"), false);
+      for (const flag of [
+        "missing-consent.txt",
+        "changed-building.txt",
+        "uncleared-building.txt",
+      ]) {
+        await writeFile(join(root, flag), "synthetic-change");
+        const blocked = run();
+        assert.notEqual(blocked.status, 0);
+        assert.equal(await readFile(artifactPath, "utf8"), artifact);
+        assert.deepEqual(
+          (await readdir(join(root, "public/media"), { recursive: true })).sort(),
+          files,
+        );
+        await rm(join(root, flag));
+      }
       await writeFile(join(root, "changed-prose.txt"), "synthetic-change");
       const stale = run();
       assert.notEqual(stale.status, 0);

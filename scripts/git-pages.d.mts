@@ -1,5 +1,5 @@
 import type { Locale } from "../src/lib/i18n/locale";
-import type { Page, PageSlug } from "../src/lib/content/types";
+import type { CompiledPage, Page, PageSlug } from "../src/lib/content/types";
 
 export const PAGE_LOCALES: readonly Locale[];
 export const ALLOWED_PAGE_SLUGS: ReadonlySet<PageSlug>;
@@ -9,7 +9,7 @@ export function parseGitPage(
   raw: string,
   expectedSlug: PageSlug,
   expectedLocale?: Locale,
-): Page | null;
+): CompiledPage | null;
 export function termsReleases(
   pages: Readonly<Record<Locale, Partial<Record<PageSlug, Page>>>>,
 ): Record<

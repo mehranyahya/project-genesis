@@ -1,0 +1,319 @@
+{
+  "baseCommit": "71bcfa019e52f82b85bac2383b2f41b2921b61fd",
+  "branch": "design/service-media-phase7b-20261013",
+  "scope": "all public JS/CSS/WOFF2, same locked dependencies and empty content; not first-load transfer, browser speed or CWV",
+  "gzip": "Python level9 mtime0",
+  "baseline": {
+    "totals": {
+      ".js": {
+        "count": 19,
+        "bytes": 533357,
+        "gzipBytes": 167465
+      },
+      ".css": {
+        "count": 1,
+        "bytes": 26276,
+        "gzipBytes": 6248
+      },
+      ".woff2": {
+        "count": 2,
+        "bytes": 130972,
+        "gzipBytes": 131050
+      }
+    },
+    "files": [
+      {
+        "path": "assets/building-stone-DuJyKakC.js",
+        "bytes": 5085,
+        "gzipBytes": 1892,
+        "sha256": "d3341bbf0271972fe75a2b18a5c922eb50b2cacb97b9c47b3ccc6703e02ca8e2"
+      },
+      {
+        "path": "assets/contact-DxOoUcjd.js",
+        "bytes": 260,
+        "gzipBytes": 210,
+        "sha256": "556760735eda17079f385f72188664c493ff94d5e636828ef9fecb57052a54c5"
+      },
+      {
+        "path": "assets/custom-funnel-BCOvCohf.js",
+        "bytes": 12603,
+        "gzipBytes": 3973,
+        "sha256": "95d7742dc8acaf4a7ef8b1286f13978ea333556dcc0476ae3f0bfb99eee4645c"
+      },
+      {
+        "path": "assets/custom-funnel-states-Bkj24PUN.js",
+        "bytes": 2432,
+        "gzipBytes": 933,
+        "sha256": "b22b16b4fde9984b4c9fc626d089f24d6764fb88bd08806c283551394fd93059"
+      },
+      {
+        "path": "assets/grave-stone-list-states-RSHDjK23.js",
+        "bytes": 2959,
+        "gzipBytes": 1109,
+        "sha256": "51c820027a71384de216f512bd1a39fd4b54090555f100103ae56b412fb66ff7"
+      },
+      {
+        "path": "assets/grave-stones-B-iSkI8N.js",
+        "bytes": 7369,
+        "gzipBytes": 2155,
+        "sha256": "3e993d6e91c1226378690715165f585bf464c8ece1cf54c585c6dbfd01993243"
+      },
+      {
+        "path": "assets/guide-detail-ByWXGPPJ.js",
+        "bytes": 188,
+        "gzipBytes": 172,
+        "sha256": "80fe226ed71f9ce6343d7567ca4dabe4e3173ffc129ea8c8af5a7feaee1845ac"
+      },
+      {
+        "path": "assets/guide-list-BdZqN6_Z.js",
+        "bytes": 170,
+        "gzipBytes": 160,
+        "sha256": "0a95b2e7320bed7d1dc463fcd4c6a94ffb51bb6000c8a9d3934849f9c2501736"
+      },
+      {
+        "path": "assets/index-DB7Yc6EP.js",
+        "bytes": 384172,
+        "gzipBytes": 116919,
+        "sha256": "1049dff6e2da46bc24d09ab07c7e90355ce3133e5ebfcd93e442760ea5b72bee"
+      },
+      {
+        "path": "assets/portfolio--1hS50mR.js",
+        "bytes": 2883,
+        "gzipBytes": 1231,
+        "sha256": "4f9aa39dc716ee7a0c4594941b45c8dbe2dc62ae8bc3ec698453437a6974ea90"
+      },
+      {
+        "path": "assets/portfolio-states-hrbLVNsq.js",
+        "bytes": 2115,
+        "gzipBytes": 936,
+        "sha256": "5fc9a7fbfce51fbaa4b323958dd639f2fe8f7bef0fc00c5336cd95075df6a7af"
+      },
+      {
+        "path": "assets/product-CzpWunLz.js",
+        "bytes": 310,
+        "gzipBytes": 216,
+        "sha256": "74a0224968bb313a267b6e3948c090a5f0e575c6c6851208926cd4664ddd6096"
+      },
+      {
+        "path": "assets/product-detail-page-CBn0z86d.js",
+        "bytes": 15368,
+        "gzipBytes": 4480,
+        "sha256": "10cabbe7c35d1b5f8a11744d25971b446b4efaff9b2581ddd1f936600d018ed9"
+      },
+      {
+        "path": "assets/product-detail-states-CW3urCS6.js",
+        "bytes": 1840,
+        "gzipBytes": 796,
+        "sha256": "6e94a7fe458b4618b1aefbea4219b3130f87e5e7633dd50b369d725830f36146"
+      },
+      {
+        "path": "assets/quote-B_tKW7-Y.js",
+        "bytes": 2287,
+        "gzipBytes": 1008,
+        "sha256": "faae1f95647e1ca641e1437e66bf8352bed8aa01d9d17a7882a79e569de42b3d"
+      },
+      {
+        "path": "assets/react-BMLxIXo7.js",
+        "bytes": 64209,
+        "gzipBytes": 21478,
+        "sha256": "15fd318df2652cb489bd98e1210f6bedd90db40753dd8dcf388c84cea6ba8c98"
+      },
+      {
+        "path": "assets/request-form-CFt1upLP.js",
+        "bytes": 25972,
+        "gzipBytes": 8574,
+        "sha256": "a9ee0ef50aee0ef3bb4cd232a7d25af9110d88fbbd43ea4e509c6e33f3b25126"
+      },
+      {
+        "path": "assets/static-BSfi9ldW.js",
+        "bytes": 209,
+        "gzipBytes": 183,
+        "sha256": "1f6a05fee9221203ea47e9a7d3d6f6ac646afe590efda57bfae13a13de2fb5e2"
+      },
+      {
+        "path": "assets/stoneworks-Eg4n9wz9.js",
+        "bytes": 2926,
+        "gzipBytes": 1040,
+        "sha256": "05a11602bc8f5d3fff2ef4e43a595f04e73cf7e99ec509ba047cfdf47f827bac"
+      },
+      {
+        "path": "assets/styles-CM3LgvSD.css",
+        "bytes": 26276,
+        "gzipBytes": 6248,
+        "sha256": "c1b2b738354749872047b314dcf54891d0c10fe00dc1d0e49b848e3eb6f20638"
+      },
+      {
+        "path": "fonts/beiruti-500.woff2",
+        "bytes": 54368,
+        "gzipBytes": 54403,
+        "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+      },
+      {
+        "path": "fonts/estedad-400-500.woff2",
+        "bytes": 76604,
+        "gzipBytes": 76647,
+        "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+      }
+    ]
+  },
+  "proposed": {
+    "totals": {
+      ".js": {
+        "count": 20,
+        "bytes": 534612,
+        "gzipBytes": 168188
+      },
+      ".css": {
+        "count": 1,
+        "bytes": 26276,
+        "gzipBytes": 6248
+      },
+      ".woff2": {
+        "count": 2,
+        "bytes": 130972,
+        "gzipBytes": 131050
+      }
+    },
+    "files": [
+      {
+        "path": "assets/building-stone-ChSk5ZmL.js",
+        "bytes": 5174,
+        "gzipBytes": 1946,
+        "sha256": "e49f47f70fa63438daa85741abedd22e2e442387089bf475725efed0c5a51112"
+      },
+      {
+        "path": "assets/contact-BY-QHBmV.js",
+        "bytes": 261,
+        "gzipBytes": 206,
+        "sha256": "a14d515c10521962b789968069a4a3eefec7621ce0eafaad9d61c8e4bef1acd3"
+      },
+      {
+        "path": "assets/custom-funnel-B55LnNwm.js",
+        "bytes": 12603,
+        "gzipBytes": 3974,
+        "sha256": "caad6b5a2bad61b3cef4ffa8e233df58afa1b584289b3771262767bd8f6d1bda"
+      },
+      {
+        "path": "assets/custom-funnel-states-Bkj24PUN.js",
+        "bytes": 2432,
+        "gzipBytes": 933,
+        "sha256": "b22b16b4fde9984b4c9fc626d089f24d6764fb88bd08806c283551394fd93059"
+      },
+      {
+        "path": "assets/grave-stone-list-states-RSHDjK23.js",
+        "bytes": 2959,
+        "gzipBytes": 1109,
+        "sha256": "51c820027a71384de216f512bd1a39fd4b54090555f100103ae56b412fb66ff7"
+      },
+      {
+        "path": "assets/grave-stones-DaGoIqKI.js",
+        "bytes": 7369,
+        "gzipBytes": 2153,
+        "sha256": "b330ca8ff17accf2b2486398e21c1f6db2a13547a2eb3e44168fdda20899b7b0"
+      },
+      {
+        "path": "assets/guide-detail-jX7ZUZJg.js",
+        "bytes": 188,
+        "gzipBytes": 172,
+        "sha256": "2d86b55d3242f2f10ebbba5bbc5c0ff532418ca66c7064a28998de0f383c0519"
+      },
+      {
+        "path": "assets/guide-list-DO1Hwbra.js",
+        "bytes": 170,
+        "gzipBytes": 159,
+        "sha256": "2a07058dc6407a63876f2024116777f31217cf7e5fa83deb39e06ade70a50750"
+      },
+      {
+        "path": "assets/index-B17XZmZm.js",
+        "bytes": 384280,
+        "gzipBytes": 116972,
+        "sha256": "c3586b4aa0307b68ba0a6afa815ca217791ca634deb8a60378eb12d7bad74780"
+      },
+      {
+        "path": "assets/portfolio-DhuOf6rY.js",
+        "bytes": 2883,
+        "gzipBytes": 1229,
+        "sha256": "28bea47c0473ffe49ace837549131ea00f6f98306a291cbdc54379bb677e52e9"
+      },
+      {
+        "path": "assets/portfolio-states-hrbLVNsq.js",
+        "bytes": 2115,
+        "gzipBytes": 936,
+        "sha256": "5fc9a7fbfce51fbaa4b323958dd639f2fe8f7bef0fc00c5336cd95075df6a7af"
+      },
+      {
+        "path": "assets/product-CcjFmMUQ.js",
+        "bytes": 310,
+        "gzipBytes": 214,
+        "sha256": "edb7116cb8c65d0e1c952aed930c1d6fa1ddb51c85faae56487cf7d002aca2fd"
+      },
+      {
+        "path": "assets/product-detail-page-K4N5M17u.js",
+        "bytes": 15368,
+        "gzipBytes": 4480,
+        "sha256": "86fd87e1ba38782a90da63128a34f5e9896df803c283d08e726ec8a30cd6643e"
+      },
+      {
+        "path": "assets/product-detail-states-CW3urCS6.js",
+        "bytes": 1840,
+        "gzipBytes": 796,
+        "sha256": "6e94a7fe458b4618b1aefbea4219b3130f87e5e7633dd50b369d725830f36146"
+      },
+      {
+        "path": "assets/quote-C-Lm_DhU.js",
+        "bytes": 2287,
+        "gzipBytes": 1009,
+        "sha256": "d80a583ff5df30927141b98f5bf1bd5eba8530bc4930647d599f1933dc024553"
+      },
+      {
+        "path": "assets/react-BMLxIXo7.js",
+        "bytes": 64209,
+        "gzipBytes": 21478,
+        "sha256": "15fd318df2652cb489bd98e1210f6bedd90db40753dd8dcf388c84cea6ba8c98"
+      },
+      {
+        "path": "assets/request-form-DeEfxYWn.js",
+        "bytes": 25972,
+        "gzipBytes": 8574,
+        "sha256": "618d1a06708f1af29d98ccf57cdecbfd896fe2fe114ae8c917b4c26d1b406ea7"
+      },
+      {
+        "path": "assets/service-media-R-qq5z6O.js",
+        "bytes": 962,
+        "gzipBytes": 586,
+        "sha256": "b675ac10e6eed2f5163d075946986edbd7200365bab0d2f9fb7e85b5babcf853"
+      },
+      {
+        "path": "assets/static-DmzfkUQZ.js",
+        "bytes": 210,
+        "gzipBytes": 183,
+        "sha256": "652544bb18621a92595534db3da2b60bb40c0c7d076b0e44ee3c48f289d1e798"
+      },
+      {
+        "path": "assets/stoneworks-C1NwDUN4.js",
+        "bytes": 3020,
+        "gzipBytes": 1079,
+        "sha256": "2132ca8f8a2de1b6418989574c652df2ae855b1047d9f72f2f00025f593382dc"
+      },
+      {
+        "path": "assets/styles-CM3LgvSD.css",
+        "bytes": 26276,
+        "gzipBytes": 6248,
+        "sha256": "c1b2b738354749872047b314dcf54891d0c10fe00dc1d0e49b848e3eb6f20638"
+      },
+      {
+        "path": "fonts/beiruti-500.woff2",
+        "bytes": 54368,
+        "gzipBytes": 54403,
+        "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+      },
+      {
+        "path": "fonts/estedad-400-500.woff2",
+        "bytes": 76604,
+        "gzipBytes": 76647,
+        "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+      }
+    ]
+  },
+  "cssAndFontsExact": true
+}

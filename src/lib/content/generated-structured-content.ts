@@ -3,13 +3,17 @@
  * credentials, private media identifiers or publication-review metadata.
  */
 
-import type { CatalogVersion, PortfolioItem, Product, Site } from "./types";
+import type { CatalogVersion, Media, PortfolioItem, Product, Site } from "./types";
 import type { Locale } from "../i18n/locale";
 
 export const STRUCTURED_CONTENT_GENERATED = false;
 export const STRUCTURED_TRANSLATIONS_SUPPORTED = true;
 export const GENERATED_PRODUCTS: readonly Product[] = Object.freeze([]);
 export const GENERATED_PORTFOLIO_ITEMS: readonly PortfolioItem[] = Object.freeze([]);
+export const GENERATED_BUILDING_MEDIA: Readonly<Record<Locale, readonly Media[]>> = {
+  fa: [],
+  en: [],
+};
 export const GENERATED_SITE: Site | null = null;
 export const GENERATED_SITES: Readonly<Record<Locale, Site | null>> = { fa: null, en: null };
 export const GENERATED_CATALOG_VERSION: CatalogVersion | null = null;

@@ -147,10 +147,27 @@ export interface Page {
   seo: SeoMeta | null;
   /** Owner-reviewed service categories; emitted only for the Stoneworks page. */
   stoneworkCategories?: StoneworkCategoryId[];
+  /** Resolved public media only; source selectors never cross the adapter. */
+  serviceMedia?: ServiceMediaItem[];
   /** Present only when the source page is explicitly versioned. */
   version?: string;
   /** SHA-256 acceptance hash; currently emitted only for the Terms page. */
   contentHash?: string;
+}
+
+export interface ServiceMediaItem {
+  media: Media;
+  /** A published project may refer an enquiry; a stone sample has no project ID. */
+  portfolioReferenceId: string | null;
+}
+
+export type ServiceMediaReference =
+  | { source: "building"; assetId: string }
+  | { source: "portfolio"; assetId: string; publicReferenceId: string };
+
+/** Build artifact shape. Selectors are resolved and stripped by getPage. */
+export interface CompiledPage extends Page {
+  mediaReferences?: ServiceMediaReference[];
 }
 
 export interface ProductQuery {

@@ -77,8 +77,39 @@ stoneworkCategories: []
 ---
 ```
 
-Service photography and portfolio selection are the separate stage 7B packet.
-Do not embed raw source photos, Storage paths or external media URLs in page text.
+## Reviewed service photography
+
+Service pages can optionally declare `mediaReferences`, an ordered JSON array
+of at most three approved image selectors. Every selector uses an exact public
+24-character lowercase hex `assetId`; raw URLs, Storage keys, captions and
+consent data are forbidden. Example shapes only (these are not real selections):
+
+```json
+[
+  { "source": "building", "assetId": "aaaaaaaaaaaaaaaaaaaaaaaa" },
+  { "source": "portfolio", "publicReferenceId": "pf-1001", "assetId": "bbbbbbbbbbbbbbbbbbbbbbbb" }
+]
+```
+
+`source: "building"` is allowed only on `building-stone`; it selects the encoded
+building sample output. `source: "portfolio"` works on either service and selects
+a publication-approved project image. Review the actual image and its service
+role before marking the page published. Reusing a sample does not give it a
+project reference. Duplicate assets, extra fields and invalid references fail
+generation. Missing selectors leave the image section absent.
+
+`getPage` resolves selectors on the server from compiled public media in the
+same language and strips selectors from the returned Page DTO. It returns only
+selected five-field Media objects and the public project reference, when one
+exists. A missing, ambiguous, changed or untranslated selection hides the whole
+section; it never picks the first remaining image. Gallery reordering preserves
+the selected stable asset. No page downloads the whole media catalogue.
+
+Project enquiry links preserve their public reference and locale. Building
+samples do not fabricate project IDs, product selection, stock or price. Images
+use the existing AVIF/WebP renderer, explicit dimensions, contain and lazy loading
+with automatic priority; no carousel or image effect is introduced. Do not embed
+raw source photos, Storage paths or external media URLs in page text.
 
 Sources must be regular single-link UTF-8 files no larger than 256 KiB. Symlinks,
 hardlinks, nested/unknown files and invalid UTF-8 are rejected. README files are

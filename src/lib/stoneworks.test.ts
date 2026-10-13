@@ -93,8 +93,9 @@ test("the page has one H1 and an approved-category template with one contextual 
   assert.equal(STONEWORKS_PROCESS_STEPS.length, 4);
 });
 
-test("the page shows no image, no placeholder product and no promise of time or price", () => {
-  for (const banned of ["<img", "PublicMedia", "srcSet", "Lorem", "placeholder"]) {
+test("the page uses only resolved service media and invents no product or promise of time or price", () => {
+  assert.ok(PAGE.includes("<ServiceMedia items={page?.serviceMedia ?? []}"));
+  for (const banned of ["<img", "srcSet", "Lorem", "placeholder", "https://", "mediaReferences"]) {
     assert.equal(PAGE.includes(banned), false, `page must not contain ${banned}`);
   }
   const copy = [

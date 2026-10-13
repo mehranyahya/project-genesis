@@ -24,6 +24,7 @@ const META_KEYS = new Set([
   "canonicalPath",
   "robots",
   "stoneworkCategories",
+  "mediaReferences",
 ]);
 // Kept in parity with the stable request IDs; a contract test checks both sets.
 const STONEWORK_CATEGORY_IDS = new Set([
@@ -116,6 +117,33 @@ export function parseGitPage(raw, expectedSlug, expectedLocale = "fa") {
     throw new Error("Git page metadata does not match its publication contract");
   if (meta.status === "draft") return null;
   if (meta.reviewed !== true) throw new Error("Published Git page must be reviewed");
+  if (meta.mediaReferences !== undefined) {
+    const refs = meta.mediaReferences;
+    if (
+      !["building-stone", "stoneworks"].includes(expectedSlug) ||
+      !Array.isArray(refs) ||
+      refs.length > 3 ||
+      refs.some((ref) => {
+        if (
+          !ref ||
+          typeof ref !== "object" ||
+          Array.isArray(ref) ||
+          typeof ref.assetId !== "string" ||
+          !/^[0-9a-f]{24}$/.test(ref.assetId)
+        )
+          return true;
+        const keys = Object.keys(ref).sort().join(",");
+        return ref.source === "building"
+          ? expectedSlug !== "building-stone" || keys !== "assetId,source"
+          : ref.source !== "portfolio" ||
+              keys !== "assetId,publicReferenceId,source" ||
+              typeof ref.publicReferenceId !== "string" ||
+              !/^pf-[0-9]{4,}$/.test(ref.publicReferenceId);
+      }) ||
+      new Set(refs.map((ref) => ref.assetId)).size !== refs.length
+    )
+      throw new Error("Invalid approved service media references");
+  }
   if (expectedSlug !== "stoneworks" && meta.stoneworkCategories !== undefined)
     throw new Error("Stonework categories require the Stoneworks page");
   if (expectedSlug === "stoneworks") {
@@ -145,6 +173,8 @@ export function parseGitPage(raw, expectedSlug, expectedLocale = "fa") {
     seo: seo(meta, expectedSlug, expectedLocale),
   };
   if (expectedSlug === "stoneworks") page.stoneworkCategories = [...meta.stoneworkCategories];
+  if (meta.mediaReferences !== undefined)
+    page.mediaReferences = meta.mediaReferences.map((ref) => ({ ...ref }));
   if (expectedSlug === "terms") {
     if (typeof meta.version !== "string" || !meta.version.trim() || meta.version.trim().length > 80)
       throw new Error("Published Terms require a reviewed version");

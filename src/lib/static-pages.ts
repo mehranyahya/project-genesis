@@ -9,7 +9,7 @@
 
 import { parseGuideMarkdown } from "./guides";
 import type { GuideBlock } from "./guides";
-import type { Page, PageSlug, Site } from "./content/types";
+import type { Page, PageSlug, ServiceMediaItem, Site } from "./content/types";
 
 /** Trims a possible string; empty or non-string becomes null. */
 function cleanText(value: unknown): string | null {
@@ -38,6 +38,7 @@ export interface StaticPageModel {
   metaDescription: string | null;
   canonicalPath: string | null;
   robots: string | null;
+  serviceMedia?: ServiceMediaItem[];
 }
 
 /**
@@ -67,6 +68,7 @@ export function buildStaticPageModel(
       ? (cleanText(seo?.canonicalPath) as string)
       : null,
     robots: cleanText(seo?.robots),
+    ...(page.serviceMedia?.length ? { serviceMedia: page.serviceMedia } : {}),
   };
 }
 

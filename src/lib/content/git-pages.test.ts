@@ -267,3 +267,42 @@ test("published English pages reject untranslated body, title and SEO without ec
     );
   }
 });
+
+test("service image selectors accept at most three exact public references on the matching service", () => {
+  const ref = { source: "building", assetId: "a".repeat(24) };
+  const page = parseGitPage(
+    source({ slug: "building-stone", mediaReferences: [ref] }),
+    "building-stone",
+  )!;
+  assert.deepEqual(page.mediaReferences, [ref]);
+  for (const refs of [
+    [{ ...ref, mediaKey: "synthetic-private-key" }],
+    [{ ...ref, assetId: "/media/private" }],
+    [ref, ref],
+    Array(4).fill(ref),
+    "bad",
+    null,
+  ])
+    assert.throws(
+      () =>
+        parseGitPage(source({ slug: "building-stone", mediaReferences: refs }), "building-stone"),
+      /service media/,
+    );
+  assert.throws(() => parseGitPage(source({ mediaReferences: [ref] }), "terms"), /service media/);
+  assert.throws(
+    () =>
+      parseGitPage(
+        source({ slug: "stoneworks", stoneworkCategories: [], mediaReferences: [ref] }),
+        "stoneworks",
+      ),
+    /service media/,
+  );
+  const project = { source: "portfolio", publicReferenceId: "pf-1001", assetId: "a".repeat(24) };
+  assert.deepEqual(
+    parseGitPage(
+      source({ slug: "stoneworks", stoneworkCategories: [], mediaReferences: [project] }),
+      "stoneworks",
+    )?.mediaReferences,
+    [project],
+  );
+});
