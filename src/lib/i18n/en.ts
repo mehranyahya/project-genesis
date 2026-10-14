@@ -279,8 +279,8 @@ export const EN_MESSAGES = {
     "The security check did not complete. Please try again.",
   "بخشی از انتخاب فعلی دیگر در دسترس نیست. انتخاب را بازبینی کنید.":
     "Part of your current selection is no longer available. Please review your selection.",
-  "تعداد تلاش‌ها بیش از حد مجاز است. ۱۰ دقیقه بعد دوباره تلاش کنید.":
-    "Too many attempts. Please try again in 10 minutes.",
+  "تعداد تلاش‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.":
+    "Too many attempts. Please wait before trying again.",
   "ثبت درخواست در حال حاضر ممکن نیست. اطلاعات شما در همین صفحه حفظ شده است؛ دوباره تلاش کنید.":
     "The request cannot be submitted right now. Your details are kept on this page; please try again.",
   "شرایط ثبت به‌روزرسانی شده است. شرایط را دوباره بررسی و تأیید کنید.":
