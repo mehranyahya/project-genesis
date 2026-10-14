@@ -9,7 +9,8 @@ import type { GraveStoneRequestDraft } from "@/lib/request-draft";
 import { useLocale, useT } from "@/lib/i18n/react";
 
 export const DRAFT_HEADING = "خلاصه انتخاب";
-export const DRAFT_LOGISTICS_NOTE = "هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.";
+export const DRAFT_LOGISTICS_NOTE =
+  "شرایط حمل و نصب، در صورت ارائه، همراه جزئیات درخواست بررسی می‌شود.";
 
 /** Renders derived snapshot data only. No PII, no tracking code, no submission. */
 export function ProductDraftSummary({ draft }: { draft: GraveStoneRequestDraft }) {
@@ -75,6 +76,26 @@ export function ProductDraftSummary({ draft }: { draft: GraveStoneRequestDraft }
           </ul>
         </div>
       ) : null}
+
+      {(
+        [
+          ["شامل", snapshot.includes],
+          ["شامل نمی‌شود", snapshot.excludes],
+        ] as const
+      ).map(([heading, items]) =>
+        items.length > 0 ? (
+          <div key={heading}>
+            <h3 className="text-sm font-bold text-text-primary">{t(heading)}</h3>
+            <ul className="list-inside list-disc pt-1">
+              {items.map((item) => (
+                <li key={item} className="text-sm text-text-secondary">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null,
+      )}
 
       <p className="text-sm text-text-caption">{t(CURRENCY_NOTE)}</p>
       <p className="text-sm text-text-secondary">{t(DRAFT_LOGISTICS_NOTE)}</p>
