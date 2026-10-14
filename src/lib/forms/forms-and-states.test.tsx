@@ -124,7 +124,13 @@ test("8 every field is linked to its label and its error message", () => {
 test("9 the submit button is blocked until a valid terms document exists", () => {
   const form = read(FORM);
   assert.ok(form.includes("isRequestTermsDocument"));
-  assert.ok(form.includes("disabled={!termsReady || submitting || selectionBlocked}"));
+  assert.ok(
+    form
+      .replace(/\s+/g, "")
+      .includes(
+        "disabled={!termsReady||submitting||selectionBlocked||freshAttemptRequired||priceConfirmationRequired}",
+      ),
+  );
   assert.ok(form.includes("SUBMISSION_BLOCKED_TEXT"));
 });
 
