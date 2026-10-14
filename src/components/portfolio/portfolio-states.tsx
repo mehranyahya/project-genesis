@@ -1,5 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n/react";
+import { retryRouteError } from "@/lib/route-error-retry";
 
 export const PORTFOLIO_LOADING_LABEL = "در حال دریافت نمونه‌کارها";
 export const PORTFOLIO_EMPTY_TEXT = "در حال حاضر نمونه‌کار عمومی و دارای مجوز نمایش ثبت نشده است.";
@@ -45,7 +46,7 @@ export function PortfolioEmpty() {
   );
 }
 
-export function PortfolioError() {
+export function PortfolioError({ error }: { error?: unknown } = {}) {
   const t = useT();
   const router = useRouter();
   return (
@@ -55,7 +56,11 @@ export function PortfolioError() {
         className={`${FULL} flex flex-col items-start gap-4 border border-status-error bg-surface p-4`}
       >
         <h2 className="text-base font-bold text-text-primary">{t(PORTFOLIO_ERROR_TEXT)}</h2>
-        <button type="button" onClick={() => void router.invalidate()} className={ACTION}>
+        <button
+          type="button"
+          onClick={() => retryRouteError(error, () => void router.invalidate())}
+          className={ACTION}
+        >
           {t(PORTFOLIO_RETRY_LABEL)}
         </button>
       </div>

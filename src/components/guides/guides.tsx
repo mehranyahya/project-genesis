@@ -4,6 +4,7 @@ import { LocaleLink } from "@/lib/i18n/react";
 import { PRIMARY_CTA } from "@/lib/navigation";
 import type { GuideBlock, GuideDetailModel, GuideInline, GuideListItem } from "@/lib/guides";
 import { useT } from "@/lib/i18n/react";
+import { retryRouteError } from "@/lib/route-error-retry";
 
 export const GUIDES_TITLE = "راهنماها";
 export const GUIDES_LOADING_LABEL = "در حال دریافت راهنماها";
@@ -115,7 +116,7 @@ export function GuidesLoading() {
   );
 }
 
-function ErrorState({ text }: { text: string }) {
+function ErrorState({ text, error }: { text: string; error?: unknown }) {
   const t = useT();
   const router = useRouter();
   return (
@@ -125,7 +126,11 @@ function ErrorState({ text }: { text: string }) {
         className={`${FULL} flex flex-col items-start gap-4 border border-status-error bg-surface p-4`}
       >
         <h2 className="text-base font-bold text-text-primary">{text}</h2>
-        <button type="button" onClick={() => void router.invalidate()} className={ACTION}>
+        <button
+          type="button"
+          onClick={() => retryRouteError(error, () => void router.invalidate())}
+          className={ACTION}
+        >
           {t(GUIDES_RETRY_LABEL)}
         </button>
       </div>
@@ -133,14 +138,14 @@ function ErrorState({ text }: { text: string }) {
   );
 }
 
-export function GuidesError() {
+export function GuidesError({ error }: { error?: unknown } = {}) {
   const t = useT();
-  return <ErrorState text={t(GUIDES_ERROR_TEXT)} />;
+  return <ErrorState text={t(GUIDES_ERROR_TEXT)} error={error} />;
 }
 
-export function GuideError() {
+export function GuideError({ error }: { error?: unknown } = {}) {
   const t = useT();
-  return <ErrorState text={t(GUIDE_ERROR_TEXT)} />;
+  return <ErrorState text={t(GUIDE_ERROR_TEXT)} error={error} />;
 }
 
 /* ------------------------------------------------------------------ *

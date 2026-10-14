@@ -1,5 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n/react";
+import { retryRouteError } from "@/lib/route-error-retry";
 
 export const CUSTOM_FUNNEL_LOADING_LABEL = "در حال دریافت گزینه‌های ساخت مرحله‌ای";
 export const CUSTOM_FUNNEL_ERROR_TEXT = "دریافت گزینه‌های ساخت مرحله‌ای ممکن نشد.";
@@ -33,7 +34,7 @@ export function CustomFunnelLoading() {
   );
 }
 
-export function CustomFunnelError() {
+export function CustomFunnelError({ error }: { error?: unknown } = {}) {
   const t = useT();
   const router = useRouter();
   return (
@@ -45,7 +46,7 @@ export function CustomFunnelError() {
         <h2 className="text-base font-bold text-text-primary">{t(CUSTOM_FUNNEL_ERROR_TEXT)}</h2>
         <button
           type="button"
-          onClick={() => void router.invalidate()}
+          onClick={() => retryRouteError(error, () => void router.invalidate())}
           className="inline-flex min-h-12 items-center justify-center border border-action-primary bg-action-primary px-5 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] hover:border-action-hover hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
         >
           {t(CUSTOM_FUNNEL_RETRY_LABEL)}
