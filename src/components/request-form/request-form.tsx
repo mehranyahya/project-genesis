@@ -32,6 +32,7 @@ import type { RequestSubmitTransport, SubmitOutcome } from "@/lib/request-submit
 import { SUBMIT_MESSAGES, createSubmissionId, rememberTrackingCode } from "@/lib/request-submit";
 import { useLocale, useT } from "@/lib/i18n/react";
 import { refreshUpdatedTerms } from "@/lib/request-terms-update";
+import { waitForRequestVerification } from "@/lib/request-verification";
 import {
   stoneworkNoteLimit,
   stoneworkRequestIdentity,
@@ -278,7 +279,12 @@ export function RequestForm({
   const selectionBlocked = selectionBlockedByCatalog;
 
   const resetTurnstile = useCallback(() => {
-    turnstileRef.current?.reset();
+    try {
+      turnstileRef.current?.reset();
+    } catch {
+      // Optional widget cleanup must not discard a verified server outcome
+      // or leave the request form disabled.
+    }
   }, []);
 
   const run = useCallback(
@@ -324,7 +330,10 @@ export function RequestForm({
       setPhase("submitting");
       setOutcome(null);
 
-      const turnstileProof = (await turnstileRef.current?.execute()) ?? null;
+      const verification = await waitForRequestVerification(
+        async () => (await turnstileRef.current?.execute()) ?? null,
+      );
+      const turnstileProof = verification.kind === "ready" ? verification.token : null;
       if (
         !mounted.current ||
         attempt !== attemptIdentity.current ||
@@ -334,6 +343,14 @@ export function RequestForm({
           documentTracker.current?.current() ?? documentGeneration,
         )
       ) {
+        return;
+      }
+
+      if (verification.kind === "unavailable") {
+        resetTurnstile();
+        inFlight.current = false;
+        setOutcome({ kind: "bot_verification_invalid" });
+        setPhase("editing");
         return;
       }
 
