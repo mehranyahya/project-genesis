@@ -1,5 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { LocaleLink, useT } from "@/lib/i18n/react";
+import { retryRouteError } from "@/lib/route-error-retry";
 
 export const CATALOG_EMPTY_TEXT = "در حال حاضر محصول فعالی برای نمایش وجود ندارد.";
 export const FILTERED_EMPTY_TEXT = "با این فیلترها محصولی پیدا نشد.";
@@ -69,7 +70,7 @@ export function GraveStoneListLoading() {
   );
 }
 
-export function GraveStoneListError() {
+export function GraveStoneListError({ error }: { error?: unknown } = {}) {
   const t = useT();
   const router = useRouter();
   return (
@@ -79,7 +80,11 @@ export function GraveStoneListError() {
         className={`${FULL} flex flex-col items-start gap-4 border border-status-error bg-surface p-4`}
       >
         <h2 className="text-base font-bold text-text-primary">{t(ERROR_TEXT)}</h2>
-        <button type="button" onClick={() => void router.invalidate()} className={ACTION}>
+        <button
+          type="button"
+          onClick={() => retryRouteError(error, () => void router.invalidate())}
+          className={ACTION}
+        >
           {t(RETRY_LABEL)}
         </button>
       </div>

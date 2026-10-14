@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import bodyFontUrl from "../assets/fonts/estedad-400-500.woff2?url";
 import headingFontUrl from "../assets/fonts/beiruti-500.woff2?url";
 import { describeError } from "../lib/safe-error";
+import { retryRouteError } from "../lib/route-error-retry";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/layout/app-shell";
 import { NotFoundView } from "../components/static-pages/static-pages";
@@ -61,10 +62,12 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             type="button"
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
+            onClick={() =>
+              retryRouteError(error, () => {
+                router.invalidate();
+                reset();
+              })
+            }
             className="inline-flex min-h-12 items-center justify-center rounded-sm border border-action-primary bg-action-primary px-4 py-2 text-sm font-bold text-text-inverse transition-colors duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
           >
             {t("تلاش دوباره")}
