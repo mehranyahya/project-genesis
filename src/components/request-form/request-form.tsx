@@ -189,6 +189,7 @@ export function RequestForm({
   const [trackingCode, setTrackingCode] = useState<string | null>(null);
   const [terms, setTerms] = useState<RequestTermsDocument | null>(termsDocument);
   const [priceRevision, setPriceRevision] = useState<PriceRevision | null>(null);
+  const [priceConfirmationRequired, setPriceConfirmationRequired] = useState(false);
   const [selectionBlockedByCatalog, setSelectionBlocked] = useState(false);
   const [pendingFocusId, setPendingFocusId] = useState<string | null>(null);
   const [freshAttemptRequired, setFreshAttemptRequired] = useState(false);
@@ -244,6 +245,7 @@ export function RequestForm({
     setOutcome(null);
     setSelectionBlocked(false);
     setPriceRevision(null);
+    setPriceConfirmationRequired(false);
     setErrors({});
     setExtensionErrors({});
     setTrackingCode(null);
@@ -260,8 +262,11 @@ export function RequestForm({
     setValues((current) => ({ ...current, termsAccepted: false }));
     submissionId.current = null;
     inFlight.current = false;
-    setPhase("editing");
-    setOutcome(null);
+    setPriceRevision(null);
+    setPriceConfirmationRequired(false);
+    setFreshAttemptRequired(false);
+    setPhase((current) => (current === "success" ? current : "editing"));
+    setOutcome((current) => (current?.kind === "selection_unavailable" ? current : null));
   }, [documentIdentity, termsDocument]);
 
   // Focus runs only after React has committed the error state and the pending
@@ -288,13 +293,23 @@ export function RequestForm({
   }, []);
 
   const run = useCallback(
-    async (revision: PriceRevision | null, options?: { readonly allowFreshAttempt?: boolean }) => {
+    async (
+      revision: PriceRevision | null,
+      options?: {
+        readonly allowFreshAttempt?: boolean;
+        readonly allowPriceConfirmation?: boolean;
+      },
+    ) => {
       const allowFreshAttempt = options?.allowFreshAttempt === true;
+      const allowPriceConfirmation = options?.allowPriceConfirmation === true;
       if (inFlight.current) return;
       if (!termsReady || selectionBlocked) return;
       // After an idempotency outcome only the dedicated action may submit again;
       // the main submit button and the Enter key stay inert.
       if (freshAttemptRequired && !allowFreshAttempt) return;
+      // Receiving a revised price is not consent: only its dedicated action
+      // may accept it. Enter and an ordinary retry cannot skip that decision.
+      if (priceConfirmationRequired && !allowPriceConfirmation) return;
 
       const submittedValues = valuesForStoneworkRequest(values, commission, t);
       const validation = validateRequestForm({
@@ -321,6 +336,7 @@ export function RequestForm({
         extension: contract,
       });
       if (payload === null) return;
+      if (allowPriceConfirmation) setPriceConfirmationRequired(false);
 
       const attempt = attemptIdentity.current;
       const attemptGeneration = generationTracker.current?.current() ?? generation;
@@ -401,6 +417,7 @@ export function RequestForm({
           return;
         case "price_changed":
           setPriceRevision(result.price);
+          setPriceConfirmationRequired(true);
           break;
         case "terms_updated":
           setTerms(updatedTerms);
@@ -434,6 +451,7 @@ export function RequestForm({
       documentGeneration,
       locale,
       onSuccess,
+      priceConfirmationRequired,
       resetTurnstile,
       selectionBlocked,
       source,
@@ -484,7 +502,13 @@ export function RequestForm({
           <button
             type="submit"
             className={ACTION}
-            disabled={!termsReady || submitting || selectionBlocked}
+            disabled={
+              !termsReady ||
+              submitting ||
+              selectionBlocked ||
+              freshAttemptRequired ||
+              priceConfirmationRequired
+            }
           >
             {t(submitting ? SUBMIT_MESSAGES.submitting : SUBMIT_LABEL)}
           </button>
@@ -496,7 +520,7 @@ export function RequestForm({
           <RequestFormState
             outcome={submitting ? null : outcome}
             onRetry={() => void run(priceRevision)}
-            onConfirmPrice={() => void run(priceRevision)}
+            onConfirmPrice={() => void run(priceRevision, { allowPriceConfirmation: true })}
             onNewAttempt={() => {
               // A second click while the fresh attempt is running must not touch
               // the submission id, the outcome or the fresh-attempt block.

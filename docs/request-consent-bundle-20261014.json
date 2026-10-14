@@ -1,0 +1,325 @@
+{
+  "baselineCommit": "1b35e166d495e0373f38b2f5b7b9538959d9cb98",
+  "scope": "Fresh production builds in independent caches, same empty approved content and pinned dependencies; all JS/CSS/WOFF2 SHA256, Python gzip.compress level 9 mtime=0. Initial graph from static imports via Bun.Transpiler.scan. Gzip volume and file count are not latency/CWV.",
+  "baseline": {
+    "files": {
+      "assets/beiruti-500-Cm2w1lY_.woff2": {
+        "bytes": 54368,
+        "gzipBytes": 54403,
+        "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+      },
+      "assets/building-stone-DYLsPQb2.js": {
+        "bytes": 5174,
+        "gzipBytes": 1934,
+        "sha256": "2961f049414ae6a0839f19a70a9be6586eeee13a58f883de21c23479a280a65e"
+      },
+      "assets/contact-C8-JCgoS.js": {
+        "bytes": 261,
+        "gzipBytes": 208,
+        "sha256": "283b90120e0b12c6c682dcd18951508a7cb69cb47a4dce5c5e5b49ebc7544ebf"
+      },
+      "assets/custom-funnel-m9SPqAFV.js": {
+        "bytes": 12608,
+        "gzipBytes": 3965,
+        "sha256": "1f0f5e2b0cfb24fb981958611cec55988c5c5b72ca4067c03a3d7200cac8f46e"
+      },
+      "assets/custom-funnel-states-kDJrc7w9.js": {
+        "bytes": 2505,
+        "gzipBytes": 976,
+        "sha256": "c7fdc31c7b46def9f5136ba1e86cc609672d90ba3f83da4ea34e232da731fd71"
+      },
+      "assets/estedad-400-500-Cv9mMFZq.woff2": {
+        "bytes": 76604,
+        "gzipBytes": 76647,
+        "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+      },
+      "assets/grave-stone-list-states-DD-r06Md.js": {
+        "bytes": 3032,
+        "gzipBytes": 1152,
+        "sha256": "c217880edd74d33bd47b9a8c266aad17a80d1b57955c849bc33f6f1c4de341b1"
+      },
+      "assets/grave-stones-B4h35bzM.js": {
+        "bytes": 7374,
+        "gzipBytes": 2156,
+        "sha256": "038255c86b0ef65068d7ea3327de5d787c3b54ee5a5608191248c16c703e92fd"
+      },
+      "assets/guide-detail-DVGZAQ2a.js": {
+        "bytes": 188,
+        "gzipBytes": 172,
+        "sha256": "1db935982a4ab8432e05dd0435d17da23d9066dc2ac21f60136650a161e2ceb2"
+      },
+      "assets/guide-list-wQABX370.js": {
+        "bytes": 185,
+        "gzipBytes": 166,
+        "sha256": "2036f5c74f78a42f977c79c1ef3d7e50874209edc4014b6da027d830b7574a88"
+      },
+      "assets/index-B-WhQsX2.js": {
+        "bytes": 390121,
+        "gzipBytes": 118900,
+        "sha256": "1b7ddd5cc39d4ad34697b27ea3f12ac1c0eb225c89d82046535bf4021fa68c38"
+      },
+      "assets/portfolio-o2tJ6t-Z.js": {
+        "bytes": 2898,
+        "gzipBytes": 1231,
+        "sha256": "edb6513d556a40671fa4002085edf1e97fca573a2f4d42e65ebd472517b95d47"
+      },
+      "assets/portfolio-states-DZDkIIh2.js": {
+        "bytes": 2188,
+        "gzipBytes": 978,
+        "sha256": "21e1124a56c3b06255646b437b63c35f7470f1aec66758bf81f479b5ecf5aacc"
+      },
+      "assets/product-DcpaozFr.js": {
+        "bytes": 310,
+        "gzipBytes": 217,
+        "sha256": "728b84fd4b67d782ead0092f42258ca14ebb62ecc1c5063ccfb4670c564cd294"
+      },
+      "assets/product-detail-page-DjhAQr8j.js": {
+        "bytes": 15368,
+        "gzipBytes": 4475,
+        "sha256": "c7edd66be6702a6892ec675fbce757a01e88301b68fd9a6a0988d8135d73ad88"
+      },
+      "assets/product-detail-states-CzVE6sFy.js": {
+        "bytes": 1913,
+        "gzipBytes": 840,
+        "sha256": "8d374b91762e19d5d66187ce1194b7bf0b98c28e054a1cbc93ba42eeae854897"
+      },
+      "assets/quote-YkNzGFdj.js": {
+        "bytes": 2287,
+        "gzipBytes": 1008,
+        "sha256": "172fae83a01417c2169b405aefbc4b102a068ba6c6674777cf070a6c40e9eb0e"
+      },
+      "assets/react-D2syIbUz.js": {
+        "bytes": 64598,
+        "gzipBytes": 21611,
+        "sha256": "d069b48680428e4569f8226f9310447e9bf1f0f721b19213e5fd3e3cce2a6679"
+      },
+      "assets/request-form-CPyawIrk.js": {
+        "bytes": 26411,
+        "gzipBytes": 8708,
+        "sha256": "64fd720db50054f7dead8fc061b35aa9d72113f74d55476540220388e2b9b275"
+      },
+      "assets/route-error-retry-BnslMcaq.js": {
+        "bytes": 142,
+        "gzipBytes": 144,
+        "sha256": "a6558391112ca9806a1375c8722041744f8b90352fc9d0d4f450f842f610bb2d"
+      },
+      "assets/service-media-B3ajY4VB.js": {
+        "bytes": 962,
+        "gzipBytes": 585,
+        "sha256": "f94ba1e53dd0f2c7794497111257cc07bc69a4094bf10438c8273eb3a528696e"
+      },
+      "assets/static-tA7Xn1Vi.js": {
+        "bytes": 210,
+        "gzipBytes": 184,
+        "sha256": "c220922cd42081c31301a05f19ac1f0fb07e66b6912548b8715a8495f4705a34"
+      },
+      "assets/stoneworks-CU21sDaL.js": {
+        "bytes": 3020,
+        "gzipBytes": 1080,
+        "sha256": "b2c0583e85891e2f5697f249b33b8594c9ab0d444055656785f3cf91dd2326d2"
+      },
+      "assets/styles-nu7UWrJn.css": {
+        "bytes": 26296,
+        "gzipBytes": 6271,
+        "sha256": "0c4eab2afeeb4e2e23b3fd11cc6d0351181828166154f43ab6bd8c770f557368"
+      }
+    },
+    "totals": {
+      ".woff2": {
+        "files": 2,
+        "bytes": 130972,
+        "gzipBytes": 131050
+      },
+      ".js": {
+        "files": 21,
+        "bytes": 541755,
+        "gzipBytes": 170690
+      },
+      ".css": {
+        "files": 1,
+        "bytes": 26296,
+        "gzipBytes": 6271
+      }
+    },
+    "initialJavaScript": {
+      "files": [
+        "assets/index-B-WhQsX2.js",
+        "assets/react-D2syIbUz.js",
+        "assets/route-error-retry-BnslMcaq.js"
+      ],
+      "bytes": 454861,
+      "gzipBytes": 140655
+    }
+  },
+  "candidate": {
+    "files": {
+      "assets/beiruti-500-Cm2w1lY_.woff2": {
+        "bytes": 54368,
+        "gzipBytes": 54403,
+        "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+      },
+      "assets/building-stone-D1tIXxi-.js": {
+        "bytes": 5174,
+        "gzipBytes": 1935,
+        "sha256": "ee5c272218b4aa026588e3fd73a4f84ee21dd0f2ddcbbe988b52a1e9e1790863"
+      },
+      "assets/contact-Ca3wSMPm.js": {
+        "bytes": 261,
+        "gzipBytes": 209,
+        "sha256": "f3357aa251a13a86c7af117efa8d3eb54e711ff208451183bcc6d68f6e33c7bb"
+      },
+      "assets/custom-funnel-BVVeYJfW.js": {
+        "bytes": 12608,
+        "gzipBytes": 3970,
+        "sha256": "f0c7f2e63f2fe9cba0c127521856cb8abd91547d59bc54961327787437a49a38"
+      },
+      "assets/custom-funnel-states-kDJrc7w9.js": {
+        "bytes": 2505,
+        "gzipBytes": 976,
+        "sha256": "c7fdc31c7b46def9f5136ba1e86cc609672d90ba3f83da4ea34e232da731fd71"
+      },
+      "assets/estedad-400-500-Cv9mMFZq.woff2": {
+        "bytes": 76604,
+        "gzipBytes": 76647,
+        "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+      },
+      "assets/grave-stone-list-states-DD-r06Md.js": {
+        "bytes": 3032,
+        "gzipBytes": 1152,
+        "sha256": "c217880edd74d33bd47b9a8c266aad17a80d1b57955c849bc33f6f1c4de341b1"
+      },
+      "assets/grave-stones-AgqE0dlJ.js": {
+        "bytes": 7374,
+        "gzipBytes": 2155,
+        "sha256": "e2b8107c54ce1c584458c3494aba0b01e9355bafd14edf724f4202092ff36f6a"
+      },
+      "assets/guide-detail-BMmVcY8l.js": {
+        "bytes": 188,
+        "gzipBytes": 172,
+        "sha256": "0ad7683502ec35d658512bdb82526a35216341a3cb4dba32cf23bc2945777054"
+      },
+      "assets/guide-list-CwWno8EF.js": {
+        "bytes": 185,
+        "gzipBytes": 166,
+        "sha256": "99c3e2ba60464d7fa94f69f74786641754a5efe1cb087048d209a97bf85f8413"
+      },
+      "assets/index-30Irp8Py.js": {
+        "bytes": 390121,
+        "gzipBytes": 118899,
+        "sha256": "afbec6e7aaef3f93e0cb8094595d65fcbcc8d24e247dac57a0645e1cb1ad3a0d"
+      },
+      "assets/portfolio-Bxw605GN.js": {
+        "bytes": 2898,
+        "gzipBytes": 1230,
+        "sha256": "e5db7aa713bd46834e812d819b06cb28cdab65e2b4b83d040760b30bdd9bdc80"
+      },
+      "assets/portfolio-states-DZDkIIh2.js": {
+        "bytes": 2188,
+        "gzipBytes": 978,
+        "sha256": "21e1124a56c3b06255646b437b63c35f7470f1aec66758bf81f479b5ecf5aacc"
+      },
+      "assets/product-BU9SMskH.js": {
+        "bytes": 310,
+        "gzipBytes": 218,
+        "sha256": "909574b4edab262017fe8803f0f80620d360880922807e1e9cf19adf18fa0166"
+      },
+      "assets/product-detail-page-B4jEG2ON.js": {
+        "bytes": 15368,
+        "gzipBytes": 4476,
+        "sha256": "60a4b45689ae99e5fee862521f7505af021bd4054de79028344a800c14ecd96f"
+      },
+      "assets/product-detail-states-CzVE6sFy.js": {
+        "bytes": 1913,
+        "gzipBytes": 840,
+        "sha256": "8d374b91762e19d5d66187ce1194b7bf0b98c28e054a1cbc93ba42eeae854897"
+      },
+      "assets/quote-DKoCvErI.js": {
+        "bytes": 2287,
+        "gzipBytes": 1008,
+        "sha256": "5bf9b5ea9927588b547f1143407ccce25d287b21dcee4f93b505f42fe3a1da3f"
+      },
+      "assets/react-D2syIbUz.js": {
+        "bytes": 64598,
+        "gzipBytes": 21611,
+        "sha256": "d069b48680428e4569f8226f9310447e9bf1f0f721b19213e5fd3e3cce2a6679"
+      },
+      "assets/request-form-D774HHwi.js": {
+        "bytes": 26613,
+        "gzipBytes": 8765,
+        "sha256": "9f9044ad049467b4ea033457adc9879d1076079b9a01c4fc4b488a286edaeaa9"
+      },
+      "assets/route-error-retry-BnslMcaq.js": {
+        "bytes": 142,
+        "gzipBytes": 144,
+        "sha256": "a6558391112ca9806a1375c8722041744f8b90352fc9d0d4f450f842f610bb2d"
+      },
+      "assets/service-media-DCHsBvt7.js": {
+        "bytes": 962,
+        "gzipBytes": 585,
+        "sha256": "be355fdb72770e472ead049d996a118b3574cbfaa8ceec87e755708dd1f1193f"
+      },
+      "assets/static-BxO1u3aG.js": {
+        "bytes": 210,
+        "gzipBytes": 184,
+        "sha256": "abd8ec7305ca452d3a1d7565d4e89be4b1b713f706df5ff4e1cbc35a69ab998a"
+      },
+      "assets/stoneworks-Bxl3uEk6.js": {
+        "bytes": 3020,
+        "gzipBytes": 1079,
+        "sha256": "8949f7883d411649312b92870d5dee64cca7d78ab3cf5d4eebec7db1f7e632b2"
+      },
+      "assets/styles-nu7UWrJn.css": {
+        "bytes": 26296,
+        "gzipBytes": 6271,
+        "sha256": "0c4eab2afeeb4e2e23b3fd11cc6d0351181828166154f43ab6bd8c770f557368"
+      }
+    },
+    "totals": {
+      ".woff2": {
+        "files": 2,
+        "bytes": 130972,
+        "gzipBytes": 131050
+      },
+      ".js": {
+        "files": 21,
+        "bytes": 541957,
+        "gzipBytes": 170752
+      },
+      ".css": {
+        "files": 1,
+        "bytes": 26296,
+        "gzipBytes": 6271
+      }
+    },
+    "initialJavaScript": {
+      "files": [
+        "assets/index-30Irp8Py.js",
+        "assets/react-D2syIbUz.js",
+        "assets/route-error-retry-BnslMcaq.js"
+      ],
+      "bytes": 454861,
+      "gzipBytes": 140654
+    }
+  },
+  "delta": {
+    "allJavaScriptRaw": 202,
+    "allJavaScriptGzip": 62,
+    "initialJavaScriptRaw": 0,
+    "initialJavaScriptGzip": -1,
+    "cssRaw": 0,
+    "cssGzip": 0,
+    "fontRaw": 0
+  },
+  "verification": {
+    "compiledCssExact": true,
+    "fontBinaryAndLicenceExact": true,
+    "handlerScenarios": 26,
+    "handlerFetchCalls": 0,
+    "redPriceConsentOnParent": true,
+    "redUnavailableMessageAfterTermsRefresh": true,
+    "wireContractUnchanged": true,
+    "initialJavaScriptFilesBefore": 3,
+    "initialJavaScriptFilesAfter": 3,
+    "executionLimits": "Actual form callbacks, validation, payload builder, response parser and Terms refresh with substituted hook slots, locale, page reader and transport; price panel through React SSR. No DOM, hydration, keyboard, real browser, HTTP or Preview acceptance."
+  }
+}
