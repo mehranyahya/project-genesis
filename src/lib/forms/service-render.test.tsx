@@ -19,6 +19,7 @@ import { RequestForm } from "@/components/request-form/request-form";
 import { RequestFormFields } from "@/components/request-form/request-form-fields";
 import { QuotePage } from "@/components/request-form/quote-page";
 import { RequestSuccess } from "@/components/request-form/request-success";
+import { ProductDraftSummary } from "@/components/product/product-draft-summary";
 import { BuildingStonePage } from "@/components/building-stone/building-stone-page";
 import { BuildingStoneFields } from "@/components/building-stone/building-stone-fields";
 import { GraveStoneListPage } from "@/components/grave-stones/grave-stone-list-page";
@@ -30,6 +31,9 @@ import { EMPTY_BUILDING_STONE_VALUES, BUILDING_STONE_OTHER_HELPER } from "@/lib/
 import { buildGraveStoneListModel } from "@/lib/grave-stone-list";
 import type { GraveStoneListModel } from "@/lib/grave-stone-list";
 import type { ProductDetailModel } from "@/lib/product-detail";
+import { buildProductDetailModel } from "@/lib/product-detail";
+import { buildGraveStoneRequestDraft } from "@/lib/request-draft";
+import type { Product } from "@/lib/content/types";
 import { STONEWORK_CATEGORIES } from "@/lib/stoneworks";
 import { buildStoneworksPageModel } from "@/lib/service-pages";
 import { buildStaticPageModel } from "@/lib/static-pages";
@@ -390,4 +394,83 @@ test("field errors are associated with the actual focus targets and the success 
   assert.ok(success.includes('<bdi dir="ltr">REQ-1001</bdi>'));
   assert.equal(ARABIC.test(success), false);
   assert.equal(success.includes('href="tel:'), false);
+});
+
+test("the request summary preserves included and excluded services from the selected variant in both languages", () => {
+  for (const locale of ["fa", "en"] as const) {
+    const included =
+      locale === "fa" ? "حمل و نصب آزمایشی <شامل>" : "Synthetic delivery & installation <included>";
+    const excluded = locale === "fa" ? "آماده‌سازی محل آزمایشی" : "Synthetic site preparation";
+    const product: Product = {
+      locale,
+      id: "synthetic-product",
+      code: "SYN-1",
+      slug: "synthetic-model",
+      type: "simple",
+      title: locale === "fa" ? "مدل آزمایشی" : "Synthetic model",
+      summary: null,
+      description: null,
+      isActive: true,
+      isFeatured: false,
+      media: [],
+      seo: null,
+      updatedAt: "2026-01-01",
+      variants: [
+        {
+          id: "synthetic-variant",
+          stoneCode: "SYN-STONE",
+          sizeCode: "120x60",
+          priceType: "fixed",
+          amountToman: 100_000,
+          priceUpdatedAt: "2026-01-01",
+          includes: [included],
+          excludes: [excluded],
+          options: [],
+          isAvailable: true,
+        },
+      ],
+    };
+    for (const populated of [true, false]) {
+      const source = {
+        ...product,
+        variants: product.variants.map((variant) => ({
+          ...variant,
+          includes: populated ? [included] : [],
+          excludes: populated ? [excluded] : [],
+        })),
+      };
+      const model = buildProductDetailModel(source, source.slug);
+      assert.ok(model);
+      const draft = buildGraveStoneRequestDraft({
+        model,
+        catalogVersion: "a".repeat(64),
+        variantId: "synthetic-variant",
+        optionIds: [],
+      });
+      assert.ok(draft);
+      const snapshot = JSON.stringify(draft);
+      const html = renderUi(locale, <ProductDraftSummary draft={draft} />);
+      const t = translatorFor(locale);
+      const includesHeading = `<h3 class="text-sm font-bold text-text-primary">${t("شامل")}</h3>`;
+      const excludesHeading = `<h3 class="text-sm font-bold text-text-primary">${t("شامل نمی‌شود")}</h3>`;
+      assert.equal(html.includes(includesHeading), populated);
+      assert.equal(html.includes(excludesHeading), populated);
+      assert.equal(
+        html.includes(
+          included.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;"),
+        ),
+        populated,
+      );
+      assert.equal(html.includes(excluded), populated);
+      assert.doesNotMatch(html, /<included>|<شامل>/);
+      assert.equal(draft.displaySnapshot.priceType, "fixed");
+      assert.equal(draft.displaySnapshot.amountToman, 100_000);
+      assert.equal(
+        JSON.stringify(draft),
+        snapshot,
+        "rendering never changes price or request data",
+      );
+      if (locale === "en") assert.equal(ARABIC.test(html), false);
+    }
+  }
 });

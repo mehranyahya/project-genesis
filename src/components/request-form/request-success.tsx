@@ -17,7 +17,7 @@ const LINK =
 
 /** Persian source template. `{code}` is substituted with the tracking code. */
 export const SUCCESS_TEXT_TEMPLATE =
-  "درخواست شما با کد {code} ثبت شد. برای تسریع هماهنگی، همین کد را در واتساپ ارسال کنید. موجودی، محل اجرا و جزئیات سفارش بررسی می‌شود و پیش از هر اقدامی برای تأیید نهایی با شما تماس می‌گیریم. هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.";
+  "درخواست شما با کد {code} ثبت شد. این کد را برای پیگیری درخواست نگه دارید.";
 
 export const WHATSAPP_MESSAGE_TEMPLATE = "کد پیگیری: {code}";
 

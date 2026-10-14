@@ -182,8 +182,8 @@ export const EN_MESSAGES = {
   محصول: "Model",
   نوع: "Type",
   "گزینه‌های انتخاب‌شده": "Selected options",
-  "هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.":
-    "Delivery and installation are quoted separately after the site has been reviewed.",
+  "شرایط حمل و نصب، در صورت ارائه، همراه جزئیات درخواست بررسی می‌شود.":
+    "Delivery and installation arrangements, where offered, are reviewed with the request details.",
   "اشتراک‌گذاری مدل": "Share this model",
   "کپی لینک": "Copy link",
   "لینک مدل کپی شد.": "The model link was copied.",
@@ -386,10 +386,8 @@ export const EN_MESSAGES = {
   "{title} — کد {code}": "{title} — code {code}",
   "کد {code}": "code {code}",
   "کد پیگیری: {code}": "Tracking code: {code}",
-  "درخواست شما با کد {code} ثبت شد. برای تسریع هماهنگی، همین کد را در واتساپ ارسال کنید. موجودی، محل اجرا و جزئیات سفارش بررسی می‌شود و پیش از هر اقدامی برای تأیید نهایی با شما تماس می‌گیریم. هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.":
-    "Your request has been registered with tracking code {code}. To speed things up, send this code on WhatsApp. Availability, the installation site and the order details will be reviewed, and we will contact you for final confirmation before anything proceeds. Delivery and installation are quoted separately after the site has been reviewed.",
-  "ثبت شد. برای تسریع هماهنگی، همین کد را در واتساپ ارسال کنید. موجودی، محل اجرا و جزئیات سفارش بررسی می‌شود و پیش از هر اقدامی برای تأیید نهایی با شما تماس می‌گیریم. هزینهٔ حمل و نصب جداگانه و پس از بررسی محل اعلام می‌شود.":
-    "has been registered. To speed things up, send this code on WhatsApp. Availability, the installation site and the order details will be reviewed, and we will contact you for final confirmation before anything proceeds. Delivery and installation are quoted separately after the site has been reviewed.",
+  "درخواست شما با کد {code} ثبت شد. این کد را برای پیگیری درخواست نگه دارید.":
+    "Your request has been registered with tracking code {code}. Keep this code for reference.",
 } as const;
 
 export type MessageKey = keyof typeof EN_MESSAGES;
