@@ -2,6 +2,7 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 
 import { renderErrorPage } from "./lib/error-page";
 import { FATAL_HTML_HEADERS } from "./lib/security-headers";
+import { publicErrorSerialization } from "./lib/public-error-serialization";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -26,5 +27,6 @@ const csrfMiddleware = createCsrfMiddleware({
 });
 
 export const startInstance = createStart(() => ({
+  serializationAdapters: [publicErrorSerialization],
   requestMiddleware: [errorMiddleware, csrfMiddleware],
 }));
