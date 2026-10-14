@@ -2,6 +2,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
 import { getDeploymentIsolation } from "./deployment-isolation.mjs";
+import { verifyStaticFontDelivery } from "./static-font-delivery.mjs";
 
 const GENERATED_CONFIG = new URL("../.output/server/wrangler.json", import.meta.url);
 const REDIRECT_CONFIG = new URL("../.wrangler/deploy/config.json", import.meta.url);
@@ -93,6 +94,11 @@ if (builtHeaders.trimEnd() !== expectedBuiltHeaders) {
     "Static asset security headers or Nitro cache rule differ from the reviewed artifact",
   );
 }
+
+await verifyStaticFontDelivery({
+  assetDirectory,
+  sourceDirectory: fileURLToPath(new URL("../src/assets/fonts/", import.meta.url)),
+});
 
 const submitFloodLimiters = Array.isArray(config.ratelimits)
   ? config.ratelimits.filter((value) => value?.name === "SUBMIT_FLOOD_LIMITER")

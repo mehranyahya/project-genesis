@@ -152,6 +152,7 @@ test("isolated credential comparison never writes the opposite environment to th
       "deployment-isolation.mjs",
       "prepare-cloudflare-deploy.mjs",
       "verify-cloudflare-deploy.mjs",
+      "static-font-delivery.mjs",
     ]) {
       cpSync(new URL(`../../scripts/${name}`, import.meta.url), path.join(dir, "scripts", name));
     }
@@ -164,6 +165,30 @@ test("isolated credential comparison never writes the opposite environment to th
     writeFileSync(
       path.join(dir, ".wrangler/deploy/config.json"),
       JSON.stringify({ configPath: path.join(dir, ".output/server/wrangler.json") }),
+    );
+    mkdirSync(path.join(dir, "src/assets/fonts"), { recursive: true });
+    mkdirSync(path.join(dir, ".output/public/assets"), { recursive: true });
+    const fixtureFonts = [
+      ["Estedad", "estedad-400-500", "400 500"],
+      ["Beiruti", "beiruti-500", "500"],
+    ];
+    for (const [, name] of fixtureFonts) {
+      const source = new URL(`../../src/assets/fonts/${name}.woff2`, import.meta.url);
+      cpSync(source, path.join(dir, "src/assets/fonts", `${name}.woff2`));
+      cpSync(source, path.join(dir, ".output/public/assets", `${name}-fixture123.woff2`));
+    }
+    writeFileSync(
+      path.join(dir, ".output/public/assets/styles-fixture123.css"),
+      fixtureFonts
+        .map(
+          ([family, name, weight]) =>
+            `@font-face{font-family:${family};src:url(/assets/${name}-fixture123.woff2);font-weight:${weight};font-display:swap}`,
+        )
+        .join(""),
+    );
+    writeFileSync(
+      path.join(dir, ".output/public/assets/index-fixture123.js"),
+      JSON.stringify(fixtureFonts.map(([, name]) => `/assets/${name}-fixture123.woff2`)),
     );
     const configPath = path.join(dir, ".output/server/wrangler.json");
     for (const target of ["preview", "production"]) {
