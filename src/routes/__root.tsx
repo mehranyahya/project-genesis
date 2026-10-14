@@ -11,6 +11,8 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import bodyFontUrl from "../assets/fonts/estedad-400-500.woff2?url";
+import headingFontUrl from "../assets/fonts/beiruti-500.woff2?url";
 import { describeError } from "../lib/safe-error";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/layout/app-shell";
@@ -100,14 +102,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       {
         rel: "preload",
-        href: "/fonts/estedad-400-500.woff2",
+        href: bodyFontUrl,
         as: "font",
         type: "font/woff2",
         crossOrigin: "anonymous",
       },
       {
         rel: "preload",
-        href: "/fonts/beiruti-500.woff2",
+        href: headingFontUrl,
         as: "font",
         type: "font/woff2",
         crossOrigin: "anonymous",

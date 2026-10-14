@@ -187,8 +187,8 @@ test("field wires label, description, error and invalid state to its control", (
 
 test("typography contract: local Estedad body and Beiruti display, swap, rtl-safe metrics", () => {
   const tokens = read(TOKENS);
-  assert.ok(tokens.includes("/fonts/estedad-400-500.woff2"));
-  assert.ok(tokens.includes("/fonts/beiruti-500.woff2"));
+  assert.ok(tokens.includes("../assets/fonts/estedad-400-500.woff2"));
+  assert.ok(tokens.includes("../assets/fonts/beiruti-500.woff2"));
   assert.match(tokens, /font-family:\s*"Estedad";/);
   assert.match(tokens, /font-weight:\s*400 500;/);
   assert.match(tokens, /font-family:\s*"Beiruti";/);
@@ -207,8 +207,10 @@ test("typography contract: local Estedad body and Beiruti display, swap, rtl-saf
   assert.ok(styles.includes("tabular-nums"));
 
   const rootRoute = read("routes/__root.tsx");
-  assert.ok(rootRoute.includes('href: "/fonts/estedad-400-500.woff2"'));
-  assert.ok(rootRoute.includes('href: "/fonts/beiruti-500.woff2"'));
+  assert.ok(rootRoute.includes('bodyFontUrl from "../assets/fonts/estedad-400-500.woff2?url"'));
+  assert.ok(rootRoute.includes('headingFontUrl from "../assets/fonts/beiruti-500.woff2?url"'));
+  assert.ok(rootRoute.includes("href: bodyFontUrl"));
+  assert.ok(rootRoute.includes("href: headingFontUrl"));
   assert.equal((rootRoute.match(/crossOrigin: "anonymous"/g) ?? []).length, 2);
 });
 
@@ -226,7 +228,10 @@ test("self-hosted font assets and licenses are pinned", () => {
     "OFL-Estedad.txt": "0417da48fc44780476e074f02f8400028ee704b3e222be5855fa6d960b9200ca",
   };
   for (const [file, sha] of Object.entries(expected)) {
-    const bytes = readFileSync(path.join(root, "..", "public", "fonts", file));
+    const directory = file.endsWith(".woff2")
+      ? path.join(root, "assets", "fonts")
+      : path.join(root, "..", "public", "fonts");
+    const bytes = readFileSync(path.join(directory, file));
     assert.equal(createHash("sha256").update(bytes).digest("hex"), sha, `${file} changed`);
   }
 });

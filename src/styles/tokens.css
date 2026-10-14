@@ -6,7 +6,7 @@
 
 @font-face {
   font-family: "Estedad";
-  src: url("/fonts/estedad-400-500.woff2") format("woff2");
+  src: url("../assets/fonts/estedad-400-500.woff2") format("woff2");
   font-weight: 400 500;
   font-style: normal;
   font-display: swap;
@@ -14,7 +14,7 @@
 
 @font-face {
   font-family: "Beiruti";
-  src: url("/fonts/beiruti-500.woff2") format("woff2");
+  src: url("../assets/fonts/beiruti-500.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
