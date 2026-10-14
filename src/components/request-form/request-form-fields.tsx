@@ -145,6 +145,7 @@ export function RequestFormFields({
   const t = useT();
   const graveStone = source.kind === "grave_stone";
   const locale = useLocale();
+  const termsHintId = `${fieldId("termsAccepted")}-hint`;
 
   return (
     <div className="flex flex-col gap-5">
@@ -308,6 +309,9 @@ export function RequestFormFields({
             {termsLabelParts(t).lead}
             <LocaleLink
               to="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-describedby={termsHintId}
               className="underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
             >
               {termsLabelParts(t).link}
@@ -315,6 +319,9 @@ export function RequestFormFields({
             {termsLabelParts(t).tail}
           </span>
         </label>
+        <p id={termsHintId} className="text-sm text-text-secondary">
+          {t("شرایط ثبت در زبانهٔ جدید باز می‌شود؛ این فرم باز می‌ماند.")}
+        </p>
         <FieldError id={errorId("termsAccepted")} message={errors.termsAccepted} />
       </div>
     </div>

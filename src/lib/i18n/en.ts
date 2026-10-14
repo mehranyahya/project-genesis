@@ -256,6 +256,8 @@ export const EN_MESSAGES = {
     "If you know the dimensions, include the length, width and height with their units, then describe your idea, stone and site conditions. The category is included with this note; your brief can use up to {count} characters.",
   "شرایط ثبت": "Submission terms",
   "شرایط ثبت را خوانده‌ام و می‌پذیرم.": "I have read and accept the submission terms.",
+  "شرایط ثبت در زبانهٔ جدید باز می‌شود؛ این فرم باز می‌ماند.":
+    "The submission terms open in a new tab; this form stays open.",
   "نام باید بین ۲ تا ۸۰ نویسه باشد.": "The name must be between 2 and 80 characters.",
   "شماره موبایل معتبر وارد کنید.": "Enter a valid mobile number.",
   "شهر را وارد کنید.": "Enter the city.",
