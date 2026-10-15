@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-15",
+  "timezone": "Asia/Tehran",
+  "baseCommit": "6d0842c4b03516a7da9c00838bf0e5af919c2bb6",
+  "packet": "11C independent service-flow verification",
+  "applicationRuntimeChanged": false,
+  "testSource": {
+    "path": "src/lib/forms/service-flow-runtime.test.ts",
+    "sha256": "020b5ab14e757d02d2166a154c1745960c98a4b5a2776a27f01edf7fec86ba4f"
+  },
+  "scope": "Actual architectural/commission pages, bindings, form handlers and existing request protocol; synthetic hooks/effects/refs, navigation, verification and transport. No real React reconciler, DOM, AT, Router navigation, Turnstile, Server or site HTTP acceptance.",
+  "behavioralEvidence": {
+    "newTests": 1,
+    "locales": ["fa", "en"],
+    "buildingTransportCalls": 8,
+    "commissionTransportCalls": 10,
+    "invalidSelectionsBlockTransport": true,
+    "equivalentAreaKeepsRetryPayloadAndId": true,
+    "changedApplicationCreatesNewAttemptAndKeepsValues": true,
+    "commissionPrefixNeverDuplicatesOrOverwritesEditableBrief": true,
+    "changedAndRemovedCategoryPreserveUserValues": true,
+    "onlySafeNavigationArgumentsObserved": true,
+    "fetchDuringInteractions": 0,
+    "storageWrites": 4,
+    "storageWriteScope": "Only synthetic tracking codes under request:last-tracking-code",
+    "priceContract": "Architectural review/null; existing payload unchanged",
+    "mainStagesRemain": [9, 10, 11, 12, 13],
+    "realBrowserWorksheetExecuted": 0
+  },
+  "localInitialFullRun": {
+    "pass": 1000,
+    "fail": 2,
+    "files": 103,
+    "exitCode": 1,
+    "issue": "Two existing archive tests exceeded their 5000ms deadline; the first full run is not a pass."
+  },
+  "localIsolatedStorageRun": {
+    "pass": 22,
+    "fail": 0,
+    "files": 1,
+    "deadlineUnchanged": true,
+    "archiveCaseMilliseconds": [2716.98, 4010.35]
+  },
+  "localFinalFullRun": {
+    "pass": 1002,
+    "fail": 0,
+    "files": 103,
+    "exitCode": 0,
+    "seconds": 73.18,
+    "deadlineAndAssertionsUnchanged": true
+  },
+  "checks": {
+    "lintErrors": 0,
+    "existingLintWarnings": 29,
+    "typecheck": true,
+    "edgeChecks": 2,
+    "knownDependencyAdvisories": 0,
+    "contentCheck": true,
+    "productionBuild": true,
+    "artifactPreflight": true,
+    "strictWranglerDryRun": true,
+    "nativeAgeSyntheticScenarios": 9
+  },
+  "clientArtifacts": {
+    "all24FilesExactEqual": true,
+    "initialGraphEqual": true,
+    "files": {
+      "beiruti-500-Cm2w1lY_.woff2": {
+        "bytes": 54368,
+        "gzipBytes": 54403,
+        "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+      },
+      "building-stone-Bxfw_E0s.js": {
+        "bytes": 5174,
+        "gzipBytes": 1935,
+        "sha256": "b73c6828e8b6793e9d531fbf23f8637e6f51f941cb810bfd67ff181c94ddf886"
+      },
+      "contact-C0hY7j89.js": {
+        "bytes": 261,
+        "gzipBytes": 206,
+        "sha256": "a9dc1be9e8bf1acac851f4bed00f5af9f5464c4f8f4066f13277d92ac2e4ec32"
+      },
+      "custom-funnel-Jj5QYG3g.js": {
+        "bytes": 12608,
+        "gzipBytes": 3967,
+        "sha256": "cd2cc957b1bc93d4eef496c1301eead4b645117c6612137a4d6db1ddffa41329"
+      },
+      "custom-funnel-states-DYKHCuey.js": {
+        "bytes": 2505,
+        "gzipBytes": 977,
+        "sha256": "90815270e67775dda36198cb9ba93ef6cc25ef96de0fd8a7777bb3ff026a0aaa"
+      },
+      "estedad-400-500-Cv9mMFZq.woff2": {
+        "bytes": 76604,
+        "gzipBytes": 76647,
+        "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+      },
+      "grave-stone-list-states-NhdqCFTp.js": {
+        "bytes": 3032,
+        "gzipBytes": 1152,
+        "sha256": "25587d59c47890cfa35310dfec4f3df025e889a3557c001d7e3d7e7992d8d43b"
+      },
+      "grave-stones-DDrOkDR3.js": {
+        "bytes": 7374,
+        "gzipBytes": 2154,
+        "sha256": "85a348b4fb7ccb435b68ff0ed0f666383faaf4c19049e20fb32ff6f948708577"
+      },
+      "guide-detail-CxeKZhiJ.js": {
+        "bytes": 188,
+        "gzipBytes": 169,
+        "sha256": "80354a95dcad285375a56f27a868445da5132813c4731661dc08dd5504eb3908"
+      },
+      "guide-list-DinQsHOt.js": {
+        "bytes": 185,
+        "gzipBytes": 163,
+        "sha256": "fe392093f8c85d7b924dd4f3b89fe5eeca14ab2acbb985cac0ba157a17f1357e"
+      },
+      "index-CsImpAQG.js": {
+        "bytes": 390121,
+        "gzipBytes": 118897,
+        "sha256": "72cb4d757028400ba80397e3f004e94b1efeeea7f087f22cd9de7caa74a1f5e5"
+      },
+      "portfolio-jTbr-coK.js": {
+        "bytes": 2898,
+        "gzipBytes": 1231,
+        "sha256": "716dd18d6866d7042b5558c37e5e2e1c16db1719767f06a75466fcf7ecd5f501"
+      },
+      "portfolio-states-ahaUWOkz.js": {
+        "bytes": 2188,
+        "gzipBytes": 978,
+        "sha256": "67bd73735a263ce3cb2e2229fa471497b8f907b231851a40a072962013366305"
+      },
+      "product-DjG1VMEG.js": {
+        "bytes": 360,
+        "gzipBytes": 249,
+        "sha256": "8e7a73bb4c033851a39f591e08cd58eb6951c96d522a191c07275f994e3195d8"
+      },
+      "product-detail-page-DVFa6ZOh.js": {
+        "bytes": 15744,
+        "gzipBytes": 4539,
+        "sha256": "7db88d2fd33806ff949883cfbe60aa2241ae0c771811fa1d6741d44d0503a5d2"
+      },
+      "product-detail-states-DOTK8tMZ.js": {
+        "bytes": 1913,
+        "gzipBytes": 841,
+        "sha256": "4c1dae97c985ae08a4c797cadf59de86000cdfe8fd6f976b3d607fda28f7dcbd"
+      },
+      "quote-C5_PvX_Y.js": {
+        "bytes": 2287,
+        "gzipBytes": 1006,
+        "sha256": "0414b4b832a98898f7cab9ef1b02e3cfd228550b50199d4c9827990ce462145e"
+      },
+      "react-DrjNoziu.js": {
+        "bytes": 63533,
+        "gzipBytes": 21554,
+        "sha256": "043645ba51d98dd36482b7fdecd6d2ea8893eb2c24e48de6cb4a419b85b0c8ac"
+      },
+      "request-form-BJ1R2slj.js": {
+        "bytes": 26569,
+        "gzipBytes": 8692,
+        "sha256": "0c363958c25c72cf50fcb8446e50e6199ff99551a0c0e3a92840b0a48671a2e5"
+      },
+      "route-error-retry-CP9kVgRs.js": {
+        "bytes": 142,
+        "gzipBytes": 141,
+        "sha256": "31ed226b5fb652ee381d55634b012ab275bb7c8a4e35298f2b8795aa2511bf0f"
+      },
+      "service-media-Bxfe_I3q.js": {
+        "bytes": 962,
+        "gzipBytes": 583,
+        "sha256": "fa8e5aa018f4caf32806b25ef82ec1a6cd000b7b3ba2858bee9912caa34488ff"
+      },
+      "static-uEBCww_m.js": {
+        "bytes": 210,
+        "gzipBytes": 182,
+        "sha256": "6bb24345788d9857e3be331dfea804141b1e5212ef395fc4cec2edaa5976da9a"
+      },
+      "stoneworks-B1N89lor.js": {
+        "bytes": 3020,
+        "gzipBytes": 1078,
+        "sha256": "89029101198acb268c5803c8a97149bc58913dc5ecfca25afed70a05327922f4"
+      },
+      "styles-nu7UWrJn.css": {
+        "bytes": 26296,
+        "gzipBytes": 6271,
+        "sha256": "0c4eab2afeeb4e2e23b3fd11cc6d0351181828166154f43ab6bd8c770f557368"
+      }
+    },
+    "initialFiles": ["index-CsImpAQG.js", "react-DrjNoziu.js", "route-error-retry-CP9kVgRs.js"],
+    "initialJS": {
+      "files": 3,
+      "bytes": 453796,
+      "gzipBytes": 140592
+    },
+    "allJS": {
+      "files": 21,
+      "bytes": 541274,
+      "gzipBytes": 170694
+    },
+    "css": {
+      "files": 1,
+      "bytes": 26296,
+      "gzipBytes": 6271
+    },
+    "fonts": {
+      "files": 2,
+      "bytes": 130972,
+      "gzipBytes": 131050
+    },
+    "deltas": {
+      "initialJS": {
+        "bytes": 0,
+        "gzipBytes": 0,
+        "files": 0
+      },
+      "allJS": {
+        "bytes": 0,
+        "gzipBytes": 0,
+        "files": 0
+      },
+      "css": {
+        "bytes": 0,
+        "gzipBytes": 0,
+        "files": 0
+      },
+      "fonts": {
+        "bytes": 0,
+        "gzipBytes": 0,
+        "files": 0
+      }
+    },
+    "method": "Bun 1.3.14 production import graph; Python gzip.compress(data, compresslevel=9, mtime=0); initialJS is included in allJS."
+  },
+  "limitations": [
+    "No new runtime defect was reproduced in the examined behavior; this packet is verification coverage, not a UI fix.",
+    "The first local full run failed with two existing 5000ms archive-test timeouts; isolated and final full runs passed unchanged. Exact timing cause is not proven.",
+    "The new test script needed a newline-escape correction before its passing run.",
+    "No real owner content, Preview, backup/restore, Browser/AT/CWV, merge or deployment is accepted by this packet."
+  ]
+}
