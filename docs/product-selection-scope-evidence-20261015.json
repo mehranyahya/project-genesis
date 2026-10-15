@@ -1,0 +1,683 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-15",
+  "timezone": "Asia/Tehran",
+  "baseCommit": "2e60fc074eda7bf8ca929975615056464c8b605d",
+  "scope": "Actual route element/page handler/model/draft/payload code with synthetic hooks, type/key slot lifetime and loader; no real React reconciler, DOM, router navigation, site HTTP or AT acceptance.",
+  "before": {
+    "observations": [
+      {
+        "initialLocale": "fa",
+        "change": "product",
+        "nextLocale": "fa",
+        "routeElementKey": null,
+        "visibleModelId": "44444444-4444-4444-8444-444444444444",
+        "displayedSelectionProductId": "11111111-1111-4111-8111-111111111111",
+        "formProductId": "11111111-1111-4111-8111-111111111111",
+        "currentCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "formCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "oldDraftStillVisible": true,
+        "selectedVariantId": "55555555-5555-4555-8555-555555555555",
+        "selectedOptionIds": ["77777777-7777-4777-8777-777777777777"]
+      },
+      {
+        "initialLocale": "fa",
+        "change": "version",
+        "nextLocale": "fa",
+        "routeElementKey": null,
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": "11111111-1111-4111-8111-111111111111",
+        "formProductId": "11111111-1111-4111-8111-111111111111",
+        "currentCatalogVersion": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "formCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "oldDraftStillVisible": true,
+        "selectedVariantId": "33333333-3333-4333-8333-333333333333",
+        "selectedOptionIds": ["77777777-7777-4777-8777-777777777777"]
+      },
+      {
+        "initialLocale": "fa",
+        "change": "missing_version",
+        "nextLocale": "fa",
+        "routeElementKey": null,
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": "11111111-1111-4111-8111-111111111111",
+        "formProductId": "11111111-1111-4111-8111-111111111111",
+        "currentCatalogVersion": null,
+        "formCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "oldDraftStillVisible": true,
+        "selectedVariantId": "33333333-3333-4333-8333-333333333333",
+        "selectedOptionIds": ["77777777-7777-4777-8777-777777777777"]
+      },
+      {
+        "initialLocale": "fa",
+        "change": "invalid_version",
+        "nextLocale": "fa",
+        "routeElementKey": null,
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": "11111111-1111-4111-8111-111111111111",
+        "formProductId": "11111111-1111-4111-8111-111111111111",
+        "currentCatalogVersion": "invalid",
+        "formCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "oldDraftStillVisible": true,
+        "selectedVariantId": "33333333-3333-4333-8333-333333333333",
+        "selectedOptionIds": ["77777777-7777-4777-8777-777777777777"]
+      },
+      {
+        "initialLocale": "fa",
+        "change": "locale",
+        "nextLocale": "en",
+        "routeElementKey": null,
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": "11111111-1111-4111-8111-111111111111",
+        "formProductId": "11111111-1111-4111-8111-111111111111",
+        "currentCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "formCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "oldDraftStillVisible": true,
+        "selectedVariantId": "33333333-3333-4333-8333-333333333333",
+        "selectedOptionIds": ["77777777-7777-4777-8777-777777777777"]
+      },
+      {
+        "initialLocale": "en",
+        "change": "product",
+        "nextLocale": "en",
+        "routeElementKey": null,
+        "visibleModelId": "44444444-4444-4444-8444-444444444444",
+        "displayedSelectionProductId": "11111111-1111-4111-8111-111111111111",
+        "formProductId": "11111111-1111-4111-8111-111111111111",
+        "currentCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "formCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "oldDraftStillVisible": true,
+        "selectedVariantId": "55555555-5555-4555-8555-555555555555",
+        "selectedOptionIds": ["77777777-7777-4777-8777-777777777777"]
+      },
+      {
+        "initialLocale": "en",
+        "change": "version",
+        "nextLocale": "en",
+        "routeElementKey": null,
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": "11111111-1111-4111-8111-111111111111",
+        "formProductId": "11111111-1111-4111-8111-111111111111",
+        "currentCatalogVersion": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "formCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "oldDraftStillVisible": true,
+        "selectedVariantId": "33333333-3333-4333-8333-333333333333",
+        "selectedOptionIds": ["77777777-7777-4777-8777-777777777777"]
+      },
+      {
+        "initialLocale": "en",
+        "change": "missing_version",
+        "nextLocale": "en",
+        "routeElementKey": null,
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": "11111111-1111-4111-8111-111111111111",
+        "formProductId": "11111111-1111-4111-8111-111111111111",
+        "currentCatalogVersion": null,
+        "formCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "oldDraftStillVisible": true,
+        "selectedVariantId": "33333333-3333-4333-8333-333333333333",
+        "selectedOptionIds": ["77777777-7777-4777-8777-777777777777"]
+      },
+      {
+        "initialLocale": "en",
+        "change": "invalid_version",
+        "nextLocale": "en",
+        "routeElementKey": null,
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": "11111111-1111-4111-8111-111111111111",
+        "formProductId": "11111111-1111-4111-8111-111111111111",
+        "currentCatalogVersion": "invalid",
+        "formCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "oldDraftStillVisible": true,
+        "selectedVariantId": "33333333-3333-4333-8333-333333333333",
+        "selectedOptionIds": ["77777777-7777-4777-8777-777777777777"]
+      },
+      {
+        "initialLocale": "en",
+        "change": "locale",
+        "nextLocale": "fa",
+        "routeElementKey": null,
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": "11111111-1111-4111-8111-111111111111",
+        "formProductId": "11111111-1111-4111-8111-111111111111",
+        "currentCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "formCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "oldDraftStillVisible": true,
+        "selectedVariantId": "33333333-3333-4333-8333-333333333333",
+        "selectedOptionIds": ["77777777-7777-4777-8777-777777777777"]
+      }
+    ],
+    "transitions": 10,
+    "fetchCalls": 0,
+    "storageCalls": 0,
+    "scope": "Actual route element, product page handlers and draft/payload builders; synthetic hooks and loader, no DOM/reconciler/router navigation/site HTTP."
+  },
+  "after": {
+    "observations": [
+      {
+        "initialLocale": "fa",
+        "change": "product",
+        "nextLocale": "fa",
+        "routeElementKey": "fa:44444444-4444-4444-8444-444444444444:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "visibleModelId": "44444444-4444-4444-8444-444444444444",
+        "displayedSelectionProductId": null,
+        "formProductId": null,
+        "currentCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "formCatalogVersion": null,
+        "oldDraftStillVisible": false,
+        "selectedVariantId": "55555555-5555-4555-8555-555555555555",
+        "selectedOptionIds": []
+      },
+      {
+        "initialLocale": "fa",
+        "change": "version",
+        "nextLocale": "fa",
+        "routeElementKey": "fa:11111111-1111-4111-8111-111111111111:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": null,
+        "formProductId": null,
+        "currentCatalogVersion": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "formCatalogVersion": null,
+        "oldDraftStillVisible": false,
+        "selectedVariantId": "22222222-2222-4222-8222-222222222222",
+        "selectedOptionIds": []
+      },
+      {
+        "initialLocale": "fa",
+        "change": "missing_version",
+        "nextLocale": "fa",
+        "routeElementKey": "fa:11111111-1111-4111-8111-111111111111:missing",
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": null,
+        "formProductId": null,
+        "currentCatalogVersion": null,
+        "formCatalogVersion": null,
+        "oldDraftStillVisible": false,
+        "selectedVariantId": "22222222-2222-4222-8222-222222222222",
+        "selectedOptionIds": []
+      },
+      {
+        "initialLocale": "fa",
+        "change": "invalid_version",
+        "nextLocale": "fa",
+        "routeElementKey": "fa:11111111-1111-4111-8111-111111111111:invalid",
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": null,
+        "formProductId": null,
+        "currentCatalogVersion": "invalid",
+        "formCatalogVersion": null,
+        "oldDraftStillVisible": false,
+        "selectedVariantId": "22222222-2222-4222-8222-222222222222",
+        "selectedOptionIds": []
+      },
+      {
+        "initialLocale": "fa",
+        "change": "locale",
+        "nextLocale": "en",
+        "routeElementKey": "en:11111111-1111-4111-8111-111111111111:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": null,
+        "formProductId": null,
+        "currentCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "formCatalogVersion": null,
+        "oldDraftStillVisible": false,
+        "selectedVariantId": "22222222-2222-4222-8222-222222222222",
+        "selectedOptionIds": []
+      },
+      {
+        "initialLocale": "en",
+        "change": "product",
+        "nextLocale": "en",
+        "routeElementKey": "en:44444444-4444-4444-8444-444444444444:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "visibleModelId": "44444444-4444-4444-8444-444444444444",
+        "displayedSelectionProductId": null,
+        "formProductId": null,
+        "currentCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "formCatalogVersion": null,
+        "oldDraftStillVisible": false,
+        "selectedVariantId": "55555555-5555-4555-8555-555555555555",
+        "selectedOptionIds": []
+      },
+      {
+        "initialLocale": "en",
+        "change": "version",
+        "nextLocale": "en",
+        "routeElementKey": "en:11111111-1111-4111-8111-111111111111:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": null,
+        "formProductId": null,
+        "currentCatalogVersion": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "formCatalogVersion": null,
+        "oldDraftStillVisible": false,
+        "selectedVariantId": "22222222-2222-4222-8222-222222222222",
+        "selectedOptionIds": []
+      },
+      {
+        "initialLocale": "en",
+        "change": "missing_version",
+        "nextLocale": "en",
+        "routeElementKey": "en:11111111-1111-4111-8111-111111111111:missing",
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": null,
+        "formProductId": null,
+        "currentCatalogVersion": null,
+        "formCatalogVersion": null,
+        "oldDraftStillVisible": false,
+        "selectedVariantId": "22222222-2222-4222-8222-222222222222",
+        "selectedOptionIds": []
+      },
+      {
+        "initialLocale": "en",
+        "change": "invalid_version",
+        "nextLocale": "en",
+        "routeElementKey": "en:11111111-1111-4111-8111-111111111111:invalid",
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": null,
+        "formProductId": null,
+        "currentCatalogVersion": "invalid",
+        "formCatalogVersion": null,
+        "oldDraftStillVisible": false,
+        "selectedVariantId": "22222222-2222-4222-8222-222222222222",
+        "selectedOptionIds": []
+      },
+      {
+        "initialLocale": "en",
+        "change": "locale",
+        "nextLocale": "fa",
+        "routeElementKey": "fa:11111111-1111-4111-8111-111111111111:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "visibleModelId": "11111111-1111-4111-8111-111111111111",
+        "displayedSelectionProductId": null,
+        "formProductId": null,
+        "currentCatalogVersion": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "formCatalogVersion": null,
+        "oldDraftStillVisible": false,
+        "selectedVariantId": "22222222-2222-4222-8222-222222222222",
+        "selectedOptionIds": []
+      }
+    ],
+    "transitions": 10,
+    "fetchCalls": 0,
+    "storageCalls": 0,
+    "scope": "Actual route element, product page handlers and draft/payload builders; synthetic hooks and loader, no DOM/reconciler/router navigation/site HTTP."
+  },
+  "verification": {
+    "baseRegressionFailsAtIntendedObsoleteDraftAssertion": true,
+    "candidateRegressionPasses": true,
+    "semanticTransitions": 10,
+    "sameIdentityLoaderPreservesChoiceAndDraft": true,
+    "newReviewBuildsCurrentIdentifiersPriceAndCatalog": true,
+    "fullTests": {
+      "pass": 1001,
+      "fail": 0,
+      "files": 102
+    },
+    "nativeAgeSyntheticScenarios": 9,
+    "realBrowserWorksheetExecuted": 0,
+    "cssAndFontHashesEqual": true
+  },
+  "bundle": {
+    "baseline": {
+      "scope": "Complete production client JS/CSS/WOFF2; Python gzip.compress level=9, mtime=0; Bun 1.3.14 static initial import graph. Bytes are not latency/CWV.",
+      "files": {
+        "beiruti-500-Cm2w1lY_.woff2": {
+          "bytes": 54368,
+          "gzipBytes": 54403,
+          "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+        },
+        "building-stone-C6O-v385.js": {
+          "bytes": 5174,
+          "gzipBytes": 1934,
+          "sha256": "0513b7651439bde900243fe476ba8dae5d0fad7d801855b5aa65482da38578e0"
+        },
+        "contact-BFh40A55.js": {
+          "bytes": 261,
+          "gzipBytes": 204,
+          "sha256": "975184db42465b4e8c78b8f46323f956365581b1aa3428300bea921c9bdd3fad"
+        },
+        "custom-funnel-BZG4D144.js": {
+          "bytes": 12608,
+          "gzipBytes": 3964,
+          "sha256": "3a5bcdd6b23156c622992b9ac09f18bd33dad192adaa889455bf8a3e9e8ffa20"
+        },
+        "custom-funnel-states-DYKHCuey.js": {
+          "bytes": 2505,
+          "gzipBytes": 977,
+          "sha256": "90815270e67775dda36198cb9ba93ef6cc25ef96de0fd8a7777bb3ff026a0aaa"
+        },
+        "estedad-400-500-Cv9mMFZq.woff2": {
+          "bytes": 76604,
+          "gzipBytes": 76647,
+          "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+        },
+        "grave-stone-list-states-NhdqCFTp.js": {
+          "bytes": 3032,
+          "gzipBytes": 1152,
+          "sha256": "25587d59c47890cfa35310dfec4f3df025e889a3557c001d7e3d7e7992d8d43b"
+        },
+        "grave-stones-CzkF7y_H.js": {
+          "bytes": 7374,
+          "gzipBytes": 2154,
+          "sha256": "8c7e2034a39fb02c59a7bbdecf87d039cb988eeddc60e7fa1770ddfa83b2bfba"
+        },
+        "guide-detail-DNJHjVFS.js": {
+          "bytes": 188,
+          "gzipBytes": 170,
+          "sha256": "a59e4b748b156f0f3eb10c1b2883e482258fb58f744c3259cf4bdebdfbab2bb1"
+        },
+        "guide-list-B6n4wfjY.js": {
+          "bytes": 185,
+          "gzipBytes": 164,
+          "sha256": "bedf1ea52d824cab3edd8caf3974824263423aa476ac328037e66c62aef9dc63"
+        },
+        "index-Dk6m4jfF.js": {
+          "bytes": 390121,
+          "gzipBytes": 118901,
+          "sha256": "f110a382da5eea21e743cb4733fc797df14039cad2b931b68b17be02b131c2d5"
+        },
+        "portfolio-BRw3JUx1.js": {
+          "bytes": 2898,
+          "gzipBytes": 1231,
+          "sha256": "67200437c80319303cb6bc8c3ff6aafdbaa16c0d8ad382d44602cd707caa833d"
+        },
+        "portfolio-states-ahaUWOkz.js": {
+          "bytes": 2188,
+          "gzipBytes": 978,
+          "sha256": "67bd73735a263ce3cb2e2229fa471497b8f907b231851a40a072962013366305"
+        },
+        "product-B16muuLa.js": {
+          "bytes": 310,
+          "gzipBytes": 215,
+          "sha256": "fbd86f2ed0c8e0f89268f7495c627e0cde238f5cc726561b740bc814078ca4e9"
+        },
+        "product-detail-page-3aOJitT4.js": {
+          "bytes": 15744,
+          "gzipBytes": 4540,
+          "sha256": "417cc1af44b382c4e501f7d0d1794a11639f4438d795eee59b76f18740f0bff8"
+        },
+        "product-detail-states-DOTK8tMZ.js": {
+          "bytes": 1913,
+          "gzipBytes": 841,
+          "sha256": "4c1dae97c985ae08a4c797cadf59de86000cdfe8fd6f976b3d607fda28f7dcbd"
+        },
+        "quote-BNzfRgph.js": {
+          "bytes": 2287,
+          "gzipBytes": 1007,
+          "sha256": "483cff232413118c60a9b4799c9487470a4577b6038630b6d1dd65ff3b5f76f6"
+        },
+        "react-DrjNoziu.js": {
+          "bytes": 63533,
+          "gzipBytes": 21554,
+          "sha256": "043645ba51d98dd36482b7fdecd6d2ea8893eb2c24e48de6cb4a419b85b0c8ac"
+        },
+        "request-form-BB6y6W1E.js": {
+          "bytes": 26569,
+          "gzipBytes": 8696,
+          "sha256": "deed86dda03d10991c51e09eff6910aaa88fee1f15d5129c9e7912280bdd1baf"
+        },
+        "route-error-retry-CP9kVgRs.js": {
+          "bytes": 142,
+          "gzipBytes": 141,
+          "sha256": "31ed226b5fb652ee381d55634b012ab275bb7c8a4e35298f2b8795aa2511bf0f"
+        },
+        "service-media-1S4MzEaF.js": {
+          "bytes": 962,
+          "gzipBytes": 583,
+          "sha256": "5a5309f6275302f53951e6f6b61f1def4c691a3c1dcfc98c1e38af181269bdfe"
+        },
+        "static-CLoGLAX5.js": {
+          "bytes": 210,
+          "gzipBytes": 182,
+          "sha256": "9b97c4c431191a337068bcc35a72f237d1ba256f6ae76f5ec9bc8f837364bed9"
+        },
+        "stoneworks-I4n1KEOe.js": {
+          "bytes": 3020,
+          "gzipBytes": 1077,
+          "sha256": "9baf39197536a06696df07e6551976b47bd0f488469a6bb226c0d84454224018"
+        },
+        "styles-nu7UWrJn.css": {
+          "bytes": 26296,
+          "gzipBytes": 6271,
+          "sha256": "0c4eab2afeeb4e2e23b3fd11cc6d0351181828166154f43ab6bd8c770f557368"
+        }
+      },
+      "initialFiles": ["index-Dk6m4jfF.js", "react-DrjNoziu.js", "route-error-retry-CP9kVgRs.js"],
+      "initialJS": {
+        "files": 3,
+        "bytes": 453796,
+        "gzipBytes": 140596
+      },
+      "allJS": {
+        "files": 21,
+        "bytes": 541224,
+        "gzipBytes": 170665
+      },
+      "css": {
+        "files": 1,
+        "bytes": 26296,
+        "gzipBytes": 6271
+      },
+      "fonts": {
+        "files": 2,
+        "bytes": 130972,
+        "gzipBytes": 131050
+      },
+      "initialImports": [
+        {
+          "from": "index-Dk6m4jfF.js",
+          "path": "./react-DrjNoziu.js",
+          "kind": "import-statement"
+        },
+        {
+          "from": "index-Dk6m4jfF.js",
+          "path": "./route-error-retry-CP9kVgRs.js",
+          "kind": "import-statement"
+        },
+        {
+          "from": "route-error-retry-CP9kVgRs.js",
+          "path": "./react-DrjNoziu.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "candidate": {
+      "scope": "Complete production client JS/CSS/WOFF2; Python gzip.compress level=9, mtime=0; Bun 1.3.14 static initial import graph. Bytes are not latency/CWV.",
+      "files": {
+        "beiruti-500-Cm2w1lY_.woff2": {
+          "bytes": 54368,
+          "gzipBytes": 54403,
+          "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+        },
+        "building-stone-Bxfw_E0s.js": {
+          "bytes": 5174,
+          "gzipBytes": 1935,
+          "sha256": "b73c6828e8b6793e9d531fbf23f8637e6f51f941cb810bfd67ff181c94ddf886"
+        },
+        "contact-C0hY7j89.js": {
+          "bytes": 261,
+          "gzipBytes": 206,
+          "sha256": "a9dc1be9e8bf1acac851f4bed00f5af9f5464c4f8f4066f13277d92ac2e4ec32"
+        },
+        "custom-funnel-Jj5QYG3g.js": {
+          "bytes": 12608,
+          "gzipBytes": 3967,
+          "sha256": "cd2cc957b1bc93d4eef496c1301eead4b645117c6612137a4d6db1ddffa41329"
+        },
+        "custom-funnel-states-DYKHCuey.js": {
+          "bytes": 2505,
+          "gzipBytes": 977,
+          "sha256": "90815270e67775dda36198cb9ba93ef6cc25ef96de0fd8a7777bb3ff026a0aaa"
+        },
+        "estedad-400-500-Cv9mMFZq.woff2": {
+          "bytes": 76604,
+          "gzipBytes": 76647,
+          "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+        },
+        "grave-stone-list-states-NhdqCFTp.js": {
+          "bytes": 3032,
+          "gzipBytes": 1152,
+          "sha256": "25587d59c47890cfa35310dfec4f3df025e889a3557c001d7e3d7e7992d8d43b"
+        },
+        "grave-stones-DDrOkDR3.js": {
+          "bytes": 7374,
+          "gzipBytes": 2154,
+          "sha256": "85a348b4fb7ccb435b68ff0ed0f666383faaf4c19049e20fb32ff6f948708577"
+        },
+        "guide-detail-CxeKZhiJ.js": {
+          "bytes": 188,
+          "gzipBytes": 169,
+          "sha256": "80354a95dcad285375a56f27a868445da5132813c4731661dc08dd5504eb3908"
+        },
+        "guide-list-DinQsHOt.js": {
+          "bytes": 185,
+          "gzipBytes": 163,
+          "sha256": "fe392093f8c85d7b924dd4f3b89fe5eeca14ab2acbb985cac0ba157a17f1357e"
+        },
+        "index-CsImpAQG.js": {
+          "bytes": 390121,
+          "gzipBytes": 118897,
+          "sha256": "72cb4d757028400ba80397e3f004e94b1efeeea7f087f22cd9de7caa74a1f5e5"
+        },
+        "portfolio-jTbr-coK.js": {
+          "bytes": 2898,
+          "gzipBytes": 1231,
+          "sha256": "716dd18d6866d7042b5558c37e5e2e1c16db1719767f06a75466fcf7ecd5f501"
+        },
+        "portfolio-states-ahaUWOkz.js": {
+          "bytes": 2188,
+          "gzipBytes": 978,
+          "sha256": "67bd73735a263ce3cb2e2229fa471497b8f907b231851a40a072962013366305"
+        },
+        "product-DjG1VMEG.js": {
+          "bytes": 360,
+          "gzipBytes": 249,
+          "sha256": "8e7a73bb4c033851a39f591e08cd58eb6951c96d522a191c07275f994e3195d8"
+        },
+        "product-detail-page-DVFa6ZOh.js": {
+          "bytes": 15744,
+          "gzipBytes": 4539,
+          "sha256": "7db88d2fd33806ff949883cfbe60aa2241ae0c771811fa1d6741d44d0503a5d2"
+        },
+        "product-detail-states-DOTK8tMZ.js": {
+          "bytes": 1913,
+          "gzipBytes": 841,
+          "sha256": "4c1dae97c985ae08a4c797cadf59de86000cdfe8fd6f976b3d607fda28f7dcbd"
+        },
+        "quote-C5_PvX_Y.js": {
+          "bytes": 2287,
+          "gzipBytes": 1006,
+          "sha256": "0414b4b832a98898f7cab9ef1b02e3cfd228550b50199d4c9827990ce462145e"
+        },
+        "react-DrjNoziu.js": {
+          "bytes": 63533,
+          "gzipBytes": 21554,
+          "sha256": "043645ba51d98dd36482b7fdecd6d2ea8893eb2c24e48de6cb4a419b85b0c8ac"
+        },
+        "request-form-BJ1R2slj.js": {
+          "bytes": 26569,
+          "gzipBytes": 8692,
+          "sha256": "0c363958c25c72cf50fcb8446e50e6199ff99551a0c0e3a92840b0a48671a2e5"
+        },
+        "route-error-retry-CP9kVgRs.js": {
+          "bytes": 142,
+          "gzipBytes": 141,
+          "sha256": "31ed226b5fb652ee381d55634b012ab275bb7c8a4e35298f2b8795aa2511bf0f"
+        },
+        "service-media-Bxfe_I3q.js": {
+          "bytes": 962,
+          "gzipBytes": 583,
+          "sha256": "fa8e5aa018f4caf32806b25ef82ec1a6cd000b7b3ba2858bee9912caa34488ff"
+        },
+        "static-uEBCww_m.js": {
+          "bytes": 210,
+          "gzipBytes": 182,
+          "sha256": "6bb24345788d9857e3be331dfea804141b1e5212ef395fc4cec2edaa5976da9a"
+        },
+        "stoneworks-B1N89lor.js": {
+          "bytes": 3020,
+          "gzipBytes": 1078,
+          "sha256": "89029101198acb268c5803c8a97149bc58913dc5ecfca25afed70a05327922f4"
+        },
+        "styles-nu7UWrJn.css": {
+          "bytes": 26296,
+          "gzipBytes": 6271,
+          "sha256": "0c4eab2afeeb4e2e23b3fd11cc6d0351181828166154f43ab6bd8c770f557368"
+        }
+      },
+      "initialFiles": ["index-CsImpAQG.js", "react-DrjNoziu.js", "route-error-retry-CP9kVgRs.js"],
+      "initialJS": {
+        "files": 3,
+        "bytes": 453796,
+        "gzipBytes": 140592
+      },
+      "allJS": {
+        "files": 21,
+        "bytes": 541274,
+        "gzipBytes": 170694
+      },
+      "css": {
+        "files": 1,
+        "bytes": 26296,
+        "gzipBytes": 6271
+      },
+      "fonts": {
+        "files": 2,
+        "bytes": 130972,
+        "gzipBytes": 131050
+      },
+      "initialImports": [
+        {
+          "from": "index-CsImpAQG.js",
+          "path": "./react-DrjNoziu.js",
+          "kind": "import-statement"
+        },
+        {
+          "from": "index-CsImpAQG.js",
+          "path": "./route-error-retry-CP9kVgRs.js",
+          "kind": "import-statement"
+        },
+        {
+          "from": "route-error-retry-CP9kVgRs.js",
+          "path": "./react-DrjNoziu.js",
+          "kind": "import-statement"
+        }
+      ]
+    },
+    "deltas": {
+      "initialJS": {
+        "bytes": 0,
+        "gzipBytes": -4,
+        "files": 0
+      },
+      "allJS": {
+        "bytes": 50,
+        "gzipBytes": 29,
+        "files": 0
+      },
+      "css": {
+        "bytes": 0,
+        "gzipBytes": 0,
+        "files": 0
+      },
+      "fonts": {
+        "bytes": 0,
+        "gzipBytes": 0,
+        "files": 0
+      }
+    },
+    "method": "Bun 1.3.14 production static initial import graph; Python gzip.compress(data, compresslevel=9, mtime=0). InitialJS is included in allJS."
+  },
+  "fixtureCorrections": [
+    "Price assertion uses actual client_displayed_price payload field.",
+    "Storage trap starts after framework imports; unrelated scroll cache import access is outside draft-interaction scope.",
+    "One known generated SEO test fixture was removed after the suite before final lint; source tests and lint rules were not weakened."
+  ],
+  "tradeoffs": [
+    "Changing product, catalog version or locale rebuilds the product subtree including any unsubmitted form values. Same semantic identity retains its choice.",
+    "A key change contract plus source execution does not prove actual Browser focus, AT, navigation or reconciliation behavior.",
+    "Small gzip differences do not establish latency or a speed percentage."
+  ],
+  "officialReferences": [
+    "https://react.dev/learn/preserving-and-resetting-state",
+    "https://tanstack.com/router/latest/docs/api/router/RouteOptionsType"
+  ]
+}
