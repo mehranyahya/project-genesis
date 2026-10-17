@@ -138,14 +138,19 @@ process.on("beforeExit", () => writeFileSync("calls.txt", String(calls)));
   }
 });
 
-test("the actual generator traverses every catalog table, short page and bounded parent batch", async () => {
-  const image = await sharp({
-    create: { width: 1280, height: 1600, channels: 3, background: { r: 80, g: 80, b: 80 } },
-  })
-    .png()
-    .toBuffer();
-  const result = await runOfflineGenerator(
-    `
+// Native AVIF encoding uses a subprocess bounded at 60s; the parent must allow
+// it to finish and clean up instead of terminating the runner at its 5s default.
+test(
+  "the actual generator traverses every catalog table, short page and bounded parent batch",
+  { timeout: 75_000 },
+  async () => {
+    const image = await sharp({
+      create: { width: 1280, height: 1600, channels: 3, background: { r: 80, g: 80, b: 80 } },
+    })
+      .png()
+      .toBuffer();
+    const result = await runOfflineGenerator(
+      `
 import { readFileSync, writeFileSync } from "node:fs";
 const total = 1005;
 const tables = {
@@ -208,46 +213,49 @@ globalThis.fetch = async (input, init) => {
 };
 process.on("beforeExit", () => writeFileSync("audit.json", JSON.stringify({ counted, versions, maxBatch })));
 `,
-    image,
-  );
-  assert.equal(result.status, 0, result.stderr);
-  assert.deepEqual(result.audit.counted, {
-    products: 1,
-    product_variants: 1005,
-    product_media: 1,
-    product_options: 1005,
-    portfolio_items: 1,
-    portfolio_media: 1,
-    building_stone_items: 1005,
-    building_stone_media: 1005,
-    site_settings: 1,
-  });
-  assert.equal(result.audit.versions, 2);
-  assert.equal(result.audit.maxBatch, 25);
-  const productsMatch =
-    /GENERATED_PRODUCTS:[\s\S]*?Object\.freeze\(([\s\S]*?) as Product\[\]\)/.exec(result.artifact);
-  assert.ok(productsMatch);
-  const products = JSON.parse(productsMatch[1]!);
-  assert.equal(products.length, 1);
-  assert.equal(products[0].locale, "fa");
-  assert.equal(products[0].variants.length, 1005);
-  assert.equal(products[0].variants[1004].options.length, 1005);
-  assert.equal(products[0].variants[1004].options[1004].id, "o-1004");
-  assert.equal(products[0].variants[1004].amountToman, null);
-  assert.equal(products[0].variants[1004].isAvailable, false);
-  assert.equal(products[0].media.length, 1);
-  for (const value of [
-    "synthetic-test-key",
-    "synthetic-private-consent",
-    "media_key",
-    "privacy_cleared",
-    "https://fixtures.invalid",
-    "products/p-1/source.png",
-    "portfolio/pf-1001/source.png",
-  ]) {
-    assert.equal(result.artifact.includes(value), false);
-  }
-});
+      image,
+    );
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(result.audit.counted, {
+      products: 1,
+      product_variants: 1005,
+      product_media: 1,
+      product_options: 1005,
+      portfolio_items: 1,
+      portfolio_media: 1,
+      building_stone_items: 1005,
+      building_stone_media: 1005,
+      site_settings: 1,
+    });
+    assert.equal(result.audit.versions, 2);
+    assert.equal(result.audit.maxBatch, 25);
+    const productsMatch =
+      /GENERATED_PRODUCTS:[\s\S]*?Object\.freeze\(([\s\S]*?) as Product\[\]\)/.exec(
+        result.artifact,
+      );
+    assert.ok(productsMatch);
+    const products = JSON.parse(productsMatch[1]!);
+    assert.equal(products.length, 1);
+    assert.equal(products[0].locale, "fa");
+    assert.equal(products[0].variants.length, 1005);
+    assert.equal(products[0].variants[1004].options.length, 1005);
+    assert.equal(products[0].variants[1004].options[1004].id, "o-1004");
+    assert.equal(products[0].variants[1004].amountToman, null);
+    assert.equal(products[0].variants[1004].isAvailable, false);
+    assert.equal(products[0].media.length, 1);
+    for (const value of [
+      "synthetic-test-key",
+      "synthetic-private-consent",
+      "media_key",
+      "privacy_cleared",
+      "https://fixtures.invalid",
+      "products/p-1/source.png",
+      "portfolio/pf-1001/source.png",
+    ]) {
+      assert.equal(result.artifact.includes(value), false);
+    }
+  },
+);
 
 test("an operational version change fails the CLI and preserves the previous artifact", async () => {
   const result = await runOfflineGenerator(`

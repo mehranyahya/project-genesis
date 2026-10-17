@@ -1,0 +1,215 @@
+{
+  "baseCommit": "ac99e1078d6f9daa319fb8a2a951b2c568a0e476",
+  "findingsFixed": [
+    "M-01",
+    "M-02"
+  ],
+  "packages": {
+    "@tanstack/react-start": "1.168.60",
+    "@tanstack/react-router": "1.170.41",
+    "@tanstack/router-plugin": "1.168.42",
+    "@tanstack/start-server-core": "1.169.39"
+  },
+  "audit": {
+    "exitCode": 0,
+    "vulnerabilities": 0
+  },
+  "tests": {
+    "passed": 1003,
+    "failed": 0,
+    "files": 104,
+    "seconds": 75.97
+  },
+  "funnelRegression": {
+    "failedBeforeFix": true,
+    "passedAfterFix": true,
+    "transitions": 14,
+    "locales": [
+      "fa",
+      "en"
+    ],
+    "fetchCalls": 0,
+    "storageCalls": 0,
+    "limitations": "synthetic hook slots and loader data; no DOM or real request"
+  },
+  "checks": {
+    "frozenInstall": true,
+    "types": true,
+    "lintErrors": 0,
+    "lintWarnings": 29,
+    "edge": true,
+    "build": true,
+    "contentCheck": true,
+    "storageCryptoScenarios": 9,
+    "deployArtifactPreflight": true,
+    "strictDryRun": true
+  },
+  "readiness": {
+    "blocked": 24,
+    "deferred": 2,
+    "pass": 2,
+    "readyForPublication": false
+  },
+  "sourceSha256": {
+    "package.json": "b60a5060bde3d8aefaf30a2f4d62ca35f8138520bf755871def39b531bedc743",
+    "bun.lock": "e040063daede658296ddd67978cba31cd17c5d1c19824af61dd413da9d197509",
+    "src/components/custom-funnel/custom-funnel-page.tsx": "7ecad820662e45fbba0d485b7a2c251096de442ea032d38e25e19099ca7de9ab",
+    "src/lib/route-defs/views/custom-funnel.tsx": "720bcee85166e7982213149bbe50edb5120fdc8097e8585ba0caff7c3adfebec",
+    "src/lib/route-defs/shared.tsx": "97fcbaa5d68319e1b7553fe31e61d460152fed2ef2ba1188bd36fad152972bca",
+    "src/routes/__root.tsx": "71074a418ff299f8ba090d62fa57d0ecbe6edaba69b03add17b07844bd44fc28",
+    "src/lib/route-defs/custom-funnel-scope-runtime.test.ts": "09940e0c2f054f860ac8f1706ede82a500dcc7e77ed3322907d331cbd7d5e277",
+    "src/lib/ssr-streaming-runtime.test.ts": "d3300549bf37f35ab34bb69e6f1f64b18e8dd4fab142d5ad7b4806029783f3c0",
+    "src/lib/seo-absence-runtime.test.ts": "2ad1eaafc1c6bdf4c852dbdb1077fd986e09107f6acd62d6ca6c9f7855f3c3d4",
+    "src/lib/route-error-recovery.test.ts": "ca1d228672ecf98c98227ec4a3fca2366ac20a0852eac3cbcdf42c144f0dfcf2",
+    "src/lib/forms/request-terms-link-runtime.test.ts": "a5def9ddc288e6d1e09aebb6628e4103af9d7efaef07c14308b5c231042ceba6",
+    "src/lib/content/structured-generator-cli.test.ts": "3e0e9817d3a1604fe4ce3df4232be4dd28f0f48f54e0fb1009ca4d72aff52a49"
+  },
+  "clientAssets": [
+    {
+      "file": "beiruti-500-Cm2w1lY_.woff2",
+      "bytes": 54368,
+      "gzip9": 54403,
+      "sha256": "002daf61aff87803e46729e80de8128e0b4e133aadbb43c091512b85b0a01fcb"
+    },
+    {
+      "file": "building-stone-CEvc5Fe5.js",
+      "bytes": 5172,
+      "gzip9": 1932,
+      "sha256": "4a39b6a2ed62117d65bbe8379c7c1b8c4ca91155c9d9d97b55d48e79f695b641"
+    },
+    {
+      "file": "contact-BdXlseMA.js",
+      "bytes": 261,
+      "gzip9": 207,
+      "sha256": "1ec017540798b6b786d7b7c845f0795782461d444e1de73cbc5bf22ab8c80e2d"
+    },
+    {
+      "file": "custom-funnel-CJNM3wbG.js",
+      "bytes": 12867,
+      "gzip9": 4058,
+      "sha256": "ddad27553aad45313c11f997bdc775bded01da56d5e58d5b85c8030d4ccd27e0"
+    },
+    {
+      "file": "custom-funnel-states-C9wJ1dx-.js",
+      "bytes": 2504,
+      "gzip9": 977,
+      "sha256": "10eb813d77ebca253c4d8fb74c76b374493a653959d05787ea2015acbc6da985"
+    },
+    {
+      "file": "estedad-400-500-Cv9mMFZq.woff2",
+      "bytes": 76604,
+      "gzip9": 76647,
+      "sha256": "fa5b933b99f547556fbe3aa9e9d842e7586c4dfa8450a28109c9c3317b1e1b6e"
+    },
+    {
+      "file": "grave-stone-list-states-Dk98Njpj.js",
+      "bytes": 3031,
+      "gzip9": 1152,
+      "sha256": "2ed55e7355554ccd2862a734611a1596cc223297edfaf950144ec7b75b210df9"
+    },
+    {
+      "file": "grave-stones-8UUej1Li.js",
+      "bytes": 7372,
+      "gzip9": 2154,
+      "sha256": "3cc458a1019ce882c8cb1e00e5be75be32df6154b8f66e6b61adf8c0a6d589db"
+    },
+    {
+      "file": "guide-detail-Do2WTJe3.js",
+      "bytes": 188,
+      "gzip9": 171,
+      "sha256": "2072208e77c8fbce8b4b571c2a59f4a49a32837f76b5e72fca4e826926e6b321"
+    },
+    {
+      "file": "guide-list-BRr6u3gE.js",
+      "bytes": 185,
+      "gzip9": 164,
+      "sha256": "160d887734d9b50a0291b4b5d3169d6be61d9482c02697033ac61c38e782e160"
+    },
+    {
+      "file": "index-RMWHvjRc.js",
+      "bytes": 395847,
+      "gzip9": 122670,
+      "sha256": "e28bdba1113d652df070c3e3515672749de0c7e820b970af43adbd441d0ddbd9"
+    },
+    {
+      "file": "portfolio-B9Zsts1z.js",
+      "bytes": 2898,
+      "gzip9": 1232,
+      "sha256": "7764a4e7d6ef5dda6cf7faffd692220d0d3c6b1450ab5e9154c2b3e7e3260ce6"
+    },
+    {
+      "file": "portfolio-states-At4e5STH.js",
+      "bytes": 2187,
+      "gzip9": 978,
+      "sha256": "e26d322201cdcca16fd0a91a02d19b3178de12a951376da1c070c564b5fb53af"
+    },
+    {
+      "file": "product-DoILyk8z.js",
+      "bytes": 360,
+      "gzip9": 251,
+      "sha256": "5a154cbb41e2eb4ee9a101b79a6c271d838d3cb7c7648a110c2475f127d41361"
+    },
+    {
+      "file": "product-detail-page-CNIM4syV.js",
+      "bytes": 15742,
+      "gzip9": 4540,
+      "sha256": "79887cf8f1ddc13bad463604065369a7f90c3f61322a388fec2d754a86b19324"
+    },
+    {
+      "file": "product-detail-states-BRnomBuN.js",
+      "bytes": 1913,
+      "gzip9": 840,
+      "sha256": "19f95f66c167b356ed664ceb7c6688a6628637efd1bfabd091657c2b4314ee95"
+    },
+    {
+      "file": "quote-CE6vj3fp.js",
+      "bytes": 2287,
+      "gzip9": 1009,
+      "sha256": "eb0d4a8531f2ada47101e7c98eca011f743c3ce9ab19ab97bceeea5436e95702"
+    },
+    {
+      "file": "react-BbimJT-f.js",
+      "bytes": 48008,
+      "gzip9": 16969,
+      "sha256": "00ff5efa025c92d4c7dc6b09daa7ef37e9cb822190276fffaebf4de9c341b899"
+    },
+    {
+      "file": "request-form-B6lFe2YK.js",
+      "bytes": 26567,
+      "gzip9": 8693,
+      "sha256": "9d531de45dbcb95f84f8b686ce9906359b5409168e305be81dd85a5b4cb79728"
+    },
+    {
+      "file": "route-error-retry-9rPmrAO6.js",
+      "bytes": 142,
+      "gzip9": 142,
+      "sha256": "cd834fd73079e14d231d23efe06bfb7c75fffd0e34980a4edbb23bfbf5dbee58"
+    },
+    {
+      "file": "service-media-BBLwpk7T.js",
+      "bytes": 962,
+      "gzip9": 586,
+      "sha256": "b011a603e80b1826bca7ba5857584317b074fd3c48ab6f7e81308a6c9d23442b"
+    },
+    {
+      "file": "static-Dyr7NOB3.js",
+      "bytes": 210,
+      "gzip9": 182,
+      "sha256": "f93a7d2a6fcc54e8254bd3419bc7c71d6e026ea56f58f23f2d3abed9ec5cf4a5"
+    },
+    {
+      "file": "stoneworks-DtQ0WJu7.js",
+      "bytes": 3020,
+      "gzip9": 1080,
+      "sha256": "e796a8300cb25955acd634796ef4b36f445c38ff5bbd8af10afde0aea52ea1e7"
+    },
+    {
+      "file": "styles-nu7UWrJn.css",
+      "bytes": 26296,
+      "gzip9": 6271,
+      "sha256": "0c4eab2afeeb4e2e23b3fd11cc6d0351181828166154f43ab6bd8c770f557368"
+    }
+  ],
+  "deploymentPerformed": false,
+  "databaseChanged": false
+}

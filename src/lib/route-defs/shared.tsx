@@ -105,10 +105,14 @@ export function localizedHead({
 export interface HeadMatchState {
   readonly status?: string;
   readonly globalNotFound?: boolean;
+  readonly _notFound?: boolean;
 }
 export function isUnavailableHeadMatch(match: HeadMatchState | undefined): boolean {
   return (
-    match?.globalNotFound === true || match?.status === "notFound" || match?.status === "error"
+    match?.globalNotFound === true ||
+    match?._notFound === true ||
+    match?.status === "notFound" ||
+    match?.status === "error"
   );
 }
 /** A failed lookup is not a second canonical publication of its catalogue. */

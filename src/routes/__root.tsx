@@ -43,7 +43,7 @@ function NotFoundComponent() {
   return <NotFoundView page={buildNotFoundModel(contentForLocale(data?.notFoundPage, locale))} />;
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(describeError(error));
   const router = useRouter();
   const locale = useActiveLocale();
