@@ -15,7 +15,8 @@ import { mock } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 // Bun selects the Node server export. Let the real router's isServer flag
 // choose SSR or client Link logic in this offline callback fixture.
-mock.module("@tanstack/router-core/isServer", () => ({ isServer: undefined }));
+const serverExports = { ...await import("@tanstack/router-core/isServer") };
+mock.module("@tanstack/router-core/isServer", () => ({ ...serverExports, isServer: undefined }));
 const originalReact = { ...await import("react") };
 const routerLibrary = { ...await import("@tanstack/react-router") };
 const localeLibrary = { ...await import("../src/lib/i18n/react.tsx") };
@@ -33,7 +34,7 @@ const hooks = {
   useSyncExternalStore: (_subscribe, snapshot) => snapshot(),
 };
 mock.module("react", () => ({ ...hooks, default: hooks }));
-mock.module("@tanstack/react-store", () => ({ useStore: (store, select) => select(store.get()) }));
+mock.module("@tanstack/react-store", () => ({ useSelector: (store, select) => select(store.get()) }));
 const { RequestFormFields } = await import("../src/components/request-form/request-form-fields.tsx");
 let fetchCalls = 0;
 globalThis.fetch = async () => { fetchCalls++; throw new Error("Offline link test rejected network"); };
@@ -61,7 +62,7 @@ for (const locale of ["fa", "en"]) for (const kind of ["grave_stone", "building_
   const router = currentRouter = routerLibrary.createRouter({ routeTree: root.addChildren([formRoute, termsRoute]),
     history: routerLibrary.createMemoryHistory({ initialEntries: [formPath + "?reference=pf-1001"] }), isServer: true });
   await router.load();
-  router.isServer = false;
+  router.update({ isServer: false, origin: "https://synthetic.invalid" });
   let navigations = 0;
   const originalNavigate = router.navigate;
   router.navigate = options => { navigations++; return originalNavigate(options); };

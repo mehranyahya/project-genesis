@@ -16,7 +16,7 @@ import { createElement } from "react";
 import { renderToString } from "react-dom/server";
 import { QueryClient } from "@tanstack/react-query";
 import { createRootRoute, createRoute, createRouter, createMemoryHistory, HeadContent, RouterProvider } from "@tanstack/react-router";
-import { attachRouterServerSsrUtils } from "@tanstack/router-core/ssr/server";
+import { attachRouterServerSsrUtils, getSsrStatus } from "@tanstack/router-core/ssr/server";
 import { defaultRenderHandler } from "@tanstack/react-start-server";
 const nonce = "0123456789abcdef0123456789abcdef";
 const title = "Synthetic </script><script>synthetic</script> & heading";
@@ -71,6 +71,7 @@ async function routerFor(path) {
     context: { queryClient: new QueryClient() }, ssr: { nonce } });
   attachRouterServerSsrUtils({ router, manifest: { routes: {} } });
   await router.load();
+  await router.serverSsr.dehydrate();
   return router;
 }
 async function http(path) {
@@ -118,10 +119,11 @@ for (const locale of ["fa", "en"]) {
   assert.equal(hidden.html.includes("application/ld+json"),false);
   assert.ok(hidden.html.includes('content="noindex,follow"'));
   const router = await routerFor(path);
-  await router.navigate({ to: prefix + "/guides/missing" });
+  // Server navigate() now selects a redirect; explicitly load the new location.
+  router.history.replace(prefix + "/guides/missing");
   await router.load();
   const missingHtml = renderToString(createElement(RouterProvider,{router}));
-  assert.equal(router.state.statusCode,404);
+  assert.equal(getSsrStatus(router),404);
   assert.doesNotMatch(missingHtml,/application\\/ld\\+json|rel="canonical"|property="og:url"|Search title/);
   assert.ok(missingHtml.includes('content="noindex,follow"'));
 }

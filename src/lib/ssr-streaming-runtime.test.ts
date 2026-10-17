@@ -14,6 +14,7 @@ import assert from "node:assert/strict";
 import { runInNewContext } from "node:vm";
 import { mock } from "bun:test";
 import { createMemoryHistory } from "@tanstack/react-router";
+import { _getRenderedMatches } from "@tanstack/router-core";
 import { attachRouterServerSsrUtils, normalizeSsrResponse } from "@tanstack/router-core/ssr/server";
 import { defaultStreamHandler } from "@tanstack/react-start-server";
 import { createStart, createMiddleware, createCsrfMiddleware } from "@tanstack/start-client-core";
@@ -65,6 +66,9 @@ function decodeState(html, router) {
   for (const [, attrs, code] of blocks) {
     assert.ok(attrs.includes('nonce="' + router.options.ssr.nonce + '"') || attrs.includes("nonce='" + router.options.ssr.nonce + "'"));
     if (/type="application\\/ld\\+json"|\\bsrc=/.test(attrs)) continue;
+    // React's paint/reveal instructions need a DOM. Decode only Router transport
+    // here; every inline script above still has its response nonce checked.
+    if (!code.includes("$_TSR")) continue;
     runInNewContext(code, sandbox, { timeout: 1000 });
   }
   if (router.options.serializationAdapters?.length) {
@@ -82,7 +86,7 @@ async function http(path, userAgent, fault = false, dispose = false) {
   assert.match(nonce,/^[a-f0-9]{32}$/); assert.ok(!nonces.has(nonce));nonces.add(nonce);
   if (fault) {
     // Controlled loader failure on an existing route, without changing its head/view.
-    router.looseRoutesById["/quote"].options.loader = () => {
+    router.routesById["/quote"].options.loader = () => {
       throw Object.assign(new Error("PrivateSynthetic-message"), {
         cause: new Error("PrivateSynthetic-cause"), stack: "PrivateSynthetic-stack",
         name: "PrivateSynthetic-name", internal: "PrivateSynthetic-property",
@@ -114,7 +118,8 @@ async function http(path, userAgent, fault = false, dispose = false) {
   assert.ok(response.headers.get("content-security-policy").includes("nonce-" + nonce));
   assert.doesNotMatch(html,/UnmatchedSynthetic|PrivateSynthetic/);
   const state = decodeState(html,router);
-  assert.equal(state.matches.length,router.state.matches.length);
+  // The patched router excludes descendants hidden by an error/not-found boundary.
+  assert.equal(state.matches.length,_getRenderedMatches(router.state.matches).length);
   assert.equal(Object.keys(state.manifest.routes).includes("/unmatched"),false);
   return { response, html, state };
 }

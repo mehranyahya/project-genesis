@@ -5,7 +5,7 @@ import { CustomFunnelStepper } from "./custom-funnel-stepper";
 import { RequestForm } from "@/components/request-form/request-form";
 import type { Product, Site } from "@/lib/content/types";
 import { CUSTOM_FUNNEL_OPTION_ROLES, buildCustomFunnelModel } from "@/lib/custom-funnel";
-import type { GraveStoneRequestDraft } from "@/lib/request-draft";
+import { buildGraveStoneRequestDraft, type GraveStoneRequestDraft } from "@/lib/request-draft";
 import type { RequestTermsDocument } from "@/lib/request-form";
 import { useT } from "@/lib/i18n/react";
 
@@ -37,6 +37,21 @@ export function CustomFunnelPage({
     () => buildCustomFunnelModel({ products, roles: CUSTOM_FUNNEL_OPTION_ROLES }),
     [products],
   );
+
+  // A loader can also remove or revise a selection without changing its version.
+  // Validate before rendering the form; an effect would leave a stale render.
+  const currentDraft = useMemo(() => {
+    if (!draft) return null;
+    const product = model.models.get(draft.productId);
+    if (!product) return null;
+    const rebuilt = buildGraveStoneRequestDraft({
+      model: product,
+      catalogVersion,
+      variantId: draft.variantId,
+      optionIds: draft.optionIds,
+    });
+    return JSON.stringify(rebuilt) === JSON.stringify(draft) ? draft : null;
+  }, [catalogVersion, draft, model]);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof performance === "undefined") return;
@@ -70,13 +85,13 @@ export function CustomFunnelPage({
         aria-live="polite"
         className="col-span-4 text-sm text-text-secondary md:col-span-8 lg:col-span-12"
       >
-        {draft ? t(CUSTOM_FUNNEL_DRAFT_READY_TEXT) : null}
+        {currentDraft ? t(CUSTOM_FUNNEL_DRAFT_READY_TEXT) : null}
       </p>
 
-      {draft ? (
+      {currentDraft ? (
         <div className="col-span-4 md:col-span-8 lg:col-span-12">
           <RequestForm
-            source={{ kind: "grave_stone", draft }}
+            source={{ kind: "grave_stone", draft: currentDraft }}
             site={site ?? null}
             termsDocument={termsDocument}
           />

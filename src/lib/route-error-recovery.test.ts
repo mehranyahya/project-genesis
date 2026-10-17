@@ -18,7 +18,7 @@ const originalRouter = { ...await import("@tanstack/react-router") };
 const originalLocale = { ...await import("../src/lib/i18n/react.tsx") };
 const { translatorFor } = await import("../src/lib/i18n/messages.ts");
 const { createRoute, createRouter, createMemoryHistory, lazyRouteComponent } = originalRouter;
-let currentRouter;
+let currentRouter, latestInvalidation;
 let currentLocale = "fa";
 mock.module("react", () => ({ ...originalReact, useEffect: () => {} }));
 mock.module("@tanstack/react-router", () => ({
@@ -83,6 +83,8 @@ function routerFor(locale, component, loader) {
     history: createMemoryHistory({ initialEntries: [pathname] }),
     isServer: true,
   });
+  const invalidate = currentRouter.invalidate.bind(currentRouter);
+  currentRouter.invalidate = (...args) => (latestInvalidation = invalidate(...args));
   return currentRouter;
 }
 function GoodView() { return originalReact.createElement("p", null, "Synthetic reviewed data"); }
@@ -97,15 +99,15 @@ for (const locale of ["fa", "en"]) {
     let imports = 0, loads = 0;
     const lazy = lazyRouteComponent(async () => {
       imports++;
-      if (imports === 1) throw failure;
-      return { default: GoodView };
+      // Keep the module unavailable even when the patched router retries preload.
+      throw failure;
     });
     const router = routerFor(locale, lazy, async () => { loads++; return { locale }; });
     await router.load();
     assert.throws(() => lazy({}), error => error === failure);
     await router.invalidate();
     assert.equal(loads, 2, "router invalidation reruns the actual loader");
-    assert.equal(imports, 1, "the installed lazy module promise stays cached after failure");
+    assert.equal(imports, 2, "router invalidation retries the unavailable module once");
     assert.throws(() => lazy({}), error => error === failure);
     const retry = view(failure, locale);
     assert.equal(reloadCalls, retry.before, "rendering the fallback must not reload automatically");
@@ -113,7 +115,7 @@ for (const locale of ["fa", "en"]) {
     assert.equal(reloadCalls, retry.before + 1, "explicit retry must request a fresh document for a cached code failure");
     assert.equal(retry.resetCount(), 0);
     assert.equal(loads, 2, "module recovery must not masquerade as another data retry");
-    assert.equal(imports, 1);
+    assert.equal(imports, 2);
     // A fresh module realm can import successfully after the failure clears.
     const fresh = lazyRouteComponent(async () => ({ default: GoodView }));
     await fresh.preload();
@@ -132,7 +134,7 @@ for (const locale of ["fa", "en"]) {
     assert.equal(router.state.matches.at(-1).status, "error");
     const retry = view(failure, locale);
     retry.click();
-    await router.latestLoadPromise;
+    await latestInvalidation;
     assert.equal(reloadCalls, retry.before);
     assert.equal(retry.resetCount(), 1);
     assert.equal(loads, 2);
