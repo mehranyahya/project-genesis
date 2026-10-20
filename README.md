@@ -90,6 +90,8 @@ Preview and production use separate GitHub Actions secrets/variables. A noindex 
 
 Operational Supabase migrations are coupled to encrypted backups, checksum validation and restore drills. See [`ops/supabase-backup-restore.md`](ops/supabase-backup-restore.md).
 
+The minimal request-response process, manual fallback when notifications fail, and read-only queue checks are documented in [`ops/request-response-fa.md`](ops/request-response-fa.md). Telegram delivery and human follow-up have separate states; a successful notification is not proof that a customer was contacted.
+
 ## Open-source direction
 
 Project Genesis is being developed as a real production-oriented system while its public repository is used to document the architecture, engineering decisions and reusable implementation patterns behind the project.

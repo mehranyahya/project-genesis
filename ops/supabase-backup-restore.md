@@ -23,6 +23,8 @@ Every successful run keeps:
 
 The encrypted Actions artifact is a checkpoint before durable-storage and monitor validation. If those later gates fail, the job remains failed and incomplete, but the already uploaded encrypted artifact remains available for its 7-day retention. Core project selection, TLS, archive integrity, scoped restore and encryption must still pass before any artifact is uploaded. A checkpoint is not durable-backup or release readiness.
 
+Operational acceptance, independent-key recovery and the remaining evidence are tracked in [environment acceptance](environment-acceptance-fa.md). The 2026-10-20 scheduled run used the older main workflow: its R2 and monitor steps were skipped. Neither an unexpired artifact nor its GitHub digest proves independent download, decryption or recovery.
+
 Supabase Storage objects are not contained in a database dump. The [original-media backup and recovery runbook](storage-backup-recovery-fa.md) and `scripts/storage-backup.py` now prepare offline packing, verification, age orchestration and safe local recovery. This does not integrate live Storage export with this workflow or accept a managed restore. The existing no-Storage-object preflight remains unchanged; prove the separate object backup and managed recovery before real media enters this scope.
 
 ## Required GitHub secrets
