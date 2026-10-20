@@ -1,0 +1,43 @@
+{
+  "baseCommit": "9ddc7ba12b1496f3fc613273c221b843c58598ef",
+  "scope": "backup workflow/config/manifest and release coordination only",
+  "tests": {
+    "pass": 1023,
+    "fail": 0,
+    "files": 107,
+    "seconds": 53.14,
+    "focusedPass": 16,
+    "sqlInitialGuardAndClosureCases": 5,
+    "sqlEngine": "PGlite 0.3.14, isolated PostgreSQL fixture, inert unrelated RPC/digest signatures"
+  },
+  "checks": {
+    "frozenInstall": "pass",
+    "lintErrors": 0,
+    "existingLintWarnings": 29,
+    "typecheck": "pass",
+    "edgeCheck": "pass",
+    "contentCheck": "pass",
+    "securityAudit": "no vulnerabilities found",
+    "crypto": "9 scenarios, age v1.3.2, synthetic only",
+    "build": "pass",
+    "artifactVerification": "pass",
+    "wranglerStrictDryRun": "pass",
+    "bashStepSyntaxChecks": 9
+  },
+  "clientAssetsCompared": 24,
+  "clientAssetsIdenticalToBase": true,
+  "codeOrDependencyAddedToBrowser": false,
+  "liveDatabaseChanged": false,
+  "backupWorkflowRunLive": false,
+  "migrationApplied": false,
+  "deployed": false,
+  "messagesSent": false,
+  "paymentsEnabled": false,
+  "limitations": [
+    "Workflow not run with real database/R2/monitor settings",
+    "Only initial manifest SQL guards and restore closure executed in fixture; not a full managed restore",
+    "Existing multi-dump/concurrent-write snapshot and managed Auth/Storage scope remain unaccepted",
+    "Source request policy stays unchanged; only isolated restore copy is closed",
+    "Durable configuration/transfer/monitor failure still fails the workflow after the encrypted artifact checkpoint"
+  ]
+}

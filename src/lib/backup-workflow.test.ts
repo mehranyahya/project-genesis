@@ -128,7 +128,28 @@ test("backup workflow restores only public data and migration history", () => {
   assert.doesNotMatch(workflow, /--username postgres/);
   assert.doesNotMatch(workflow, /create role supabase_realtime_admin/i);
   assert.doesNotMatch(workflow, /source_roles_json/);
-  assert.match(restoreManifest, /request rate limit policy must remain present and disabled/);
+  assert.match(restoreManifest, /request rate limit policy must contain one valid primary record/);
+  assert.match(restoreManifest, /^begin read only;/m);
+  assert.match(restoreManifest, /^commit;/m);
+  assert.doesNotMatch(restoreManifest, /\bupdate\s+public\.request_rate_limit_policy/i);
+  const closeStart = workflow.indexOf("--file /tmp/close-restored-requests.sql");
+  const historyRestore = workflow.indexOf("--file /tmp/backup/history_data.sql");
+  const restoreRead = workflow.indexOf('> "$restored_manifest"');
+  assert.ok(historyRestore < closeStart && closeStart < restoreRead);
+  const closeInvocation = workflow.slice(
+    workflow.lastIndexOf('docker exec "$drill_container"', closeStart),
+    closeStart,
+  );
+  assert.match(closeInvocation, /--username supabase_admin/);
+  assert.match(closeInvocation, /--dbname postgres/);
+  assert.match(closeInvocation, /--single-transaction/);
+  assert.doesNotMatch(closeInvocation, /SUPABASE_DB_SESSION_POOLER_URL/);
+  const closedSql = readFileSync(
+    new URL("../../scripts/close-restored-requests.sql", import.meta.url),
+    "utf8",
+  );
+  assert.match(closedSql, /update public\.request_rate_limit_policy set enabled = false/);
+  assert.match(closedSql, /restored request policy is not closed/);
   assert.match(restoreManifest, /restore manifest is missing a critical RPC/);
   assert.match(restoreManifest, /claim_gateway_nonce/);
   assert.match(restoreManifest, /create_request_atomic_storage/);

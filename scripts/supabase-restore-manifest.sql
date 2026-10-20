@@ -3,6 +3,8 @@
 -- writing row values, customer data, credentials, or connection details to
 -- logs or artifacts.
 
+begin read only;
+
 do $manifest_checks$
 begin
   if not exists (
@@ -27,10 +29,11 @@ begin
   end if;
 
   if not (
-    select count(*) = 1 and coalesce(bool_and(not enabled), false)
+    select count(*) = 1
+      and coalesce(bool_and(id = 'primary' and enabled is not null), false)
       from public.request_rate_limit_policy
   ) then
-    raise exception 'request rate limit policy must remain present and disabled';
+    raise exception 'request rate limit policy must contain one valid primary record';
   end if;
 
   if pg_catalog.to_regprocedure('extensions.digest(bytea,text)') is null then
@@ -284,3 +287,5 @@ select
   || (pg_catalog.to_jsonb(m) - 'statements')::text
 from supabase_migrations.schema_migrations m
 order by m.version;
+
+commit;
