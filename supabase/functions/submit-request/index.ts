@@ -5,6 +5,7 @@ import { parseRequestPayload } from "../_shared/request-contract.ts";
 import type { BotVerification, RiskFlag } from "../_shared/request-contract.ts";
 import { readSupabaseServerConfig, supabaseRpc } from "../_shared/supabase-rest.ts";
 import { processTelegramByRequestId } from "../_shared/telegram-delivery.ts";
+import { processSmsByRequestId } from "../_shared/sms-delivery.ts";
 import { verifyTurnstile } from "../_shared/turnstile.ts";
 import { parseStrictJson } from "../_shared/json.ts";
 
@@ -137,6 +138,22 @@ function scheduleImmediateTelegramDelivery(
   if (requestId === null) return;
   const task = processTelegramByRequestId(supabase, requestId).catch(() => {
     console.error("Telegram immediate delivery failed");
+  });
+  const runtime = (
+    globalThis as unknown as {
+      readonly EdgeRuntime?: { readonly waitUntil?: (promise: Promise<unknown>) => void };
+    }
+  ).EdgeRuntime;
+  if (typeof runtime?.waitUntil === "function") runtime.waitUntil(task);
+}
+
+function scheduleImmediateSmsDelivery(
+  supabase: ReturnType<typeof readSupabaseServerConfig>,
+  requestId: string | null,
+): void {
+  if (requestId === null) return;
+  const task = processSmsByRequestId(supabase, requestId).catch(() => {
+    console.error("SMS immediate delivery failed");
   });
   const runtime = (
     globalThis as unknown as {
@@ -300,6 +317,7 @@ Deno.serve(async (request: Request) => {
       return finish(temporaryUnavailable(), "TEMPORARILY_UNAVAILABLE");
     }
     scheduleImmediateTelegramDelivery(supabase, storedResponse.immediateRequestId);
+    scheduleImmediateSmsDelivery(supabase, storedResponse.immediateRequestId);
     return finish(storedResponse.response, String(stored.code));
   } catch {
     return finish(temporaryUnavailable(), "TEMPORARILY_UNAVAILABLE");

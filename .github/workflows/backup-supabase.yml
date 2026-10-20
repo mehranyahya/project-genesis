@@ -9,6 +9,7 @@ on:
       - ".github/workflows/backup-supabase.yml"
       - "scripts/supabase-backup-preflight.sql"
       - "scripts/supabase-restore-manifest.sql"
+      - "scripts/close-restored-requests.sql"
       - "scripts/backup-config.py"
       - "scripts/verify-backup-archive.py"
       - "scripts/verify-backup-readback.sh"
@@ -59,7 +60,7 @@ jobs:
           set -euo pipefail
           umask 077
 
-          python3 scripts/backup-config.py
+          python3 scripts/backup-config.py --phase core
 
       - name: Install age
         shell: bash
@@ -180,6 +181,9 @@ jobs:
           docker cp \
             scripts/supabase-restore-manifest.sql \
             "$drill_container:/tmp/restore-manifest.sql"
+          docker cp \
+            scripts/close-restored-requests.sql \
+            "$drill_container:/tmp/close-restored-requests.sql"
 
           managed_preflight_json="$(
             docker exec "$drill_container" \
@@ -286,7 +290,8 @@ jobs:
               --command 'set role postgres' \
               --file /tmp/backup/history_schema.sql \
               --command 'reset role' \
-              --file /tmp/backup/history_data.sql
+              --file /tmp/backup/history_data.sql \
+              --file /tmp/close-restored-requests.sql
 
           docker exec "$drill_container" \
             psql \
@@ -349,6 +354,7 @@ jobs:
             echo "- Local restore drill: \`public\` + \`supabase_migrations\`"
             echo "- Managed-data guard: passed (no Auth application data or Storage objects)"
             echo "- Result: scoped source and restored manifests match"
+            echo "- Restored copy: request policy closed before restore transaction commits; source unchanged"
             echo "- Plaintext retained outside runner: no"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -399,6 +405,13 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
+
+      - name: Validate durable storage configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "- Encrypted Actions artifact: retained for 7 days; not durable-backup readiness" >> "$GITHUB_STEP_SUMMARY"
+          python3 scripts/backup-config.py --phase durable
 
       - name: Upload durable copy to R2
         shell: bash
@@ -461,10 +474,15 @@ jobs:
           echo "- Durable encrypted copy: downloaded bytes and checksum match" >> "$GITHUB_STEP_SUMMARY"
           echo "- Offline age decryption and managed-project/media recovery: separate acceptance required" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Validate backup monitor configuration
+        shell: bash
+        run: python3 scripts/backup-config.py --phase monitor
+
       - name: Ping backup monitor
         if: success()
         shell: bash
         run: |
+          set -euo pipefail
           curl \
             --fail \
             --silent \
@@ -478,6 +496,8 @@ jobs:
         if: failure() && env.HEALTHCHECKS_BACKUP_PING_URL != ''
         shell: bash
         run: |
+          set -euo pipefail
+          python3 scripts/backup-config.py --phase monitor
           curl \
             --fail \
             --silent \

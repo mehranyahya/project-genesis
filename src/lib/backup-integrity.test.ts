@@ -43,6 +43,60 @@ test("backup config requires durable storage and monitoring even if the short-li
   }
 });
 
+test("core backup validation remains strict without waiting for durable storage or monitoring", () => {
+  const fixture = backupEnv();
+  const core = Object.fromEntries(
+    Object.entries(fixture).filter(
+      ([key]) => !key.startsWith("R2_") && !key.startsWith("HEALTHCHECKS_"),
+    ),
+  );
+  const run = (env: Record<string, string>, phase: string) =>
+    spawnSync("python3", [configScript, "--phase", phase], {
+      encoding: "utf8",
+      env: { PATH: process.env["PATH"], ...env },
+    });
+  assert.equal(run(core, "core").status, 0);
+  for (const key of Object.keys(core)) {
+    assert.notEqual(run({ ...core, [key]: "" }, "core").status, 0, key);
+  }
+  assert.notEqual(
+    run(
+      { ...core, SUPABASE_DB_SESSION_POOLER_URL: "postgresql://synthetic-private-marker" },
+      "core",
+    ).status,
+    0,
+  );
+  assert.notEqual(run(core, "durable").status, 0);
+  assert.notEqual(run(core, "monitor").status, 0);
+});
+
+test("each post-artifact gate validates its own destination and cannot silently accept missing settings", () => {
+  const fixture = backupEnv();
+  const run = (env: Record<string, string>, phase: string) =>
+    spawnSync("python3", [configScript, "--phase", phase], {
+      encoding: "utf8",
+      env: { PATH: process.env["PATH"], ...env },
+    });
+  const r2 = Object.fromEntries(Object.entries(fixture).filter(([key]) => key.startsWith("R2_")));
+  assert.equal(run(r2, "durable").status, 0);
+  for (const key of Object.keys(r2)) {
+    assert.notEqual(run({ ...r2, [key]: "" }, "durable").status, 0, key);
+  }
+  assert.notEqual(run({ ...r2, R2_ACCOUNT_ID: "synthetic-private-marker" }, "durable").status, 0);
+  assert.equal(
+    run({ HEALTHCHECKS_BACKUP_PING_URL: fixture["HEALTHCHECKS_BACKUP_PING_URL"]! }, "monitor")
+      .status,
+    0,
+  );
+  const badMonitor = run(
+    { HEALTHCHECKS_BACKUP_PING_URL: "http://localhost/synthetic-private-marker" },
+    "monitor",
+  );
+  assert.notEqual(badMonitor.status, 0);
+  assert.doesNotMatch(badMonitor.stderr, /synthetic-private-marker|Traceback/);
+  assert.notEqual(run(fixture, "unknown").status, 0);
+});
+
 test("backup project selection validates the username, pooler, session port and TLS rather than a substring", () => {
   const env = backupEnv();
   const url = env["SUPABASE_DB_SESSION_POOLER_URL"]!;
@@ -189,20 +243,28 @@ test("decrypted archive rejects missing, corrupt, duplicate, extra, linked, trav
   }
 });
 
-test("workflow requires durable configuration before dump, validates the archive and verifies downloaded encrypted bytes", () => {
+test("workflow validates core before dump and stores the encrypted artifact before enforcing durable readiness", () => {
   const workflow = readFileSync(
     new URL("../../.github/workflows/backup-supabase.yml", import.meta.url),
     "utf8",
   );
-  assert.ok(
-    workflow.indexOf("python3 scripts/backup-config.py") < workflow.indexOf("supabase db dump"),
-  );
+  const core = workflow.indexOf("python3 scripts/backup-config.py --phase core");
+  const dump = workflow.indexOf("supabase db dump");
+  const artifact = workflow.indexOf("uses: actions/upload-artifact@");
+  const durable = workflow.indexOf("python3 scripts/backup-config.py --phase durable");
+  const upload = workflow.indexOf("- name: Upload durable copy to R2");
+  const monitor = workflow.indexOf("- name: Validate backup monitor configuration");
+  assert.ok(core >= 0 && core < dump);
+  assert.ok(dump < artifact && artifact < durable && durable < upload && upload < monitor);
   assert.ok(
     workflow.indexOf("python3 scripts/verify-backup-archive.py") <
       workflow.indexOf("age --encrypt"),
   );
   assert.match(workflow, /bash scripts\/verify-backup-readback\.sh/);
   assert.doesNotMatch(workflow, /r2_enabled|only the encrypted 7-day/);
+  const durableSection = workflow.slice(durable, upload);
+  assert.doesNotMatch(durableSection, /continue-on-error|\|\| true/);
+  assert.match(workflow, /not durable-backup readiness/);
   const archive = readFileSync(
     new URL("../../scripts/verify-backup-archive.py", import.meta.url),
     "utf8",
