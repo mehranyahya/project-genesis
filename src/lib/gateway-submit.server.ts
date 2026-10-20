@@ -43,10 +43,12 @@ interface UpstreamObject extends Record<string, unknown> {
   amount_toman?: unknown;
   version?: unknown;
   content_hash?: unknown;
+  locale?: unknown;
   code?: unknown;
   tracking_code?: unknown;
   price?: unknown;
   terms?: unknown;
+  terms_by_locale?: unknown;
   field_errors?: unknown;
 }
 
@@ -305,7 +307,13 @@ function sanitizePrice(value: unknown): Record<string, unknown> | null {
   return null;
 }
 
-function sanitizeTerms(value: unknown): Record<string, string> | null {
+interface PublicTermsDocument {
+  readonly locale?: "fa" | "en";
+  readonly version: string;
+  readonly content_hash: string;
+}
+
+function sanitizeTerms(value: unknown): PublicTermsDocument | null {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
   const terms = value as UpstreamObject;
   if (
@@ -313,11 +321,48 @@ function sanitizeTerms(value: unknown): Record<string, string> | null {
     terms.version.trim().length >= 1 &&
     terms.version.trim().length <= 80 &&
     typeof terms.content_hash === "string" &&
-    HASH_PATTERN.test(terms.content_hash)
+    HASH_PATTERN.test(terms.content_hash) &&
+    (terms.locale === undefined || terms.locale === "fa" || terms.locale === "en")
   ) {
-    return { version: terms.version.trim(), content_hash: terms.content_hash };
+    return {
+      version: terms.version.trim(),
+      content_hash: terms.content_hash,
+      ...(terms.locale === undefined ? {} : { locale: terms.locale }),
+    };
   }
   return null;
+}
+
+function sanitizeTermsUpdate(value: UpstreamObject): {
+  terms: PublicTermsDocument;
+  terms_by_locale?: Partial<Record<"fa" | "en", PublicTermsDocument>>;
+} | null {
+  const terms = sanitizeTerms(value.terms);
+  if (terms === null) return null;
+  // Older Edge responses contain one unlabelled Persian document only.
+  if (!Object.hasOwn(value, "terms_by_locale")) return { terms };
+  const raw = value.terms_by_locale;
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const entries = Object.entries(raw);
+  if (entries.length < 1 || entries.length > 2) return null;
+  const documents: Partial<Record<"fa" | "en", PublicTermsDocument>> = {};
+  const hashes = new Set<string>();
+  for (const [locale, candidate] of entries) {
+    if (locale !== "fa" && locale !== "en") return null;
+    const document = sanitizeTerms(candidate);
+    if (
+      document === null ||
+      document.locale !== locale ||
+      document.version !== terms.version ||
+      hashes.has(document.content_hash)
+    )
+      return null;
+    documents[locale] = document;
+    hashes.add(document.content_hash);
+  }
+  const primary = documents[terms.locale ?? "fa"];
+  if (primary?.content_hash !== terms.content_hash) return null;
+  return { terms, terms_by_locale: documents };
 }
 
 function sanitizeUpstream(body: unknown, status: number, retryAfter: string | null): Response {
@@ -345,9 +390,9 @@ function sanitizeUpstream(body: unknown, status: number, retryAfter: string | nu
       : temporaryUnavailable();
   }
   if (code === "TERMS_UPDATED") {
-    const terms = sanitizeTerms(value.terms);
-    return status === 409 && terms !== null
-      ? jsonResponse({ code, terms }, 409)
+    const update = sanitizeTermsUpdate(value);
+    return status === 409 && update !== null
+      ? jsonResponse({ code, ...update }, 409)
       : temporaryUnavailable();
   }
   if (code === "VALIDATION_ERROR") {

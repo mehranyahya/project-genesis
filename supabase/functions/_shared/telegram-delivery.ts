@@ -231,6 +231,14 @@ export function formatTelegramAdminMessage(item: ClaimItem): string {
   appendLine(lines, "اندازه", stringValue(item.configuration, "size_code"));
   appendLine(lines, "نوع سنگ ساختمانی", stringValue(item.configuration, "stone_type_code"));
   appendLine(lines, "کاربرد", stringValue(item.configuration, "application"));
+  if (item.request_type === "building_stone") {
+    const area = numericValue(item.configuration, "area_m2");
+    appendLine(
+      lines,
+      "مساحت (متر مربع)",
+      area !== null && area > 0 && area <= 100_000 ? String(area) : "مشخص نشده",
+    );
+  }
   appendLine(lines, "گزینه‌ها", optionIds(item.configuration));
   if (item.price !== null) {
     appendLine(lines, "نوع قیمت", stringValue(item.price, "price_type"));

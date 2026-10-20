@@ -283,3 +283,94 @@ test("gateway rejects duplicate key maps and duplicate upstream JSON", async () 
   assert.ok(duplicateUpstream);
   assert.equal(duplicateUpstream.status, 503);
 });
+
+test("terms updates preserve reviewed language metadata and strip unrelated upstream fields", async () => {
+  const fa = { locale: "fa", version: "2.0", content_hash: "a".repeat(64) };
+  const en = { locale: "en", version: "2.0", content_hash: "b".repeat(64) };
+  for (const [terms, documents] of [
+    [fa, { fa, en }],
+    [en, { en }],
+  ] as const) {
+    const response = await handleSignedSubmitGateway(
+      request(),
+      env,
+      dependencies(
+        () =>
+          new Response(
+            JSON.stringify({
+              code: "TERMS_UPDATED",
+              terms: { ...terms, private_note: "must-not-escape" },
+              terms_by_locale: documents,
+              internal_context: "must-not-escape",
+            }),
+            { status: 409 },
+          ),
+      ),
+    );
+    assert.equal(response?.status, 409);
+    assert.deepEqual(await response!.json(), {
+      code: "TERMS_UPDATED",
+      terms,
+      terms_by_locale: documents,
+    });
+  }
+  const legacy = { version: "1.0", content_hash: "c".repeat(64) };
+  const response = await handleSignedSubmitGateway(
+    request(),
+    env,
+    dependencies(
+      () => new Response(JSON.stringify({ code: "TERMS_UPDATED", terms: legacy }), { status: 409 }),
+    ),
+  );
+  assert.deepEqual(await response!.json(), { code: "TERMS_UPDATED", terms: legacy });
+});
+
+test("invalid language maps never degrade into a usable single-language terms update", async () => {
+  const fa = { locale: "fa", version: "2.0", content_hash: "a".repeat(64) };
+  const en = { locale: "en", version: "2.0", content_hash: "b".repeat(64) };
+  const invalidMaps: unknown[] = [
+    null,
+    [],
+    {},
+    { de: en },
+    { fa, constructor: en },
+    { fa, en: null },
+    { fa, en: { version: en.version, content_hash: en.content_hash } },
+    { fa, en: { ...en, locale: "fa" } },
+    { fa, en: { ...en, version: "3.0" } },
+    { fa, en: { ...en, content_hash: "invalid" } },
+    { fa, en: { ...en, content_hash: fa.content_hash } },
+    { en },
+  ];
+  for (const terms_by_locale of invalidMaps) {
+    const response = await handleSignedSubmitGateway(
+      request(),
+      env,
+      dependencies(
+        () =>
+          new Response(JSON.stringify({ code: "TERMS_UPDATED", terms: fa, terms_by_locale }), {
+            status: 409,
+          }),
+      ),
+    );
+    assert.equal(response?.status, 503);
+    assert.deepEqual(await response!.json(), { code: "TEMPORARILY_UNAVAILABLE" });
+  }
+  for (const terms of [
+    { ...fa, locale: "en" },
+    { ...fa, locale: "de" },
+  ]) {
+    const response = await handleSignedSubmitGateway(
+      request(),
+      env,
+      dependencies(
+        () =>
+          new Response(
+            JSON.stringify({ code: "TERMS_UPDATED", terms, terms_by_locale: { fa, en } }),
+            { status: 409 },
+          ),
+      ),
+    );
+    assert.equal(response?.status, 503);
+  }
+});
