@@ -96,11 +96,12 @@
     "sharp": "0.35.5",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.1.5",
+    "vite": "8.1.6",
     "wrangler": "4.97.0"
   },
   "overrides": {
     "esbuild": "0.28.2",
+    "launch-editor": "2.14.2",
     "seroval": "1.6.8",
     "sharp": "0.35.5",
     "undici": "7.30.0",
