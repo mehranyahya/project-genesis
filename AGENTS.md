@@ -20,7 +20,8 @@ CTA محصولات کاتالوگی مسیر ثبت درخواست بررسی ا
 - هیچ Deploy یا تغییر Production، DNS، دامنه، Search Console یا انتشار عمومی بدون اجازهٔ صریح مالک انجام نمی‌شود.
 - هر Migration دیتابیس فقط پس از بکاپ رمزنگاری‌شدهٔ موفق، Checksum معتبر و Restore drill انجام می‌شود.
 - تغییرات ابتدا در Preview آزموده می‌شوند. Production از Preview جدا می‌ماند.
-- `rate_limit_policy.enabled` تا پایان E2E موفق Preview باید `false` بماند.
+- `request_rate_limit_policy.enabled=false` ثبت درخواست تازه را متوقف می‌کند. در پیش‌آزمون‌های Preview و تا پیش از پنجرهٔ مجاز E2E همین وضعیت حفظ می‌شود.
+- فقط پس از تأیید جدایی Preview، بکاپ/Restore، Access، Origin/Turnstile و محدودیت‌های کامل، و با مجوز صریح همان پنجرهٔ آزمون، Policy صرفاً در Preview برای E2E درخواست‌های مصنوعی `true` می‌شود. پس از پایان پنجره یا شکست، به `false` برمی‌گردد. Production تا پذیرش E2E Preview و مجوز مستقل فعال‌سازی `false` می‌ماند؛ موفقیت آزمون مجوز خودکار Production نیست.
 - Secret، کلید، رمز، URL حاوی رمز یا دادهٔ واقعی مشتری هرگز در Git، Log، Issue، PR، پیام یا Artifact عمومی قرار نمی‌گیرد.
 - Lovable برای UI و اصلاحات بصری اختیاری است. Backend، Migration، Workflow، Content واقعی و Deploy در Lovable انجام نمی‌شوند و مصرف کردیت Lovable پیش‌فرض نیست.
 

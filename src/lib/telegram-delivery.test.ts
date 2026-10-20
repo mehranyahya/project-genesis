@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  formatTelegramAdminMessage,
   processTelegramByTrackingCode,
   processTelegramRecoveryBatch,
   readTelegramDeliveryConfig,
@@ -55,6 +56,34 @@ function json(body: unknown, status = 200): Response {
     headers: { "content-type": "application/json" },
   });
 }
+
+test("building notifications retain area with its unit in the active Edge and legacy formatter", async () => {
+  const edge = await import(
+    new URL("../../supabase/functions/_shared/telegram-delivery.ts", import.meta.url).href
+  );
+  const formatEdge = edge.formatTelegramAdminMessage as typeof formatTelegramAdminMessage;
+  for (const format of [formatEdge, formatTelegramAdminMessage]) {
+    for (const area of [123.45, 100_000]) {
+      const text = format({
+        ...claimItem,
+        request_type: "building_stone",
+        configuration: { stone_type_code: "granite", application: "flooring", area_m2: area },
+      });
+      assert.ok(text.includes(`مساحت (متر مربع): ${area}`));
+      assert.ok(text.includes("granite"));
+      assert.ok(text.length <= 3900);
+    }
+    for (const area of [null, undefined, 0, -1, 100_001, Number.NaN, Infinity, "123.45"]) {
+      const text = format({
+        ...claimItem,
+        request_type: "building_stone",
+        configuration: { stone_type_code: "granite", application: "flooring", area_m2: area },
+      });
+      assert.ok(text.includes("مساحت (متر مربع): مشخص نشده"));
+    }
+    assert.equal(format(claimItem as Parameters<typeof format>[0]).includes("مساحت"), false);
+  }
+});
 
 function fetchMock(
   handler: (url: string, init: RequestInit | undefined) => Promise<Response> | Response,

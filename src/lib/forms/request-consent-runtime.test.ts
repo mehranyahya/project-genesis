@@ -44,6 +44,18 @@ const documents = (version, faHash, enHash) => ({
   en: { locale: "en", version, contentHash: enHash.repeat(64) },
 });
 const oldTerms = documents("1.0", "a", "b"), newTerms = documents("2.0", "c", "d");
+const { handleSignedSubmitGateway } = await import("../src/lib/gateway-submit.server.ts");
+const { validateTermsConsent } = await import("../supabase/functions/_shared/terms-consent.ts");
+const gatewayEnv = {
+  SUPABASE_FUNCTION_BASE_URL: "https://backend.synthetic.invalid/functions/v1",
+  EDGE_GATEWAY_KEYS_JSON: JSON.stringify({ test: "g".repeat(40) }),
+  EDGE_GATEWAY_PRIMARY_KEY_ID: "test", IP_HASH_SECRET: "i".repeat(40),
+  ALLOWED_ORIGINS: "https://preview.synthetic.invalid",
+};
+const registry = Object.fromEntries(Object.entries(newTerms).map(([key, doc]) => [key, {
+  version: doc.version, currentContentHash: doc.contentHash, allowedContentHashes: [doc.contentHash],
+}]));
+let gatewayUpdates = 0;
 let readTerms = async requested => newTerms[requested];
 mock.module("../src/lib/request-terms.ts", () => ({
   getRequestTermsDocument: (...args) => readTerms(...args),
@@ -79,15 +91,36 @@ const success = code => reply(201, { code: "REQUEST_CREATED", tracking_code: cod
 const changed = (type = "estimate", amount = 1200) => reply(409, {
   code: "PRICE_CHANGED", price: { price_type: type, amount_toman: amount },
 });
-const wire = doc => ({ locale: doc.locale, version: doc.version, content_hash: doc.contentHash });
-const updated = requested => reply(409, { code: "TERMS_UPDATED", terms: wire(newTerms[requested]),
-  terms_by_locale: { fa: wire(newTerms.fa), en: wire(newTerms.en) } });
+const updated = requested => async input => {
+  const response = await handleSignedSubmitGateway(new Request(
+    "https://preview.synthetic.invalid/api/submit-request", {
+      method: "POST", body: input.body,
+      headers: { ...input.headers, origin: gatewayEnv.ALLOWED_ORIGINS,
+        "cf-connecting-ip": "192.0.2.1" },
+    }), gatewayEnv, {
+      nowUnix: () => 1786319000, randomNonce: () => "1".repeat(32),
+      randomUuid: () => "11111111-1111-4111-8111-111111111111",
+      fetchUpstream: async (_url, init) => {
+        const { payload } = JSON.parse(init.body);
+        assert.equal(payload.terms_content_hash, oldTerms[requested].contentHash);
+        const failure = validateTermsConsent(payload, registry);
+        assert.equal(failure?.body.code, "TERMS_UPDATED");
+        gatewayUpdates++;
+        return new Response(JSON.stringify(failure.body), { status: failure.status });
+      },
+    });
+  assert.equal(response.status, 409);
+  return { status: response.status, body: await response.text() };
+};
 function find(element, type) {
   if (!element || typeof element !== "object") return null;
   if (Array.isArray(element)) return element.map(child => find(child, type)).find(Boolean) ?? null;
   return element.type === type ? element : find(element.props?.children, type);
 }
-const settle = async () => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+const settle = async () => {
+  for (let i = 0; i < 40; i++) await Promise.resolve();
+  await new Promise(resolve => setImmediate(resolve));
+};
 function deferred() {
   let resolve;
   const promise = new Promise(yes => { resolve = yes; });
@@ -287,6 +320,7 @@ for (const nextLocale of ["fa", "en"]) {
   }
 }
 assert.equal(scenarios, 26);
+assert.equal(gatewayUpdates, 4, "both locales and matching/mismatching pages pass through the real Gateway");
 assert.equal(fetchCalls, 0);
 assert.equal(stored.length, 12);
 assert.ok(stored.every(entry => entry.key === "request:last-tracking-code" && /^REQ-200[123]$/.test(entry.value)));
