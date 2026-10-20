@@ -37,6 +37,23 @@ begin
     raise exception 'restore manifest is missing the required pgcrypto digest function';
   end if;
 
+  -- Existing databases can be backed up before the optional SMS preparation
+  -- migration. Once present, its complete private storage/RPC boundary must
+  -- survive the restore; the generic manifest below includes all three tables.
+  if (pg_catalog.to_regclass('public.sms_outbox') is not null
+      or pg_catalog.to_regclass('public.sms_delivery_policy') is not null
+      or pg_catalog.to_regclass('public.sms_delivery_attempts') is not null) and (
+    pg_catalog.to_regclass('public.sms_outbox') is null
+    or pg_catalog.to_regclass('public.sms_delivery_policy') is null
+    or pg_catalog.to_regclass('public.sms_delivery_attempts') is null
+    or pg_catalog.to_regprocedure('public.enqueue_request_receipt_sms()') is null
+    or pg_catalog.to_regprocedure('public.claim_sms_notifications(text,integer,uuid)') is null
+    or pg_catalog.to_regprocedure('public.authorize_sms_attempt(uuid,integer,uuid)') is null
+    or pg_catalog.to_regprocedure('public.complete_sms_notification(uuid,integer,uuid,text,text,integer)') is null
+  ) then
+    raise exception 'restore manifest has incomplete SMS infrastructure';
+  end if;
+
   if exists (
     select required.name
       from (

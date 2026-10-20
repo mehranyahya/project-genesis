@@ -1,6 +1,7 @@
 import { verifyRecoveryCronRequest } from "../_shared/cron-auth.ts";
 import { readSupabaseServerConfig } from "../_shared/supabase-rest.ts";
 import { processTelegramRecoveryBatch } from "../_shared/telegram-delivery.ts";
+import { processSmsRecoveryBatch } from "../_shared/sms-delivery.ts";
 
 function jsonResponse(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -23,12 +24,29 @@ Deno.serve(async (request: Request) => {
     }
     if (auth.kind !== "ok") return jsonResponse({ code: "AUTH_INVALID" }, 401);
 
-    const result = await processTelegramRecoveryBatch(supabase);
-    if (result.failedToComplete > 0) {
+    // Keep the existing signed, replay-protected hourly entry point. Each
+    // channel runs even if the other fails; SMS has its own durable queue.
+    const [telegram, sms] = await Promise.allSettled([
+      processTelegramRecoveryBatch(supabase),
+      processSmsRecoveryBatch(supabase),
+    ]);
+    if (
+      telegram.status === "rejected" ||
+      sms.status === "rejected" ||
+      telegram.value.failedToComplete > 0 ||
+      sms.value.completionFailures > 0 ||
+      sms.value.state === "unconfigured"
+    ) {
       return jsonResponse({ code: "TEMPORARILY_UNAVAILABLE" }, 503);
     }
+    const result = telegram.value;
     return jsonResponse(
-      { code: "RECOVERY_COMPLETED", claimed: result.claimed, completed: result.completed },
+      {
+        code: "RECOVERY_COMPLETED",
+        claimed: result.claimed,
+        completed: result.completed,
+        sms: sms.value,
+      },
       200,
     );
   } catch {
